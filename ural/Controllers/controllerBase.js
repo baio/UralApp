@@ -4,7 +4,9 @@
     var ControllerBase;
     ControllerBase = (function() {
 
-      function ControllerBase() {}
+      function ControllerBase() {
+        this.viewDir = _u.getClassName(this);
+      }
 
       ControllerBase.prototype.index = function() {};
 

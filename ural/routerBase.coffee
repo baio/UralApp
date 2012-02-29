@@ -8,7 +8,7 @@ define ->
     startRouting: (OnRouteChanged) ->
       @onRouteChanged = OnRouteChanged
       window.location.hash = window.location.hash or @defaultRoute
-      setInterval (=> @hashCheck), 100
+      setInterval (=> @hashCheck()), 100
 
     hashCheck: ->
       if window.location.hash != @currentHash
@@ -17,8 +17,8 @@ define ->
         if (@onRouteChanged) then @onRouteChanged @currentHash
 
     refresh: ->
-      regexp = new RegExp "#/(\\w+)/(\\w+)/?(\\w+)?"
-      match = currentHash.match regexp
+      regexp = new RegExp "#/?(\\w+)/(\\w+)/?(\\w+)?"
+      match = @currentHash.match regexp
       controllerName = match[1]
       actionName = match[2]
       index = match[3]

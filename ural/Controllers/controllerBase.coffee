@@ -1,6 +1,8 @@
 define ->
 
   class ControllerBase
+    constructor: ->
+      @viewDir = _u.getClassName @
 
     index: ->
 

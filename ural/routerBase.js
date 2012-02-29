@@ -16,7 +16,7 @@
         this.onRouteChanged = OnRouteChanged;
         window.location.hash = window.location.hash || this.defaultRoute;
         return setInterval((function() {
-          return _this.hashCheck;
+          return _this.hashCheck();
         }), 100);
       };
 
@@ -30,8 +30,8 @@
 
       RouterBase.prototype.refresh = function() {
         var actionName, controllerName, index, match, regexp;
-        regexp = new RegExp("#/(\\w+)/(\\w+)/?(\\w+)?");
-        match = currentHash.match(regexp);
+        regexp = new RegExp("#/?(\\w+)/(\\w+)/?(\\w+)?");
+        match = this.currentHash.match(regexp);
         controllerName = match[1];
         actionName = match[2];
         index = match[3];
