@@ -1,6 +1,9 @@
 (function() {
+  var libs;
 
-  require(["Libs/jquery", "utils"], function() {
+  libs = ["Libs/jquery", "utils"];
+
+  require(libs, function() {
     require.config({
       baseUrl: "."
     });

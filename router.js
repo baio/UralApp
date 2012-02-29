@@ -9,7 +9,7 @@
       __extends(Router, _super);
 
       function Router() {
-        Router.__super__.constructor.call(this, "Controllers", "Product/Index");
+        Router.__super__.constructor.call(this, "Controllers", "Product/index");
       }
 
       return Router;

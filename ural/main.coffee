@@ -1,4 +1,7 @@
-require ["Libs/jquery", "utils"], ->
+libs = [
+  "Libs/jquery", "utils"
+]
+require libs, ->
   require.config
     baseUrl: "."
   require ["router"], (router) ->
