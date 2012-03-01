@@ -13,7 +13,7 @@
       }
 
       ProductController.prototype.index = function() {
-        return this.view(null, "Index");
+        return this.view(null, "index");
       };
 
       return ProductController;

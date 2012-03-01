@@ -1,5 +1,5 @@
 libs = [
-  "Libs/jquery", "utils", "async"
+  "Libs/jquery", "Libs/async", "utils"
 ]
 require libs, ->
   require.config
