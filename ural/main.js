@@ -1,7 +1,7 @@
 (function() {
   var libs;
 
-  libs = ["Libs/jquery", "utils"];
+  libs = ["Libs/jquery", "utils", "async"];
 
   require(libs, function() {
     require.config({

@@ -9,8 +9,12 @@
       __extends(ProductController, _super);
 
       function ProductController() {
-        ProductController.__super__.constructor.call(this);
+        ProductController.__super__.constructor.apply(this, arguments);
       }
+
+      ProductController.prototype.index = function() {
+        return this.view(null, "Index");
+      };
 
       return ProductController;
 
