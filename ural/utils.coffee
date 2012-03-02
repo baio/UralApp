@@ -4,11 +4,6 @@ class Utils
     if typeof obj != "object" or obj == null then return false
     /(\w+)\(/.exec(obj.constructor.toString())[1]
 
-  toHashTable: (array) ->
-    for i in array
-      hashtable[getKey i, 0] = hashtable[getKey i, 1]
-    hashtable
-
   getKey: (hashtable, index) ->
     cnt = 0
     for own key of hashtable
@@ -17,9 +12,15 @@ class Utils
     null
 
   firstKey: (hashtable) ->
-    getKey hashtable, 0
+    @getKey hashtable, 0
 
   first: (hashtable) ->
-    hashtable[firstKey(hashtable)]
+    hashtable[@firstKey(hashtable)]
+
+  toHashTable: (array) ->
+    hashtable = []
+    for i in array
+      hashtable[i[@getKey i, 0]] = i[@getKey i, 1]
+    hashtable
 
 @_u = new Utils()

@@ -6,12 +6,12 @@ define ->
       @defaultDataProviderName = _u.firstKey @_dataProviders
 
     onCreateDataProviders: ->
-      odataProvider = require "Ural/Modules/ODataProvider"
-      webSqlProvider = require "Ural/Modules/WebSqlProvider"
+      odataProvider = require ["Ural/Modules/ODataProvider"]
+      webSqlProvider = require ["Ural/Modules/WebSqlProvider"]
 
       [
-        name : "odata", provider : odataProvider
-        name : "websql", provider : webSqlProvider
+        { name : "odata", provider : odataProvider }
+        { name : "websql", provider : webSqlProvider }
       ]
 
     getDataProvider: (name) ->
