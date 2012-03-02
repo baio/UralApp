@@ -2,10 +2,17 @@
 
   define(function() {
     var ControllerBase;
-    if (window._t) window._t["controllerBase"] = ControllerBase;
     ControllerBase = (function() {
 
       function ControllerBase() {}
+
+      ControllerBase.prototype.construcor = function() {
+        return this.dataProvider = this.onCreateDataProvider();
+      };
+
+      ControllerBase.prototype.onCreateDataProvider = function() {
+        return this.dataProvider = require("Ural/Modules/ODataProvider");
+      };
 
       ControllerBase.prototype.index = function() {
         return this.view(null, "index");

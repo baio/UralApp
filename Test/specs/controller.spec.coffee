@@ -4,7 +4,7 @@ describe "ControllerBase test", ->
       runs -> require ["Ural/Controllers/controllerBase"], (cb) -> controllerBase = cb
       waits 500
       runs ->
-        expect(controllerBase).toBeDefined()
+        expect(controllerBase).toBeTruthy()
         class TestController extends controllerBase.ControllerBase
         controller = new TestController()
 
@@ -20,7 +20,7 @@ describe "ControllerBase test", ->
       runs -> require ["Ural/Controllers/controllerBase"], (cb) -> controllerBase = cb
       waits 500
       runs ->
-        expect(controllerBase).toBeDefined()
+        expect(controllerBase).toBeTruthy()
         class TestController extends controllerBase.ControllerBase
         controller = new TestController()
         controller.index null, "Index",

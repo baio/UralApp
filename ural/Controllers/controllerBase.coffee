@@ -1,8 +1,11 @@
 define ->
 
-  if (window._t) then window._t["controllerBase"] = ControllerBase
-
   class ControllerBase
+    construcor: ->
+      @dataProvider = @onCreateDataProvider()
+
+    onCreateDataProvider: ->
+      @dataProvider = require "Ural/Modules/ODataProvider"
 
     index: ->
       @view null, "index"

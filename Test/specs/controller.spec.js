@@ -14,7 +14,7 @@
       waits(500);
       return runs(function() {
         var TestController, controller, path;
-        expect(controllerBase).toBeDefined();
+        expect(controllerBase).toBeTruthy();
         TestController = (function(_super) {
 
           __extends(TestController, _super);
@@ -46,7 +46,7 @@
       waits(500);
       runs(function() {
         var TestController, controller;
-        expect(controllerBase).toBeDefined();
+        expect(controllerBase).toBeTruthy();
         TestController = (function(_super) {
 
           __extends(TestController, _super);
