@@ -4,14 +4,28 @@
     var ControllerBase;
     ControllerBase = (function() {
 
-      function ControllerBase() {}
+      function ControllerBase() {
+        this._dataProviders = _u.toHashTable(this.onCreateDataProviders());
+        this.defaultDataProviderName = _u.firstKey(this._dataProviders);
+      }
 
-      ControllerBase.prototype.construcor = function() {
-        return this.dataProvider = this.onCreateDataProvider();
+      ControllerBase.prototype.onCreateDataProviders = function() {
+        var odataProvider, webSqlProvider;
+        odataProvider = require("Ural/Modules/ODataProvider");
+        webSqlProvider = require("Ural/Modules/WebSqlProvider");
+        return [
+          {
+            name: "odata",
+            provider: odataProvider,
+            name: "websql",
+            provider: webSqlProvider
+          }
+        ];
       };
 
-      ControllerBase.prototype.onCreateDataProvider = function() {
-        return this.dataProvider = require("Ural/Modules/ODataProvider");
+      ControllerBase.prototype.getDataProvider = function(name) {
+        if (name == null) name = this.defaultDataProviderName;
+        return this._dataProviders[name];
       };
 
       ControllerBase.prototype.index = function() {

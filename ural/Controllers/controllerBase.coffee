@@ -1,11 +1,22 @@
 define ->
 
   class ControllerBase
-    construcor: ->
-      @dataProvider = @onCreateDataProvider()
+    constructor: ->
+      @_dataProviders = _u.toHashTable @onCreateDataProviders()
+      @defaultDataProviderName = _u.firstKey @_dataProviders
 
-    onCreateDataProvider: ->
-      @dataProvider = require "Ural/Modules/ODataProvider"
+    onCreateDataProviders: ->
+      odataProvider = require "Ural/Modules/ODataProvider"
+      webSqlProvider = require "Ural/Modules/WebSqlProvider"
+
+      [
+        name : "odata", provider : odataProvider
+        name : "websql", provider : webSqlProvider
+      ]
+
+    getDataProvider: (name) ->
+      name ?= @defaultDataProviderName
+      @_dataProviders[name]
 
     index: ->
       @view null, "index"
