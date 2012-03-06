@@ -29,8 +29,27 @@ describe "WebSql provider statements", ->
       it "plain without any filter", ->
         runs ->
           expect(dataProvider).toBeTruthy()
-          actual = dataProvider._getSatement "Product", null
+          actual = dataProvider._getStatement "Product", null
           expect(actual).toBe "SELECT * FROM Product"
+
+      it "id = 0", ->
+        runs ->
+          expect(dataProvider).toBeTruthy()
+          actual = dataProvider._getStatement "Product", id : {$eq : 0 }
+          expect(actual).toBe "SELECT * FROM Product WHERE id = 0"
+
+      it "id in (...)", ->
+        runs ->
+          expect(dataProvider).toBeTruthy()
+          actual = dataProvider._getStatement "Product", id : {$in : [0,1,3] }
+          expect(actual).toBe "SELECT * FROM Product WHERE id IN (0,1,3)"
+
+      it "id = 0 and name LIKE(...) OFFSET LIMIT", ->
+        runs ->
+          expect(dataProvider).toBeTruthy()
+          actual = dataProvider._getStatement "Product", id : { $eq : 0}, name : {$like : 'r'}, $page : 5, $itemsPerPage : 7
+          expect(actual).toBe "SELECT * FROM Product WHERE id = 0 AND name LIKE 'r' LIMIT 7 OFFSET 35"
+
           ###
           actual = dataProvider._getSatement "Product", id : {$eq : 0 }
           expect(actual).toBe "SELECT * FROM Product WHERE id = 0"

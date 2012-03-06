@@ -37,12 +37,53 @@
       });
       return waits(500);
     });
-    return it("plain without any filter", function() {
+    it("plain without any filter", function() {
       return runs(function() {
         var actual;
         expect(dataProvider).toBeTruthy();
-        actual = dataProvider._getSatement("Product", null);
+        actual = dataProvider._getStatement("Product", null);
         return expect(actual).toBe("SELECT * FROM Product");
+      });
+    });
+    it("id = 0", function() {
+      return runs(function() {
+        var actual;
+        expect(dataProvider).toBeTruthy();
+        actual = dataProvider._getStatement("Product", {
+          id: {
+            $eq: 0
+          }
+        });
+        return expect(actual).toBe("SELECT * FROM Product WHERE id = 0");
+      });
+    });
+    it("id in (...)", function() {
+      return runs(function() {
+        var actual;
+        expect(dataProvider).toBeTruthy();
+        actual = dataProvider._getStatement("Product", {
+          id: {
+            $in: [0, 1, 3]
+          }
+        });
+        return expect(actual).toBe("SELECT * FROM Product WHERE id IN (0,1,3)");
+      });
+    });
+    return it("id = 0 and name LIKE(...) OFFSET LIMIT", function() {
+      return runs(function() {
+        var actual;
+        expect(dataProvider).toBeTruthy();
+        actual = dataProvider._getStatement("Product", {
+          id: {
+            $eq: 0
+          },
+          name: {
+            $like: 'r'
+          },
+          $page: 5,
+          $itemsPerPage: 7
+        });
+        return expect(actual).toBe("SELECT * FROM Product WHERE id = 0 AND name LIKE 'r' LIMIT 7 OFFSET 35");
         /*
                   actual = dataProvider._getSatement "Product", id : {$eq : 0 }
                   expect(actual).toBe "SELECT * FROM Product WHERE id = 0"
