@@ -1,10 +1,11 @@
 define ["Ural/Modules/WebSqlFilter"], (fr) ->
-
+    
   class WebSqlProvider
-
+    @dbName: -> 'UralApp'
     load: (srcName, filter, callback) ->
         stt = @_getStatement srcName, filter
-        db = openDatabase 'test', '1.0', 'spec database', 2 * 1024 * 1024
+        console.log stt
+        db = openDatabase WebSqlProvider.dbName(), '1.0', 'spec database', 2 * 1024 * 1024
         db.transaction (tx) ->
             res = []
             tx.executeSql stt, [], (tx, results) ->

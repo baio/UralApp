@@ -4,13 +4,13 @@
     dataProvider = webSqlDataProvider.dataProvider;
     beforeEach(function() {
       var db;
-      db = openDatabase('test', '1.0', 'spec database', 2 * 1024 * 1024);
+      db = openDatabase('UralApp', '1.0', 'spec database', 2 * 1024 * 1024);
       return db.transaction(function(tx) {
         tx.executeSql("CREATE TABLE IF NOT EXISTS Product (id unique, name)");
         tx.executeSql("INSERT INTO Product (id, name) VALUES (0, 'zero')");
         tx.executeSql("INSERT INTO Product (id, name) VALUES (1, 'one')");
         tx.executeSql("INSERT INTO Product (id, name) VALUES (2, 'two')");
-        tx.executeSql("INSERT INTO Product (id, name) VALUES (3, 'free')");
+        tx.executeSql("INSERT INTO Product (id, name) VALUES (3, 'three')");
         return tx.executeSql("INSERT INTO Product (id, name) VALUES (4, 'four')");
       });
     });
@@ -61,13 +61,13 @@
           $page: 5,
           $itemsPerPage: 7
         });
-        return expect(actual).toBe("SELECT * FROM Product WHERE id = 0 AND name LIKE 'r' LIMIT 7 OFFSET 35");
+        return expect(actual).toBe("SELECT * FROM Product WHERE id = 0 AND name LIKE '%r%' LIMIT 7 OFFSET 35");
       });
     });
     return describe("load data via WebSql provider", function() {
       var data;
       data = null;
-      return it("empty filter", function() {
+      it("empty filter", function() {
         runs(function() {
           return dataProvider.load("Product", null, function(d) {
             return data = d;
@@ -82,6 +82,64 @@
           expect(data[1].name).toBe("one");
           expect(data[4].id).toBe(4);
           return expect(data[4].name).toBe("four");
+        });
+      });
+      it("id = 0", function() {
+        runs(function() {
+          return dataProvider.load("Product", {
+            id: {
+              $eq: 0
+            }
+          }, function(d) {
+            return data = d;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(data.length).toBe(1);
+          expect(data[0].id).toBe(0);
+          return expect(data[0].name).toBe("zero");
+        });
+      });
+      it("id in (...)", function() {
+        runs(function() {
+          return dataProvider.load("Product", {
+            id: {
+              $in: [0, 1, 3]
+            }
+          }, function(d) {
+            return data = d;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(data.length).toBe(3);
+          expect(data[0].id).toBe(0);
+          expect(data[0].name).toBe("zero");
+          expect(data[1].id).toBe(1);
+          expect(data[1].name).toBe("one");
+          expect(data[2].id).toBe(3);
+          return expect(data[2].name).toBe("free");
+        });
+      });
+      return it("id = 0 and name LIKE(...) OFFSET LIMIT", function() {
+        runs(function() {
+          return dataProvider.load("Product", {
+            id: {
+              $eq: 0
+            },
+            name: {
+              $like: 'r'
+            }
+          }, function(d) {
+            return data = d;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(data.length).toBe(1);
+          expect(data[0].id).toBe(0);
+          return expect(data[0].name).toBe("zero");
         });
       });
     });

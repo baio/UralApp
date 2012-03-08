@@ -3,7 +3,7 @@ define ->
   _convertToken = (fieldName, tokenName, val) ->
     switch tokenName
       when "$eq" then "#{fieldName} = #{val}"
-      when "$like" then "#{fieldName} LIKE '#{val}'"
+      when "$like" then "#{fieldName} LIKE '%#{val}%'"
       when "$in" then "#{fieldName} IN (#{val.toString()})"
       else throw "can't convert token expression { #{fieldName} : { #{tokenName} : #{field} }}"
 

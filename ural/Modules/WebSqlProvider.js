@@ -3,10 +3,14 @@
     var WebSqlProvider;
     WebSqlProvider = (function() {
       function WebSqlProvider() {}
+      WebSqlProvider.dbName = function() {
+        return 'UralApp';
+      };
       WebSqlProvider.prototype.load = function(srcName, filter, callback) {
         var db, stt;
         stt = this._getStatement(srcName, filter);
-        db = openDatabase('test', '1.0', 'spec database', 2 * 1024 * 1024);
+        console.log(stt);
+        db = openDatabase(WebSqlProvider.dbName(), '1.0', 'spec database', 2 * 1024 * 1024);
         return db.transaction(function(tx) {
           var res;
           res = [];

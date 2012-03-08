@@ -1,16 +1,18 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
-
   define(function() {
     var convert, _convertField, _convertToken;
     _convertToken = function(fieldName, tokenName, val) {
       switch (tokenName) {
         case "$eq":
           return "" + fieldName + " = " + val;
+          break;
         case "$like":
-          return "" + fieldName + " LIKE '" + val + "'";
+          return "" + fieldName + " LIKE '%" + val + "%'";
+          break;
         case "$in":
           return "" + fieldName + " IN (" + (val.toString()) + ")";
+          break;
         default:
           throw "can't convert token expression { " + fieldName + " : { " + tokenName + " : " + field + " }}";
       }
@@ -36,7 +38,7 @@
         @param {Object} [options] structure to convert
         @return converted structure {$skip, $top, $filter}
         @api public
-    */
+      */
     convert = function(frameworkFilter) {
       var field, fieldFilters, itemsPerPage, page, res;
       fieldFilters = [];
@@ -54,7 +56,11 @@
         $filter: fieldFilters.join(" AND ")
       };
       if (page) {
-        if (itemsPerPage == null) itemsPerPage = 10;
+                if (itemsPerPage != null) {
+          itemsPerPage;
+        } else {
+          itemsPerPage = 10;
+        };
         res.$top = itemsPerPage;
         res.$skip = page * itemsPerPage;
       }
@@ -64,5 +70,4 @@
       convert: convert
     };
   });
-
 }).call(this);
