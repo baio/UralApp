@@ -3,7 +3,22 @@
     var WebSqlProvider;
     WebSqlProvider = (function() {
       function WebSqlProvider() {}
-      WebSqlProvider.prototype.load = function(srcName, filter, callback) {};
+      WebSqlProvider.prototype.load = function(srcName, filter, callback) {
+        var db, stt;
+        stt = this._getStatement(srcName, filter);
+        db = openDatabase('test', '1.0', 'spec database', 2 * 1024 * 1024);
+        return db.transaction(function(tx) {
+          var res;
+          res = [];
+          return tx.executeSql(stt, [], function(tx, results) {
+            var i, _ref;
+            for (i = 0, _ref = results.rows.length - 1; 0 <= _ref ? i <= _ref : i >= _ref; 0 <= _ref ? i++ : i--) {
+              res.push(results.rows.item(i));
+            }
+            return callback(res);
+          });
+        });
+      };
       WebSqlProvider.prototype._getStatement = function(srcName, filter) {
         return this._getSatementByWebSqlFilter(srcName, fr.convert(filter));
       };

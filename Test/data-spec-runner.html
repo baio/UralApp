@@ -17,39 +17,44 @@
     <script type="text/javascript" src="../Ural/Libs/async.js"></script>
 
     <!-- include spec files here... -->
+    <!--
     <script type="text/javascript" src="specs/helper.spec.js"></script>
     <script type="text/javascript" src="specs/filter.spec.js"></script>
     <script type="text/javascript" src="specs/data.spec.js"></script>
-
+    -->
 
     <script type="text/javascript">
         (function() {
             require.config({
                 baseUrl: '../..'
             });
-            var jasmineEnv = jasmine.getEnv();
-            jasmineEnv.updateInterval = 1000;
 
-            var trivialReporter = new jasmine.TrivialReporter();
+            require(["./Test/specs/data.spec"], function(){
+                var jasmineEnv = jasmine.getEnv();
+                jasmineEnv.updateInterval = 1000;
 
-            jasmineEnv.addReporter(trivialReporter);
+                var trivialReporter = new jasmine.TrivialReporter();
 
-            jasmineEnv.specFilter = function(spec) {
-                return trivialReporter.specFilter(spec);
-            };
+                jasmineEnv.addReporter(trivialReporter);
 
-            var currentWindowOnload = window.onload;
+                jasmineEnv.specFilter = function(spec) {
+                    return trivialReporter.specFilter(spec);
+                };
 
-            window.onload = function() {
-                if (currentWindowOnload) {
-                    currentWindowOnload();
+
+                var currentWindowOnload = window.onload;
+
+                window.onload = function() {
+                    if (currentWindowOnload) {
+                        currentWindowOnload();
+                    }
+                    execJasmine();
+                };
+
+                function execJasmine() {
+                    jasmineEnv.execute();
                 }
-                execJasmine();
-            };
-
-            function execJasmine() {
-                jasmineEnv.execute();
-            }
+            });
 
         })();
     </script>
