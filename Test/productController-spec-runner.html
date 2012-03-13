@@ -15,7 +15,9 @@
     <script type="text/javascript" src="../Ural/utils.js"></script>
     <script type="text/javascript" src="../Ural/Libs/jquery.js"></script>
     <script type="text/javascript" src="../Ural/Libs/async.js"></script>
+    <script type="text/javascript" src="../Ural/Libs/knockout.js"></script>
 
+    <!--<script type="text/javascript" src="Libs/jquery.tmpl.js"></script>-->
     <!-- include spec files here... -->
     <!--
     <script type="text/javascript" src="specs/helper.spec.js"></script>
@@ -29,11 +31,7 @@
                 baseUrl: '../..'
             });
 
-            require(["./Test/specs/odata.data.spec"
-                ,"./Test/specs/odata.filter.spec"
-                ,"./Test/specs/webSql.filter.spec"
-                , "./Test/specs/webSql.data.spec"
-            ], function(){
+            require(["./Test/specs/productController.spec"], function(){
                 var jasmineEnv = jasmine.getEnv();
                 jasmineEnv.updateInterval = 1000;
 
@@ -44,7 +42,6 @@
                 jasmineEnv.specFilter = function(spec) {
                     return trivialReporter.specFilter(spec);
                 };
-
 
                 var currentWindowOnload = window.onload;
 
@@ -64,7 +61,9 @@
     </script>
 
 </head>
-
 <body>
+<div>
+    <div id="_layout">test</div>
+</div>
 </body>
 </html>

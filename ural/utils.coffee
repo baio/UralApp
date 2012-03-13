@@ -23,4 +23,13 @@ class Utils
       hashtable[i[@getKey i, 0]] = i[@getKey i, 1]
     hashtable
 
+  urlAddSearch: (baseUrl, prms) ->
+    url = arguments[0]
+    if !url then throw "baseUrl must be defined"
+    for i in [1..arguments.length - 1]
+      if arguments[i]
+        if url.indexOf("?") == -1 then url += "?" else url += "&"
+        url += arguments[i]
+    url
+
 @_u = new Utils()

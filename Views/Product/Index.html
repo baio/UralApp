@@ -1,1 +1,9 @@
 <span>_index</span>
+<table id="model_container" data-bind="template: {name:'productTemplate', foreach: $root}">
+</table>
+<script type="text/x-jquery-tmpl" id="productTemplate">
+    <tr>
+        <td data-bind="text: id"></td>
+        <td data-bind="text: name"></td>
+    </tr>
+</script>

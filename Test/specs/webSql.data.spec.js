@@ -1,4 +1,5 @@
 (function() {
+
   define(["Ural/Modules/WebSqlProvider"], function(webSqlDataProvider) {
     var dataProvider;
     dataProvider = webSqlDataProvider.dataProvider;
@@ -69,7 +70,7 @@
       data = null;
       it("empty filter", function() {
         runs(function() {
-          return dataProvider.load("Product", null, function(d) {
+          return dataProvider.load("Product", null, function(err, d) {
             return data = d;
           });
         });
@@ -90,7 +91,7 @@
             id: {
               $eq: 0
             }
-          }, function(d) {
+          }, function(err, d) {
             return data = d;
           });
         });
@@ -107,7 +108,7 @@
             id: {
               $in: [0, 1, 3]
             }
-          }, function(d) {
+          }, function(err, d) {
             return data = d;
           });
         });
@@ -119,7 +120,7 @@
           expect(data[1].id).toBe(1);
           expect(data[1].name).toBe("one");
           expect(data[2].id).toBe(3);
-          return expect(data[2].name).toBe("free");
+          return expect(data[2].name).toBe("three");
         });
       });
       return it("id = 0 and name LIKE(...) OFFSET LIMIT", function() {
@@ -131,7 +132,7 @@
             name: {
               $like: 'r'
             }
-          }, function(d) {
+          }, function(err, d) {
             return data = d;
           });
         });
@@ -144,4 +145,5 @@
       });
     });
   });
+
 }).call(this);

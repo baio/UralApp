@@ -1,31 +1,30 @@
-define ->
+define ["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider"], (odataProvider, webSqlProvider) ->
 
   class ControllerBase
-    constructor: ->
+    constructor: (@modelName)->
+      @modelName ?= @_getControllerName()
       @_dataProviders = _u.toHashTable @onCreateDataProviders()
       @defaultDataProviderName = _u.firstKey @_dataProviders
 
     onCreateDataProviders: ->
-      odataProvider = require ["Ural/Modules/ODataProvider"]
-      webSqlProvider = require ["Ural/Modules/WebSqlProvider"]
-
       [
-        { name : "odata", provider : odataProvider }
-        { name : "websql", provider : webSqlProvider }
+        { name : "odata", provider : odataProvider.dataProvider }
+        { name : "websql", provider :  webSqlProvider.dataProvider }
       ]
 
     getDataProvider: (name) ->
       name ?= @defaultDataProviderName
       @_dataProviders[name]
 
-    index: ->
-      @view null, "index"
+    index: (filter, onDone)->
+      @getDataProvider().load @modelName, filter, (err, data) =>
+        @view data, "index", null, onDone
 
     details: (id) ->
 
     edit: (id) ->
 
-    view: (model, viewPath, layoutViewPath) ->
+    view: (model, viewPath, layoutViewPath, onDone) ->
       lvp = @_prepareViewPath layoutViewPath, "Shared/_layout"
       bvp = @_prepareViewPath viewPath
 
@@ -40,8 +39,9 @@ define ->
           $("#_layout").empty()
           $("#_layout").append layoutHtml
           $("#_body").append bodyHtml
+          ko.applyBindings model
           ck()
-      ]
+      ], (err) -> if onDone then onDone err
 
     _prepareViewPath: (path, defPath) ->
       path ?= defPath
@@ -50,12 +50,14 @@ define ->
           path += ".html"
         if !path.match /^Views\/.*/
           if !path.match /.*\/.*/
-            controllerName = _u.getClassName(@).replace /^(\w*)Controller$/, "$1"
+            controllerName = @_getControllerName()
             "Views/#{controllerName}/#{path}"
           else
             "Views/#{path}"
         else
           path
+
+    _getControllerName: -> _u.getClassName(@).replace /^(\w*)Controller$/, "$1"
 
   ControllerBase : ControllerBase
 

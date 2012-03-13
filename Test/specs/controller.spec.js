@@ -35,7 +35,7 @@
         return expect(path).toBe("Views/Test/Index.html");
       });
     });
-    return it("load views", function() {
+    return it("load views (without model)", function() {
       var controllerBase;
       controllerBase = null;
       runs(function() {
@@ -59,7 +59,7 @@
 
         })(controllerBase.ControllerBase);
         controller = new TestController();
-        return controller.index(null, "Index");
+        return controller.view(null, "Index");
       });
       waits(500);
       return runs(function() {

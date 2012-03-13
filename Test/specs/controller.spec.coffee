@@ -15,7 +15,7 @@ describe "ControllerBase test", ->
         path = controller._prepareViewPath null, "Index"
         expect(path).toBe "Views/Test/Index.html"
 
-    it "load views", ->
+    it "load views (without model)", ->
       controllerBase = null
       runs -> require ["Ural/Controllers/controllerBase"], (cb) -> controllerBase = cb
       waits 500
@@ -23,7 +23,7 @@ describe "ControllerBase test", ->
         expect(controllerBase).toBeTruthy()
         class TestController extends controllerBase.ControllerBase
         controller = new TestController()
-        controller.index null, "Index",
+        controller.view null, "Index",
       waits 500
       runs ->
         expect($("#_body").text().trim()).toEqual "_body"

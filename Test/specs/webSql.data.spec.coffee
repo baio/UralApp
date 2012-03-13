@@ -52,7 +52,7 @@ define ["Ural/Modules/WebSqlProvider"], (webSqlDataProvider) ->
       data = null
       it "empty filter", ->
           runs ->
-            dataProvider.load "Product", null, (d) -> data = d
+            dataProvider.load "Product", null, (err, d) -> data = d
           waits 500
           runs ->
             expect(data.length).toBe 5
@@ -64,7 +64,7 @@ define ["Ural/Modules/WebSqlProvider"], (webSqlDataProvider) ->
             expect(data[4].name).toBe "four"
       it "id = 0", ->
             runs ->
-              dataProvider.load "Product", id : {$eq : 0}, (d) -> data = d
+              dataProvider.load "Product", id : {$eq : 0}, (err, d) -> data = d
             waits 500
             runs ->
               expect(data.length).toBe 1
@@ -72,7 +72,7 @@ define ["Ural/Modules/WebSqlProvider"], (webSqlDataProvider) ->
               expect(data[0].name).toBe "zero"
       it "id in (...)", ->
             runs ->
-              dataProvider.load "Product", id : {$in : [0,1,3] }, (d) -> data = d
+              dataProvider.load "Product", id : {$in : [0,1,3] }, (err, d) -> data = d
             waits 500
             runs ->
               expect(data.length).toBe 3
@@ -81,10 +81,10 @@ define ["Ural/Modules/WebSqlProvider"], (webSqlDataProvider) ->
               expect(data[1].id).toBe 1
               expect(data[1].name).toBe "one"
               expect(data[2].id).toBe 3
-              expect(data[2].name).toBe "free"
+              expect(data[2].name).toBe "three"
       it "id = 0 and name LIKE(...) OFFSET LIMIT", ->
             runs ->
-              dataProvider.load "Product", id : { $eq : 0}, name : {$like : 'r'}, (d) -> data = d
+              dataProvider.load "Product", id : { $eq : 0}, name : {$like : 'r'}, (err, d) -> data = d
             waits 500
             runs ->
               expect(data.length).toBe 1

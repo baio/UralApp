@@ -9,11 +9,15 @@
       __extends(ProductController, _super);
 
       function ProductController() {
-        ProductController.__super__.constructor.apply(this, arguments);
+        ProductController.__super__.constructor.call(this, "Product");
       }
 
-      ProductController.prototype.index = function() {
-        return this.view(null, "index");
+      ProductController.prototype.indexCustom = function(onDone) {
+        var _this = this;
+        return this.getDataProvider().load("Product", null, function(err, data) {
+          _this.view(data, "index");
+          if (onDone) return onDone(err);
+        });
       };
 
       return ProductController;

@@ -8,7 +8,7 @@
         case "$eq":
           return "" + fieldName + " eq " + val;
         case "$like":
-          return "indexOf(" + fieldName + ", '" + val + "') != -1";
+          return "indexof(" + fieldName + ", '" + val + "') ne -1";
         case "$in":
           return "(" + ((val.map(function(x) {
             return "" + fieldName + " eq " + x;
