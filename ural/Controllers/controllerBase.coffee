@@ -1,4 +1,7 @@
-define ["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider"], (odataProvider, webSqlProvider) ->
+define ["Ural/Modules/ODataProvider"
+  , "Ural/Modules/WebSqlProvider"
+  , "Ural/Models/indexVM"
+], (odataProvider, webSqlProvider, indexVM) ->
 
   class ControllerBase
     constructor: (@modelName)->
@@ -18,13 +21,13 @@ define ["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider"], (odataProv
 
     index: (filter, onDone)->
       @getDataProvider().load @modelName, filter, (err, data) =>
-        @view data, "index", null, onDone
+        @view new indexVM.IndexVM(data), "index", null, onDone
 
     details: (id) ->
 
     edit: (id) ->
 
-    view: (model, viewPath, layoutViewPath, onDone) ->
+    view: (viewModel, viewPath, layoutViewPath, onDone) ->
       lvp = @_prepareViewPath layoutViewPath, "Shared/_layout"
       bvp = @_prepareViewPath viewPath
 
@@ -39,7 +42,7 @@ define ["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider"], (odataProv
           $("#_layout").empty()
           $("#_layout").append layoutHtml
           $("#_body").append bodyHtml
-          ko.applyBindings model
+          ko.applyBindings viewModel
           ck()
       ], (err) -> if onDone then onDone err
 

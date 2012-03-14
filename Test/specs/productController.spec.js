@@ -3,8 +3,9 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   define(["Controllers/productController", "Ural/Controllers/controllerBase"], function(productController, controllerBase) {
-    return describe("play with index views", function() {
-      it("indexCustom, load model then show view", function() {
+    describe("play with index views, load model then show view", function() {
+      afterEach(function() {});
+      it("indexCustom", function() {
         var controller, err;
         controller = new productController.ProductController();
         err = null;
@@ -22,7 +23,27 @@
           return expect($("table#model_container td:eq(11)").text()).toBe("five");
         });
       });
-      it("index, ini model name explicitly via constructor, load model then show view", function() {
+      it("indexCustom with custom model", function() {
+        var controller, err;
+        controller = new productController.ProductController();
+        err = null;
+        runs(function() {
+          return controller.indexCustomWithCustomModel(function(e) {
+            return err = e;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(err).toBeFalsy();
+          expect($("table#model_container td:eq(0)").text()).toBe("0");
+          expect($("table#model_container td:eq(1)").text()).toBe("zerofoo");
+          expect($("table#model_container td:eq(2)").text()).toBe("0 zerofoo");
+          expect($("table#model_container td:eq(15)").text()).toBe("5");
+          expect($("table#model_container td:eq(16)").text()).toBe("fivefoo");
+          return expect($("table#model_container td:eq(17)").text()).toBe("5 fivefoo");
+        });
+      });
+      it("index, ini model name explicitly via constructor", function() {
         var controller, err;
         controller = new productController.ProductController();
         err = null;
@@ -40,7 +61,7 @@
           return expect($("table#model_container td:eq(11)").text()).toBe("five");
         });
       });
-      return it("index, ini model name implicitly via class name, load model then show view", function() {
+      return it("index, ini model name implicitly via class name", function() {
         var ProductController, controller, err;
         ProductController = (function(_super) {
 
@@ -69,6 +90,20 @@
           return expect($("table#model_container td:eq(11)").text()).toBe("five");
         });
       });
+    });
+    return describe("edit index view's items", function() {
+      beforeEach(function() {
+        var controller;
+        controller = new productController.ProductController();
+        runs(function() {
+          return controller.index();
+        });
+        return waits(500);
+      });
+      afterEach(function() {
+        return $("#_body").empty();
+      });
+      return it("show edit for first item", function() {});
     });
   });
 

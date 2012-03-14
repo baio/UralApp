@@ -1,9 +1,12 @@
 <span>_index</span>
-<table id="model_container" data-bind="template: {name:'productTemplate', foreach: $root}">
+<table id="model_container" data-bind="template: {name:'productTemplate', foreach: model}">
 </table>
 <script type="text/x-jquery-tmpl" id="productTemplate">
     <tr>
         <td data-bind="text: id"></td>
         <td data-bind="text: name"></td>
+        <!-- ko if: $data.hasOwnProperty("comp") -->
+            <td data-bind="text: comp"></td>
+        <!-- /ko -->
     </tr>
 </script>

@@ -1,6 +1,6 @@
 (function() {
 
-  define(["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider"], function(odataProvider, webSqlProvider) {
+  define(["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider", "Ural/Models/indexVM"], function(odataProvider, webSqlProvider, indexVM) {
     var ControllerBase;
     ControllerBase = (function() {
 
@@ -31,7 +31,7 @@
       ControllerBase.prototype.index = function(filter, onDone) {
         var _this = this;
         return this.getDataProvider().load(this.modelName, filter, function(err, data) {
-          return _this.view(data, "index", null, onDone);
+          return _this.view(new indexVM.IndexVM(data), "index", null, onDone);
         });
       };
 
@@ -39,7 +39,7 @@
 
       ControllerBase.prototype.edit = function(id) {};
 
-      ControllerBase.prototype.view = function(model, viewPath, layoutViewPath, onDone) {
+      ControllerBase.prototype.view = function(viewModel, viewPath, layoutViewPath, onDone) {
         var bvp, lvp;
         lvp = this._prepareViewPath(layoutViewPath, "Shared/_layout");
         bvp = this._prepareViewPath(viewPath);
@@ -56,7 +56,7 @@
             $("#_layout").empty();
             $("#_layout").append(layoutHtml);
             $("#_body").append(bodyHtml);
-            ko.applyBindings(model);
+            ko.applyBindings(viewModel);
             return ck();
           }
         ], function(err) {
