@@ -1,12 +1,23 @@
 <span>_index</span>
-<table id="model_container" data-bind="template: {name:'productTemplate', foreach: model}">
+<table id="model_container" data-bind="template: {name:'productTemplate', foreach: list}">
 </table>
 <script type="text/x-jquery-tmpl" id="productTemplate">
-    <tr>
-        <td data-bind="text: id"></td>
-        <td data-bind="text: name"></td>
-        <!-- ko if: $data.hasOwnProperty("comp") -->
-            <td data-bind="text: comp"></td>
+    <tr data-bind="click: $root.edit">
+        <!-- ko with: item -->
+            <td data-bind="text: id"></td>
+            <td data-bind="text: name"></td>
+            <!-- ko if: $data.hasOwnProperty("comp") -->
+                <td data-bind="text: comp"></td>
+            <!-- /ko -->
         <!-- /ko -->
     </tr>
 </script>
+
+<!-- edit form -->
+<form data-form-model-type="Product" data-form-type="edit" style="display: none;" data-bind="with: active">
+    Edit!
+    <div data-bind="with: item">
+    <input id="product_name" data-bind="value: name">
+    </div>
+    <button id="product_save" type="submit" data-bind="click: update">save</button>
+</form>

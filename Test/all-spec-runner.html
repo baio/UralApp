@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <title>Jasmine Spec Runner (product controller)</title>
+    <title>Jasmine Spec Runner (all)</title>
 
     <link rel="shortcut icon" type="image/png" href="jasmine/jasmine_favicon.png">
 
@@ -32,7 +32,12 @@
                 baseUrl: '../..'
             });
 
-            require(["./Test/specs/productController.spec"], function(){
+            require(["./Test/specs/odata.data.spec"
+                    ,"./Test/specs/odata.filter.spec"
+                    ,"./Test/specs/webSql.filter.spec"
+                    , "./Test/specs/webSql.data.spec"
+                    , "./Test/specs/controller.spec"
+                    , "./Test/specs/productController.spec"], function(){
                 var jasmineEnv = jasmine.getEnv();
                 jasmineEnv.updateInterval = 1000;
 

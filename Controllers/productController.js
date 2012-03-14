@@ -8,8 +8,8 @@
 
       __extends(ProductController, _super);
 
-      function ProductController() {
-        ProductController.__super__.constructor.call(this, "Product");
+      function ProductController(opts) {
+        ProductController.__super__.constructor.call(this, "Product", opts);
       }
 
       ProductController.prototype.indexCustom = function(onDone) {

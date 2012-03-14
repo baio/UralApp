@@ -66,16 +66,48 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase"], (pr
         expect($("table#model_container td:eq(10)").text()).toBe("5")
         expect($("table#model_container td:eq(11)").text()).toBe("five")
 
-  describe "edit index view's items", ->
-
-    beforeEach ->
-      controller = new productController.ProductController()
+    it "model name impilcitily, create custom model (path to module implicitily) via options", ->
+      controller = new productController.ProductController model : {useCustomModel : true}
+      err = null
       runs ->
-        controller.index()
+        controller.index (e) ->
+          err = e
       waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect($("table#model_container td:eq(0)").text()).toBe("0")
+        expect($("table#model_container td:eq(1)").text()).toBe("zerofoo")
+        expect($("table#model_container td:eq(2)").text()).toBe("0 zerofoo")
+        expect($("table#model_container td:eq(15)").text()).toBe("5")
+        expect($("table#model_container td:eq(16)").text()).toBe("fivefoo")
+        expect($("table#model_container td:eq(17)").text()).toBe("5 fivefoo")
+  #expect($("table#model_container td:eq(14)").text()).toBe("5 fivefoo")
+
+  describe "edit index view's items", ->
+    viewModel = null
+    beforeEach ->
+      controller = new productController.ProductController model : {useCustomModel : true}
+      runs ->
+        controller.index null, (err, vm) -> viewModel = vm
+      waits 500
+      runs ->
+        $("table#model_container tr:eq(0)").click()
 
     afterEach ->
+      viewModel = null
       $("#_body").empty()
 
     it "show edit for first item", ->
+      expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
+      expect($("#product_name").val()).toBe('zerofoo')
+
+    it "show edit for first item, then edit name, then cancel", ->
+      expect(viewModel.active().item.name()).toBe "zerofoo"
+      $("#product_name").val "test"
+      #$("#product_save").focus()
+      expect(viewModel.list[0].item.name()).toBe "zerofoo"
+      #expect(viewModel.active().item.name()).toBe "test"
+
+
+
 

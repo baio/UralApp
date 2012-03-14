@@ -1,14 +1,19 @@
 (function() {
 
-  define(["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider", "Ural/Models/indexVM"], function(odataProvider, webSqlProvider, indexVM) {
+  define(["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider", "Ural/Models/indexVM", "Ural/Modules/pubSub"], function(odataProvider, webSqlProvider, indexVM, pubSub) {
     var ControllerBase;
     ControllerBase = (function() {
 
-      function ControllerBase(modelName) {
+      function ControllerBase(modelName, opts) {
+        var _this = this;
         this.modelName = modelName;
+        this.opts = opts;
         if (this.modelName == null) this.modelName = this._getControllerName();
         this._dataProviders = _u.toHashTable(this.onCreateDataProviders());
         this.defaultDataProviderName = _u.firstKey(this._dataProviders);
+        pubSub.sub("model", "edit", function(model, name) {
+          return _this.onShowForm("edit");
+        });
       }
 
       ControllerBase.prototype.onCreateDataProviders = function() {
@@ -23,21 +28,53 @@
         ];
       };
 
+      ControllerBase.prototype.onShowForm = function(type) {
+        return $("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']").show();
+      };
+
       ControllerBase.prototype.getDataProvider = function(name) {
         if (name == null) name = this.defaultDataProviderName;
         return this._dataProviders[name];
       };
 
       ControllerBase.prototype.index = function(filter, onDone) {
-        var _this = this;
-        return this.getDataProvider().load(this.modelName, filter, function(err, data) {
-          return _this.view(new indexVM.IndexVM(data), "index", null, onDone);
+        var customModelPath, useCustomModel,
+          _this = this;
+        if (this.opts && this.opts.model) {
+          useCustomModel = this.opts.model.useCustomModel;
+          customModelPath = this.opts.model.customModelPath;
+          if (customModelPath == null) {
+            customModelPath = "Models/" + this.modelName;
+          }
+        }
+        return async.waterfall([
+          function(ck) {
+            return _this.getDataProvider().load(_this.modelName, filter, ck);
+          }, function(data, ck) {
+            if (useCustomModel) {
+              return require([customModelPath], function(modelModule) {
+                var model;
+                model = data.map(function(d) {
+                  return ko.mapping.fromJS(d, modelModule.mappingRules, new modelModule.ModelConstructor());
+                });
+                return ck(null, model);
+              });
+            } else {
+              return ck(null, data);
+            }
+          }
+        ], function(err, model) {
+          var viewModel;
+          if (!err) {
+            viewModel = new indexVM.IndexVM(model);
+            return _this.view(viewModel, "index", null, function(err) {
+              if (onDone) return onDone(err, viewModel);
+            });
+          } else {
+            if (onDone) return onDone(err);
+          }
         });
       };
-
-      ControllerBase.prototype.details = function(id) {};
-
-      ControllerBase.prototype.edit = function(id) {};
 
       ControllerBase.prototype.view = function(viewModel, viewPath, layoutViewPath, onDone) {
         var bvp, lvp;

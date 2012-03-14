@@ -3,8 +3,8 @@ define ["Ural/Controllers/controllerBase"
   , "Models/product"],
 (controllerBase, indexVM, productModel) ->
   class ProductController extends controllerBase.ControllerBase
-    constructor: ->
-      super "Product"
+    constructor: (opts) ->
+      super "Product", opts
 
     indexCustom: (onDone)->
       @getDataProvider().load "Product", null, (err, data) =>
