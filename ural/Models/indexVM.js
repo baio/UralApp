@@ -12,16 +12,15 @@
         this.active = ko.observable();
       }
 
-      IndexVM.prototype._clone = function(item) {
-        return $.extend(true, {}, item);
-      };
-
       IndexVM.prototype.edit = function(item, event) {
-        var cloned;
+        var _this = this;
         event.preventDefault();
-        cloned = this._clone(item);
-        this.active(cloned);
-        return pubSub.pub("model", "edit", cloned);
+        this.active(item);
+        item.edit(function() {
+          item.endEdit();
+          return _this.active(null);
+        });
+        return pubSub.pub("model", "edit", item);
       };
 
       IndexVM.prototype.details = function(id) {};

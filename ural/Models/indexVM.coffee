@@ -5,14 +5,13 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
       @list = model.map (m) -> new itemVM.ItemVM m
       @active = ko.observable()
 
-    _clone: (item) ->
-      $.extend true, {}, item
-
     edit: (item, event) =>
       event.preventDefault()
-      cloned = @_clone item
-      @active cloned
-      pubSub.pub "model", "edit", cloned
+      @active item
+      item.edit =>
+        item.endEdit()
+        @active null
+      pubSub.pub "model", "edit", item
 
     details: (id) ->
 
