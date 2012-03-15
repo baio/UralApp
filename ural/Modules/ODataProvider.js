@@ -46,6 +46,16 @@
         return _u.urlAddSearch("" + (ODataProvider.serviceHost()) + srcName + "s", oDataFilter.$filter ? "$filter=" + oDataFilter.$filter : void 0, oDataFilter.$top ? "$top=" + oDataFilter.$top : void 0, oDataFilter.$skip ? "$skip=" + oDataFilter.$skip : void 0);
       };
 
+      ODataProvider.prototype.save = function(srcName, item, callback) {
+        return OData.request({
+          requestUri: "" + (ODataProvider.serviceHost()) + srcName + "s",
+          method: item.id === -1 ? "PUT" : "POST",
+          data: item
+        }, function(data, response) {
+          return callback(null, data);
+        });
+      };
+
       return ODataProvider;
 
     })();

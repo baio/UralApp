@@ -31,5 +31,13 @@ define ["Ural/Modules/ODataFilter", "Libs/datajs"], (fr) ->
         if oDataFilter.$top then "$top=#{oDataFilter.$top}",
         if oDataFilter.$skip then "$skip=#{oDataFilter.$skip}"
 
+    save: (srcName, item, callback) ->
+      OData.request
+        requestUri: "#{ODataProvider.serviceHost()}#{srcName}s",
+        method: if item.id == -1 then "PUT" else "POST",
+        data: item
+        ,(data, response) ->
+          callback null, data
+
   dataProvider : new ODataProvider()
 

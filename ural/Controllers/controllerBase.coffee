@@ -11,7 +11,12 @@ define ["Ural/Modules/ODataProvider"
       @defaultDataProviderName = _u.firstKey @_dataProviders
 
       pubSub.sub "model", "edit", (model, name) =>
-        @onShowForm "edit"
+        if @_isOwnModel model
+          @onShowForm "edit"
+
+      pubSub.sub "model", "save", (model, name, callback) =>
+        if @_isOwnModel model
+          @onSave model, callback
 
     onCreateDataProviders: ->
       [
@@ -19,8 +24,21 @@ define ["Ural/Modules/ODataProvider"
         { name : "websql", provider :  webSqlProvider.dataProvider }
       ]
 
+    _isOwnModel: (model) ->
+      _u.getClassName(model.item) == @modelName
+
+    #convert raw data (json) to app model
+    _mapToItem: (data, modelModule)->
+      data.map (d) -> ko.mapping.fromJS d, modelModule.mappingRules, new modelModule.ModelConstructor()
+
+    #convert app model to raw data (json)
+    _mapToData: (item, modelModule) ->
+
     onShowForm: (type) ->
       $("[data-form-model-type='#{@modelName}'][data-form-type='#{type}']").show()
+
+    onSave: (item, callbck) ->
+      @getDataProvider().save @modelName, @_mapToData(item), callback
 
     getDataProvider: (name) ->
       name ?= @defaultDataProviderName
@@ -34,11 +52,11 @@ define ["Ural/Modules/ODataProvider"
       async.waterfall [
         (ck) =>
           @getDataProvider().load @modelName, filter, ck
-        ,(data, ck) ->
+        ,(data, ck) =>
           if useCustomModel
-            require [customModelPath], (modelModule) ->
-              model = data.map (d) -> ko.mapping.fromJS d, modelModule.mappingRules, new modelModule.ModelConstructor()
-              ck null, model
+            require [customModelPath], (modelModule) =>
+              #model = data.map (d) -> ko.mapping.fromJS d, modelModule.mappingRules, new modelModule.ModelConstructor()
+              ck null, @_mapToItem data, modelModule
           else
             ck null, data
         ],

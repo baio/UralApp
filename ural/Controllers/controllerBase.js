@@ -12,7 +12,10 @@
         this._dataProviders = _u.toHashTable(this.onCreateDataProviders());
         this.defaultDataProviderName = _u.firstKey(this._dataProviders);
         pubSub.sub("model", "edit", function(model, name) {
-          return _this.onShowForm("edit");
+          if (_this._isOwnModel(model)) return _this.onShowForm("edit");
+        });
+        pubSub.sub("model", "save", function(model, name, callback) {
+          if (_this._isOwnModel(model)) return _this.onSave(model, callback);
         });
       }
 
@@ -28,8 +31,24 @@
         ];
       };
 
+      ControllerBase.prototype._isOwnModel = function(model) {
+        return _u.getClassName(model.item) === this.modelName;
+      };
+
+      ControllerBase.prototype._mapToItem = function(data, modelModule) {
+        return data.map(function(d) {
+          return ko.mapping.fromJS(d, modelModule.mappingRules, new modelModule.ModelConstructor());
+        });
+      };
+
+      ControllerBase.prototype._mapToData = function(item, modelModule) {};
+
       ControllerBase.prototype.onShowForm = function(type) {
         return $("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']").show();
+      };
+
+      ControllerBase.prototype.onSave = function(item, callbck) {
+        return this.getDataProvider().save(this.modelName, this._mapToData(item), callback);
       };
 
       ControllerBase.prototype.getDataProvider = function(name) {
@@ -53,11 +72,7 @@
           }, function(data, ck) {
             if (useCustomModel) {
               return require([customModelPath], function(modelModule) {
-                var model;
-                model = data.map(function(d) {
-                  return ko.mapping.fromJS(d, modelModule.mappingRules, new modelModule.ModelConstructor());
-                });
-                return ck(null, model);
+                return ck(null, _this._mapToItem(data, modelModule));
               });
             } else {
               return ck(null, data);

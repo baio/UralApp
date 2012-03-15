@@ -104,7 +104,6 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase"], (pr
     it "show edit for first item, then edit name, then cancel", ->
       expect(viewModel.active().item.name()).toBe "zerofoo"
       $("#product_name").val("test").change()
-      #viewModel.active().item.name "test"
       expect(viewModel.list[0].item.name()).toBe "test"
       expect(viewModel.active().item.name()).toBe "test"
       $("#product_cancel").click()

@@ -1,7 +1,7 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(function() {
+  define(["Ural/Modules/PubSub"], function(pubSub) {
     var ItemVM;
     ItemVM = (function() {
 
@@ -61,10 +61,16 @@
         if (!this.originItem) throw "item not in edit state";
         if (isCancel) {
           this._copyFromOrigin();
+          if (this.onDone) return this.onDone(null, isCancel);
         } else {
           this._createOrigin();
+          if (this.onDone) return this.onDone(null, isCancel);
+          /*
+                  pubSub.pub "model", "save", @item, (err) =>
+                    if !err then @_createOrigin()
+                    if @onDone then @onDone err, isCancel
+          */
         }
-        if (this.onDone) return this.onDone(isCancel);
       };
 
       return ItemVM;

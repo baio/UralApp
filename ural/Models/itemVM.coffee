@@ -1,4 +1,4 @@
-define ->
+define ["Ural/Modules/PubSub"], (pubSub) ->
 
   class ItemVM
 
@@ -33,9 +33,14 @@ define ->
       if !@originItem then throw "item not in edit state"
       if isCancel
         @_copyFromOrigin()
+        if @onDone then @onDone null, isCancel
       else
         @_createOrigin()
-      if @onDone
-        @onDone isCancel
+        if @onDone then @onDone null, isCancel
+        ###
+        pubSub.pub "model", "save", @item, (err) =>
+          if !err then @_createOrigin()
+          if @onDone then @onDone err, isCancel
+        ###
 
   ItemVM : ItemVM
