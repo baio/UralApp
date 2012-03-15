@@ -27,7 +27,7 @@ define ->
 
     cancel: -> @_done true
 
-    save: -> @_done flase
+    save: -> @_done false
 
     _done: (isCancel) ->
       if !@originItem then throw "item not in edit state"
@@ -35,8 +35,6 @@ define ->
         @_copyFromOrigin()
       else
         @_createOrigin()
-      for own prop of @item
-        if isCancel then prop.reset else prop.commit()
       if @onDone
         @onDone isCancel
 

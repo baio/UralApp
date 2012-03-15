@@ -54,25 +54,15 @@
       };
 
       ItemVM.prototype.save = function() {
-        return this._done(flase);
+        return this._done(false);
       };
 
       ItemVM.prototype._done = function(isCancel) {
-        var prop, _ref;
         if (!this.originItem) throw "item not in edit state";
         if (isCancel) {
           this._copyFromOrigin();
         } else {
           this._createOrigin();
-        }
-        _ref = this.item;
-        for (prop in _ref) {
-          if (!__hasProp.call(_ref, prop)) continue;
-          if (isCancel) {
-            prop.reset;
-          } else {
-            prop.commit();
-          }
         }
         if (this.onDone) return this.onDone(isCancel);
       };

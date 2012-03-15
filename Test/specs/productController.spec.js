@@ -3,7 +3,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   define(["Controllers/productController", "Ural/Controllers/controllerBase"], function(productController, controllerBase) {
-    xdescribe("play with index views, load model then show view", function() {
+    describe("play with index views, load model then show view", function() {
       afterEach(function() {});
       it("indexCustom", function() {
         var controller, err;
@@ -135,19 +135,30 @@
           return $("table#model_container tr:eq(0)").click();
         });
       });
-      afterEach(function() {});
-      xit("show edit for first item", function() {
+      afterEach(function() {
+        viewModel = null;
+        return $("#_body").empty();
+      });
+      it("show edit for first item", function() {
         expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
         return expect($("#product_name").val()).toBe('zerofoo');
       });
-      return it("show edit for first item, then edit name, then cancel", function() {
+      it("show edit for first item, then edit name, then cancel", function() {
         expect(viewModel.active().item.name()).toBe("zerofoo");
-        viewModel.active().item.name("test");
-        expect($("#product_name").val()).toBe("test");
+        $("#product_name").val("test").change();
         expect(viewModel.list[0].item.name()).toBe("test");
         expect(viewModel.active().item.name()).toBe("test");
         $("#product_cancel").click();
         expect(viewModel.list[0].item.name()).toBe("zerofoo");
+        return expect(viewModel.active()).toBe(null);
+      });
+      return it("show edit for first item, then edit name, then submit", function() {
+        expect(viewModel.active().item.name()).toBe("zerofoo");
+        $("#product_name").val("null").change();
+        expect(viewModel.list[0].item.name()).toBe("null");
+        expect(viewModel.active().item.name()).toBe("null");
+        $("#product_save").click();
+        expect(viewModel.list[0].item.name()).toBe("null");
         return expect(viewModel.active()).toBe(null);
       });
     });
