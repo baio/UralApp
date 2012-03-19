@@ -58,19 +58,34 @@
           headers: {
             "Content-Type": "application/json"
           },
-          requestUri: "" + (ODataProvider.serviceHost()) + srcName + "s(0)",
+          requestUri: "" + (ODataProvider.serviceHost()) + srcName + "s" + (item.id !== -1 ? "(" + item.id + ")" : ""),
           method: item.id === -1 ? "POST" : "PUT",
           data: item
         }, function(data, response) {
-          return _this.load(srcName, {
-            id: {
-              $eq: item.id
-            }
-          }, function(err, data) {
-            if (!err) item = data[0];
-            return callback(err, item);
-          });
+          if (data) {
+            return callback(null, ODataProvider._parse(data));
+          } else {
+            return _this.load(srcName, {
+              id: {
+                $eq: item.id
+              }
+            }, function(err, data) {
+              if (!err) item = data[0];
+              return callback(err, item);
+            });
+          }
         });
+      };
+
+      ODataProvider.prototype["delete"] = function(srcName, id, callback) {
+        var _this = this;
+        return OData.request({
+          headers: {
+            "Content-Type": "application/json"
+          },
+          requestUri: "" + (ODataProvider.serviceHost()) + srcName + "s(" + id + ")",
+          method: "DELETE"
+        }, function(data, response) {});
       };
 
       return ODataProvider;

@@ -26,6 +26,13 @@ define ["Ural/Modules/ODataProvider"], (ODataProvider) ->
       actual = dataProvider._getStatement "Product", id : { $eq : 0}, name : {$like : 'r'}, $page : 5, $itemsPerPage : 7
       expect(actual).toBe "http://localhost:3360/Service.svc/Products?$filter=id eq 0 and indexof(name, 'r') ne -1&$top=7&$skip=35"
 
+    it "name = 'zero'", ->
+
+      expect(dataProvider).toBeTruthy()
+      actual = dataProvider._getStatement "Product", name : {$eq : 'zero'}
+      expect(actual).toBe "http://localhost:3360/Service.svc/Products?$filter=name eq 'zero'"
+
+
   describe "load data via OData provider", ->
     data = null
     it "empty filter", ->
@@ -100,3 +107,42 @@ define ["Ural/Modules/ODataProvider"], (ODataProvider) ->
       runs ->
         expect(err).toBeFalsy()
         expect(data[0].name).toBe "zero"
+
+  describe "create data via OData provider", ->
+    it "create six", ->
+      data = null
+      err = null
+      runs ->
+        dataProvider.save "Product", {id : -1, name : "six"}, (e, d) -> data = d; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data.id == -1).toBeFalsy()
+        expect(data.name).toBe "six"
+        id = data.id
+        data = null
+        dataProvider.load "Product", id : { $eq : id}, (e, d) -> data = d; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data[0].name).toBe "six"
+
+  describe "delete data via OData provider", ->
+    it "delete six", ->
+      data = null
+      err = null
+      runs ->
+        dataProvider.load "Product", {name : {$eq : "six"}}, (e, d) -> data = d; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data.length > 0).toBeTruthy()
+        for id in data.map((d) -> d.id)
+          dataProvider.delete "Product", id, (e) -> err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        dataProvider.load "Product", {name : {$eq : "six"}}, (e, d) ->
+          expect(err).toBeFalsy()
+          expect(d.length == 0).toBeTruthy()
+

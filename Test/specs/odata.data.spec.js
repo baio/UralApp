@@ -29,7 +29,7 @@
         });
         return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=(id eq 0 or id eq 1 or id eq 3)");
       });
-      return it("id = 0 and name LIKE(...) OFFSET LIMIT", function() {
+      it("id = 0 and name LIKE(...) OFFSET LIMIT", function() {
         var actual;
         expect(dataProvider).toBeTruthy();
         actual = dataProvider._getStatement("Product", {
@@ -43,6 +43,16 @@
           $itemsPerPage: 7
         });
         return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=id eq 0 and indexof(name, 'r') ne -1&$top=7&$skip=35");
+      });
+      return it("name = 'zero'", function() {
+        var actual;
+        expect(dataProvider).toBeTruthy();
+        actual = dataProvider._getStatement("Product", {
+          name: {
+            $eq: 'zero'
+          }
+        });
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=name eq 'zero'");
       });
     });
     describe("load data via OData provider", function() {
@@ -124,7 +134,7 @@
         });
       });
     });
-    return describe("save data via OData provider", function() {
+    describe("save data via OData provider", function() {
       it("update first item name to -zero-", function() {
         var data, err;
         data = null;
@@ -189,6 +199,90 @@
         return runs(function() {
           expect(err).toBeFalsy();
           return expect(data[0].name).toBe("zero");
+        });
+      });
+    });
+    describe("create data via OData provider", function() {
+      return it("create six", function() {
+        var data, err;
+        data = null;
+        err = null;
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: -1,
+            name: "six"
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          var id;
+          expect(err).toBeFalsy();
+          expect(data.id === -1).toBeFalsy();
+          expect(data.name).toBe("six");
+          id = data.id;
+          data = null;
+          return dataProvider.load("Product", {
+            id: {
+              $eq: id
+            }
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(err).toBeFalsy();
+          return expect(data[0].name).toBe("six");
+        });
+      });
+    });
+    return describe("delete data via OData provider", function() {
+      return it("delete six", function() {
+        var data, err;
+        data = null;
+        err = null;
+        runs(function() {
+          return dataProvider.load("Product", {
+            name: {
+              $eq: "six"
+            }
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          var id, _i, _len, _ref, _results;
+          expect(err).toBeFalsy();
+          expect(data.length > 0).toBeTruthy();
+          _ref = data.map(function(d) {
+            return d.id;
+          });
+          _results = [];
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            id = _ref[_i];
+            _results.push(dataProvider["delete"]("Product", id, function(e) {
+              return err = e;
+            }));
+          }
+          return _results;
+        });
+        waits(500);
+        return runs(function() {
+          expect(err).toBeFalsy();
+          return dataProvider.load("Product", {
+            name: {
+              $eq: "six"
+            }
+          }, function(e, d) {
+            expect(err).toBeFalsy();
+            return expect(d.length === 0).toBeTruthy();
+          });
         });
       });
     });

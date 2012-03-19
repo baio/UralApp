@@ -17,7 +17,7 @@
         expect(filter).toBeTruthy();
         frameworkFilter = {
           id: {
-            $eq: "1"
+            $eq: 1
           }
         };
         actual = filter.convert(frameworkFilter);

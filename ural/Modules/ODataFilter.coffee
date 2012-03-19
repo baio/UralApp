@@ -2,7 +2,7 @@ define ->
 
   _convertToken = (fieldName, tokenName, val) ->
     switch tokenName
-      when "$eq" then "#{fieldName} eq #{val}"
+      when "$eq" then "#{fieldName} eq #{if typeof val == "string" then "'#{val}'" else val}"
       when "$like" then "indexof(#{fieldName}, '#{val}') ne -1"
       when "$in" then "(#{(val.map (x) -> "#{fieldName} eq #{x}").join " or "})"
       else throw "can't convert token expression { #{fieldName} : { #{tokenName} : #{field} }}"

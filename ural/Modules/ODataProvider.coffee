@@ -40,13 +40,23 @@ define ["Ural/Modules/ODataFilter", "Libs/datajs"], (fr) ->
     save: (srcName, item, callback) ->
       OData.request
         headers : {"Content-Type" : "application/json"}
-        requestUri: "#{ODataProvider.serviceHost()}#{srcName}s(0)",
+        requestUri: "#{ODataProvider.serviceHost()}#{srcName}s#{if item.id != -1 then "(#{item.id})" else ""}",
         method: if item.id == -1 then "POST" else "PUT",
         data: item
         ,(data, response) =>
-          @load srcName, id : {$eq : item.id}, (err, data) ->
-            if !err then item = data[0]
-            callback err, item
+          if data
+            callback null, ODataProvider._parse(data)
+          else
+            @load srcName, id : {$eq : item.id}, (err, data) ->
+              if !err then item = data[0]
+              callback err, item
+
+    delete: (srcName, id, callback) ->
+      OData.request
+        headers : {"Content-Type" : "application/json"}
+        requestUri: "#{ODataProvider.serviceHost()}#{srcName}s(#{id})",
+        method: "DELETE"
+        ,(data, response) =>
 
   dataProvider : new ODataProvider()
 

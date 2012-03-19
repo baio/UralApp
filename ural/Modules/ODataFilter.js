@@ -6,7 +6,7 @@
     _convertToken = function(fieldName, tokenName, val) {
       switch (tokenName) {
         case "$eq":
-          return "" + fieldName + " eq " + val;
+          return "" + fieldName + " eq " + (typeof val === "string" ? "'" + val + "'" : val);
         case "$like":
           return "indexof(" + fieldName + ", '" + val + "') ne -1";
         case "$in":

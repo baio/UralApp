@@ -11,7 +11,7 @@ describe "convert framework filter to odata filter expression", ->
     runs ->
       expect(filter).toBeTruthy()
       frameworkFilter =
-        id : {$eq : "1"}
+        id : {$eq : 1}
       actual = filter.convert frameworkFilter
       expected =
         $filter : "id eq 1"
