@@ -5,6 +5,7 @@ define ->
       @id = ko.observable()
       @name = ko.observable()
       @comp = ko.computed (-> @id() + " " + @name()), @
+      @tags = ko.observableArray()
 
   mappingRules = ->
     name :

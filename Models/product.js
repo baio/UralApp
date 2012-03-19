@@ -10,6 +10,7 @@
         this.comp = ko.computed((function() {
           return this.id() + " " + this.name();
         }), this);
+        this.tags = ko.observableArray();
       }
 
       return Product;
