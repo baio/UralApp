@@ -25,20 +25,23 @@ define ["Ural/Modules/ODataProvider"
       ]
 
     _isOwnModel: (model) ->
-      _u.getClassName(model.item) == @modelName
+      _u.getClassName(model) == @modelName
 
     #convert raw data (json) to app model
     _mapToItem: (data, modelModule)->
+      #TO DO check is data array or not
       data.map (d) -> ko.mapping.fromJS d, modelModule.mappingRules, new modelModule.ModelConstructor()
 
     #convert app model to raw data (json)
     _mapToData: (item, modelModule) ->
+      ko.mapping.toJS item
 
     onShowForm: (type) ->
       $("[data-form-model-type='#{@modelName}'][data-form-type='#{type}']").show()
 
-    onSave: (item, callbck) ->
-      @getDataProvider().save @modelName, @_mapToData(item), callback
+    onSave: (item, callback) ->
+      @getDataProvider().save @modelName, @_mapToData(item), (err, data) =>
+        if callback then callback err, @_mapToItem data
 
     getDataProvider: (name) ->
       name ?= @defaultDataProviderName

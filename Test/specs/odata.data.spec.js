@@ -45,7 +45,7 @@
         return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=id eq 0 and indexof(name, 'r') ne -1&$top=7&$skip=35");
       });
     });
-    return describe("load data via OData provider", function() {
+    describe("load data via OData provider", function() {
       var data;
       data = null;
       it("empty filter", function() {
@@ -120,6 +120,74 @@
         return runs(function() {
           expect(data.length).toBe(1);
           expect(data[0].id).toBe(0);
+          return expect(data[0].name).toBe("zero");
+        });
+      });
+    });
+    return describe("save data via OData provider", function() {
+      it("update first item name to -zero-", function() {
+        var data, err;
+        data = null;
+        err = null;
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: 0,
+            name: "-zero-"
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          expect(err).toBeFalsy();
+          expect(data.name).toBe("-zero-");
+          data = null;
+          return dataProvider.load("Product", {
+            id: {
+              $eq: 0
+            }
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(err).toBeFalsy();
+          return expect(data[0].name).toBe("-zero-");
+        });
+      });
+      return it("update first item name to zero", function() {
+        var data, err;
+        data = null;
+        err = null;
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: 0,
+            name: "zero"
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          expect(err).toBeFalsy();
+          expect(data.name).toBe("zero");
+          data = null;
+          return dataProvider.load("Product", {
+            id: {
+              $eq: 0
+            }
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(err).toBeFalsy();
           return expect(data[0].name).toBe("zero");
         });
       });

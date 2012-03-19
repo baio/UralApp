@@ -32,7 +32,7 @@
       };
 
       ControllerBase.prototype._isOwnModel = function(model) {
-        return _u.getClassName(model.item) === this.modelName;
+        return _u.getClassName(model) === this.modelName;
       };
 
       ControllerBase.prototype._mapToItem = function(data, modelModule) {
@@ -41,14 +41,19 @@
         });
       };
 
-      ControllerBase.prototype._mapToData = function(item, modelModule) {};
+      ControllerBase.prototype._mapToData = function(item, modelModule) {
+        return ko.mapping.toJS(item);
+      };
 
       ControllerBase.prototype.onShowForm = function(type) {
         return $("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']").show();
       };
 
-      ControllerBase.prototype.onSave = function(item, callbck) {
-        return this.getDataProvider().save(this.modelName, this._mapToData(item), callback);
+      ControllerBase.prototype.onSave = function(item, callback) {
+        var _this = this;
+        return this.getDataProvider().save(this.modelName, this._mapToData(item), function(err, data) {
+          if (callback) return callback(err, _this._mapToItem(data));
+        });
       };
 
       ControllerBase.prototype.getDataProvider = function(name) {

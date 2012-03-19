@@ -57,6 +57,17 @@
       return url;
     };
 
+    Utils.prototype.clone = function(src, exceptProps) {
+      var prop, res;
+      res = {};
+      exceptProps = Array.prototype.slice.call(arguments).slice(1);
+      for (prop in src) {
+        if (!__hasProp.call(src, prop)) continue;
+        if (exceptProps.indexOf(prop) === -1) res[prop] = src[prop];
+      }
+      return res;
+    };
+
     return Utils;
 
   })();

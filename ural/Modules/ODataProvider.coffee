@@ -1,6 +1,12 @@
 define ["Ural/Modules/ODataFilter", "Libs/datajs"], (fr) ->
 
-  OData.defaultHttpClient.enableJsonpCallback = true
+  defClient = OData.defaultHttpClient
+
+  providerClient =
+    request: (request, success, error) ->
+      defClient.request request, success, error
+
+  OData.defaultHttpClient = providerClient
 
   class ODataProvider
     @serviceHost: -> 'http://localhost:3360/Service.svc/'
@@ -33,11 +39,14 @@ define ["Ural/Modules/ODataFilter", "Libs/datajs"], (fr) ->
 
     save: (srcName, item, callback) ->
       OData.request
-        requestUri: "#{ODataProvider.serviceHost()}#{srcName}s",
-        method: if item.id == -1 then "PUT" else "POST",
+        headers : {"Content-Type" : "application/json"}
+        requestUri: "#{ODataProvider.serviceHost()}#{srcName}s(0)",
+        method: if item.id == -1 then "POST" else "PUT",
         data: item
-        ,(data, response) ->
-          callback null, data
+        ,(data, response) =>
+          @load srcName, id : {$eq : item.id}, (err, data) ->
+            if !err then item = data[0]
+            callback err, item
 
   dataProvider : new ODataProvider()
 

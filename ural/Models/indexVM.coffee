@@ -5,13 +5,13 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
       @list = model.map (m) -> new itemVM.ItemVM m
       @active = ko.observable()
 
-    edit: (item, event) =>
+    edit: (viewModel, event) =>
       event.preventDefault()
-      @active item
-      item.edit =>
-        item.endEdit()
+      @active viewModel
+      viewModel.edit =>
+        viewModel.endEdit()
         @active null
-      pubSub.pub "model", "edit", item
+      pubSub.pub "model", "edit", viewModel.item
 
     details: (id) ->
 

@@ -37,6 +37,20 @@
         return _results;
       };
 
+      ItemVM.prototype._copyFromSrc = function(src) {
+        var prop, _results;
+        _results = [];
+        for (prop in src) {
+          if (!__hasProp.call(src, prop)) continue;
+          if (ko.isWriteableObservable(this.item[prop])) {
+            _results.push(this.item[prop] = this.src[prop]());
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      };
+
       ItemVM.prototype.edit = function(onDone) {
         this.onDone = onDone;
         if (this.originItem) throw "item already in edit state";
@@ -58,18 +72,23 @@
       };
 
       ItemVM.prototype._done = function(isCancel) {
+        var _this = this;
         if (!this.originItem) throw "item not in edit state";
         if (isCancel) {
           this._copyFromOrigin();
           if (this.onDone) return this.onDone(null, isCancel);
         } else {
-          this._createOrigin();
-          if (this.onDone) return this.onDone(null, isCancel);
           /*
-                  pubSub.pub "model", "save", @item, (err) =>
-                    if !err then @_createOrigin()
-                    if @onDone then @onDone err, isCancel
+                  @_createOrigin()
+                  if @onDone then @onDone null, isCancel
           */
+          return pubSub.pub("model", "save", this.item, function(err, item) {
+            if (!err) {
+              _this._copyFromSrc(item);
+              _this._createOrigin();
+            }
+            if (_this.onDone) return _this.onDone(err, isCancel);
+          });
         }
       };
 

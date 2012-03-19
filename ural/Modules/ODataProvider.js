@@ -2,8 +2,14 @@
   var __hasProp = Object.prototype.hasOwnProperty;
 
   define(["Ural/Modules/ODataFilter", "Libs/datajs"], function(fr) {
-    var ODataProvider;
-    OData.defaultHttpClient.enableJsonpCallback = true;
+    var ODataProvider, defClient, providerClient;
+    defClient = OData.defaultHttpClient;
+    providerClient = {
+      request: function(request, success, error) {
+        return defClient.request(request, success, error);
+      }
+    };
+    OData.defaultHttpClient = providerClient;
     ODataProvider = (function() {
 
       function ODataProvider() {}
@@ -47,12 +53,23 @@
       };
 
       ODataProvider.prototype.save = function(srcName, item, callback) {
+        var _this = this;
         return OData.request({
-          requestUri: "" + (ODataProvider.serviceHost()) + srcName + "s",
-          method: item.id === -1 ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          requestUri: "" + (ODataProvider.serviceHost()) + srcName + "s(0)",
+          method: item.id === -1 ? "POST" : "PUT",
           data: item
         }, function(data, response) {
-          return callback(null, data);
+          return _this.load(srcName, {
+            id: {
+              $eq: item.id
+            }
+          }, function(err, data) {
+            if (!err) item = data[0];
+            return callback(err, item);
+          });
         });
       };
 

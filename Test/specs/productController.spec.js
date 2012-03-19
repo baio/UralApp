@@ -152,13 +152,13 @@
         expect(viewModel.list[0].item.name()).toBe("zerofoo");
         return expect(viewModel.active()).toBe(null);
       });
-      return it("show edit for first item, then edit name, then submit", function() {
+      return xit("show edit for first item, then edit name, then submit", function() {
         expect(viewModel.active().item.name()).toBe("zerofoo");
-        $("#product_name").val("null").change();
-        expect(viewModel.list[0].item.name()).toBe("null");
-        expect(viewModel.active().item.name()).toBe("null");
+        $("#product_name").val("-nill-").change();
+        expect(viewModel.list[0].item.name()).toBe("-nill-");
+        expect(viewModel.active().item.name()).toBe("-nill-");
         $("#product_save").click();
-        expect(viewModel.list[0].item.name()).toBe("null");
+        expect(viewModel.list[0].item.name()).toBe("-nill-");
         return expect(viewModel.active()).toBe(null);
       });
     });

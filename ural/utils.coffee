@@ -32,4 +32,11 @@ class Utils
         url += arguments[i]
     url
 
+  clone: (src, exceptProps) ->
+    res = {}
+    exceptProps = Array.prototype.slice.call(arguments).slice 1
+    for own prop of src
+      if exceptProps.indexOf(prop) == -1 then res[prop] = src[prop]
+    res
+
 @_u = new Utils()

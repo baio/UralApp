@@ -12,15 +12,15 @@
         this.active = ko.observable();
       }
 
-      IndexVM.prototype.edit = function(item, event) {
+      IndexVM.prototype.edit = function(viewModel, event) {
         var _this = this;
         event.preventDefault();
-        this.active(item);
-        item.edit(function() {
-          item.endEdit();
+        this.active(viewModel);
+        viewModel.edit(function() {
+          viewModel.endEdit();
           return _this.active(null);
         });
-        return pubSub.pub("model", "edit", item);
+        return pubSub.pub("model", "edit", viewModel.item);
       };
 
       IndexVM.prototype.details = function(id) {};

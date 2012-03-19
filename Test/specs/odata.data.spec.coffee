@@ -69,3 +69,34 @@ define ["Ural/Modules/ODataProvider"], (ODataProvider) ->
         expect(data[0].id).toBe 0
         expect(data[0].name).toBe "zero"
 
+  describe "save data via OData provider", ->
+    it "update first item name to -zero-", ->
+      data = null
+      err = null
+      runs ->
+        dataProvider.save "Product", {id : 0, name : "-zero-"}, (e, d) -> data = d; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data.name).toBe "-zero-"
+        data = null
+        dataProvider.load "Product", id : { $eq : 0}, (e, d) -> data = d; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data[0].name).toBe "-zero-"
+    it "update first item name to zero", ->
+      data = null
+      err = null
+      runs ->
+        dataProvider.save "Product", {id : 0, name : "zero"}, (e, d) -> data = d; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data.name).toBe "zero"
+        data = null
+        dataProvider.load "Product", id : { $eq : 0}, (e, d) -> data = d; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data[0].name).toBe "zero"

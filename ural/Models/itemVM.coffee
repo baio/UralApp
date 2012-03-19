@@ -15,6 +15,11 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
       for own prop of @originItem
         @item[prop] @originItem[prop]
 
+    _copyFromSrc: (src) ->
+      for own prop of src
+        if ko.isWriteableObservable(@item[prop])
+          @item[prop] = @src[prop]()
+
     edit: (@onDone) ->
       if @originItem then throw "item already in edit state"
       @_createOrigin()
@@ -35,12 +40,14 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
         @_copyFromOrigin()
         if @onDone then @onDone null, isCancel
       else
+        ###
         @_createOrigin()
         if @onDone then @onDone null, isCancel
         ###
-        pubSub.pub "model", "save", @item, (err) =>
-          if !err then @_createOrigin()
+        pubSub.pub "model", "save", @item, (err, item) =>
+          if !err
+            @_copyFromSrc item
+            @_createOrigin()
           if @onDone then @onDone err, isCancel
-        ###
 
   ItemVM : ItemVM
