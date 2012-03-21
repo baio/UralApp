@@ -40,7 +40,7 @@
         @api public
     */
     convert = function(frameworkFilter) {
-      var field, fieldFilters, itemsPerPage, page, res;
+      var expand, field, fieldFilters, itemsPerPage, page, res;
       fieldFilters = [];
       for (field in frameworkFilter) {
         if (!__hasProp.call(frameworkFilter, field)) continue;
@@ -48,6 +48,8 @@
           page = frameworkFilter[field];
         } else if (field === "$itemsPerPage") {
           itemsPerPage = frameworkFilter[field];
+        } else if (field === "$expand") {
+          expand = frameworkFilter[field];
         } else {
           fieldFilters.push(_convertField(field, frameworkFilter[field]));
         }
@@ -60,6 +62,7 @@
         res.$top = itemsPerPage;
         res.$skip = page * itemsPerPage;
       }
+      if (expand) res.$expand = expand;
       return res;
     };
     return {

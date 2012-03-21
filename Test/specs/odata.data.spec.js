@@ -1,8 +1,10 @@
 (function() {
 
-  define(["Ural/Modules/ODataProvider"], function(ODataProvider) {
+  define(["Ural/Modules/ODataProvider", "Ural/Modules/DataFilterOpts"], function(ODataProvider, DataFilterOpts) {
     var dataProvider;
     dataProvider = ODataProvider.dataProvider;
+    DataFilterOpts.expandOpts.add("Producer", "$index", "Products");
+    DataFilterOpts.expandOpts.add("Producer", "$item", "Products/Tags");
     describe("OData provider statements", function() {
       it("plain without any filter", function() {
         var actual;
@@ -44,7 +46,7 @@
         });
         return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=id eq 0 and indexof(name, 'r') ne -1&$top=7&$skip=35");
       });
-      return it("name = 'zero'", function() {
+      it("name = 'zero'", function() {
         var actual;
         expect(dataProvider).toBeTruthy();
         actual = dataProvider._getStatement("Product", {
@@ -53,6 +55,41 @@
           }
         });
         return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=name eq 'zero'");
+      });
+      it("Producer id = '0' expand = Products", function() {
+        var actual;
+        expect(dataProvider).toBeTruthy();
+        actual = dataProvider._getStatement("Producer", {
+          id: {
+            $eq: 0
+          },
+          $expand: "Products"
+        });
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$filter=id eq 0&$expand=Products");
+      });
+      it("Producers expand = Products/Tags", function() {
+        var actual;
+        expect(dataProvider).toBeTruthy();
+        actual = dataProvider._getStatement("Producer", {
+          $expand: "Products/Tags"
+        });
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products/Tags");
+      });
+      it("Producers expand = $index", function() {
+        var actual;
+        expect(dataProvider).toBeTruthy();
+        actual = dataProvider._getStatement("Producer", {
+          $expand: "$index"
+        });
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products");
+      });
+      return it("Producers expand = $item", function() {
+        var actual;
+        expect(dataProvider).toBeTruthy();
+        actual = dataProvider._getStatement("Producer", {
+          $expand: "$item"
+        });
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products/Tags");
       });
     });
     describe("load data via OData provider", function() {
@@ -113,7 +150,7 @@
           return expect(data[2].name).toBe("three");
         });
       });
-      return it("id = 0 and name LIKE(...) skip top", function() {
+      it("id = 0 and name LIKE(...) skip top", function() {
         runs(function() {
           return dataProvider.load("Product", {
             id: {
@@ -131,6 +168,47 @@
           expect(data.length).toBe(1);
           expect(data[0].id).toBe(0);
           return expect(data[0].name).toBe("zero");
+        });
+      });
+      it("Producer id = 0 for index", function() {
+        runs(function() {
+          return dataProvider.load("Producer", {
+            id: {
+              $eq: 1
+            },
+            $expand: "$index"
+          }, function(err, d) {
+            return data = d;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(data.length).toBe(1);
+          expect(data[0].id).toBe(1);
+          expect(data[0].name).toBe("IBM");
+          expect(data[0].Products.length).toBe(2);
+          expect(data[0].Products[0].id).toBe(0);
+          return expect(data[0].Products[0].Tags.length).toBe(0);
+        });
+      });
+      return it("Producers for item", function() {
+        runs(function() {
+          return dataProvider.load("Producer", {
+            $expand: "$item"
+          }, function(err, d) {
+            return data = d;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(data.length).toBe(2);
+          expect(data[0].id).toBe(1);
+          expect(data[0].name).toBe("IBM");
+          expect(data[0].Products.length).toBe(2);
+          expect(data[0].Products[0].id).toBe(0);
+          expect(data[0].Products[0].Tags.length).toBe(2);
+          expect(data[0].Products[0].Tags[1].id).toBe(2);
+          return expect(data[0].Products[0].Tags[1].name).toBe("Hobby");
         });
       });
     });

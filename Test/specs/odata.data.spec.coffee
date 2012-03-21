@@ -1,6 +1,8 @@
-define ["Ural/Modules/ODataProvider"], (ODataProvider) ->
+define ["Ural/Modules/ODataProvider", "Ural/Modules/DataFilterOpts"], (ODataProvider, DataFilterOpts) ->
 
   dataProvider = ODataProvider.dataProvider
+  DataFilterOpts.expandOpts.add "Producer", "$index", "Products"
+  DataFilterOpts.expandOpts.add "Producer", "$item", "Products/Tags"
 
   describe "OData provider statements", ->
     it "plain without any filter", ->
@@ -31,6 +33,30 @@ define ["Ural/Modules/ODataProvider"], (ODataProvider) ->
       expect(dataProvider).toBeTruthy()
       actual = dataProvider._getStatement "Product", name : {$eq : 'zero'}
       expect(actual).toBe "http://localhost:3360/Service.svc/Products?$filter=name eq 'zero'"
+
+    it "Producer id = '0' expand = Products", ->
+
+      expect(dataProvider).toBeTruthy()
+      actual = dataProvider._getStatement "Producer", id : {$eq : 0}, $expand : "Products"
+      expect(actual).toBe "http://localhost:3360/Service.svc/Producers?$filter=id eq 0&$expand=Products"
+
+    it "Producers expand = Products/Tags", ->
+
+      expect(dataProvider).toBeTruthy()
+      actual = dataProvider._getStatement "Producer", $expand : "Products/Tags"
+      expect(actual).toBe "http://localhost:3360/Service.svc/Producers?$expand=Products/Tags"
+
+    it "Producers expand = $index", ->
+
+      expect(dataProvider).toBeTruthy()
+      actual = dataProvider._getStatement "Producer", $expand : "$index"
+      expect(actual).toBe "http://localhost:3360/Service.svc/Producers?$expand=Products"
+
+    it "Producers expand = $item", ->
+
+      expect(dataProvider).toBeTruthy()
+      actual = dataProvider._getStatement "Producer", $expand : "$item"
+      expect(actual).toBe "http://localhost:3360/Service.svc/Producers?$expand=Products/Tags"
 
 
   describe "load data via OData provider", ->
@@ -75,6 +101,30 @@ define ["Ural/Modules/ODataProvider"], (ODataProvider) ->
         expect(data.length).toBe 1
         expect(data[0].id).toBe 0
         expect(data[0].name).toBe "zero"
+    it "Producer id = 0 for index", ->
+      runs ->
+        dataProvider.load "Producer", id : { $eq : 1}, $expand : "$index", (err, d) -> data = d
+      waits 500
+      runs ->
+        expect(data.length).toBe 1
+        expect(data[0].id).toBe 1
+        expect(data[0].name).toBe "IBM"
+        expect(data[0].Products.length).toBe 2
+        expect(data[0].Products[0].id).toBe 0
+        expect(data[0].Products[0].Tags.length).toBe 0
+    it "Producers for item", ->
+      runs ->
+        dataProvider.load "Producer", $expand : "$item", (err, d) -> data = d
+      waits 500
+      runs ->
+        expect(data.length).toBe 2
+        expect(data[0].id).toBe 1
+        expect(data[0].name).toBe "IBM"
+        expect(data[0].Products.length).toBe 2
+        expect(data[0].Products[0].id).toBe 0
+        expect(data[0].Products[0].Tags.length).toBe 2
+        expect(data[0].Products[0].Tags[1].id).toBe 2
+        expect(data[0].Products[0].Tags[1].name).toBe "Hobby"
 
   describe "save data via OData provider", ->
     it "update first item name to -zero-", ->

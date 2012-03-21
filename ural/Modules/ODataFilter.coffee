@@ -1,4 +1,4 @@
-define ->
+define  ->
 
   _convertToken = (fieldName, tokenName, val) ->
     switch tokenName
@@ -27,6 +27,8 @@ define ->
         page = frameworkFilter[field]
       else if  field == "$itemsPerPage"
         itemsPerPage = frameworkFilter[field]
+      else if field == "$expand"
+        expand = frameworkFilter[field]
       else
         fieldFilters.push _convertField(field, frameworkFilter[field])
 
@@ -37,6 +39,9 @@ define ->
       itemsPerPage ?= 10
       res.$top = itemsPerPage
       res.$skip = page * itemsPerPage
+
+    if expand
+      res.$expand = expand
 
     res
 

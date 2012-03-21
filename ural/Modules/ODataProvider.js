@@ -1,15 +1,8 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(["Ural/Modules/ODataFilter", "Libs/datajs"], function(fr) {
-    var ODataProvider, defClient, providerClient;
-    defClient = OData.defaultHttpClient;
-    providerClient = {
-      request: function(request, success, error) {
-        return defClient.request(request, success, error);
-      }
-    };
-    OData.defaultHttpClient = providerClient;
+  define(["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Libs/datajs"], function(fr, frOpts) {
+    var ODataProvider;
     ODataProvider = (function() {
 
       function ODataProvider() {}
@@ -20,9 +13,12 @@
 
       ODataProvider._parse = function(item) {
         var arr, obj, prop;
-        if (item === null || typeof item !== "object") return item;
+        if (item === null || item === void 0 || typeof item !== "object") {
+          return item;
+        }
         if (item.results && Array.isArray(item.results)) arr = item.results;
         if (item.d && Array.isArray(item.d)) arr = item.d;
+        if (Array.isArray(item)) arr = item;
         if (arr) {
           return arr.map(function(i) {
             return ODataProvider._parse(i);
@@ -31,6 +27,7 @@
         obj = {};
         for (prop in item) {
           if (!__hasProp.call(item, prop)) continue;
+          if (prop === "__deferred") return [];
           if (prop !== "__metadata") obj[prop] = ODataProvider._parse(item[prop]);
         }
         return obj;
@@ -48,8 +45,14 @@
         return this._getSatementByODataFilter(srcName, fr.convert(filter));
       };
 
+      ODataProvider.prototype._getExpand = function(srcName, expand) {
+        var res;
+        res = frOpts.expandOpts.get(srcName, expand);
+        return res != null ? res : res = expand;
+      };
+
       ODataProvider.prototype._getSatementByODataFilter = function(srcName, oDataFilter) {
-        return _u.urlAddSearch("" + (ODataProvider.serviceHost()) + srcName + "s", oDataFilter.$filter ? "$filter=" + oDataFilter.$filter : void 0, oDataFilter.$top ? "$top=" + oDataFilter.$top : void 0, oDataFilter.$skip ? "$skip=" + oDataFilter.$skip : void 0);
+        return _u.urlAddSearch("" + (ODataProvider.serviceHost()) + srcName + "s", oDataFilter.$filter ? "$filter=" + oDataFilter.$filter : void 0, oDataFilter.$top ? "$top=" + oDataFilter.$top : void 0, oDataFilter.$skip ? "$skip=" + oDataFilter.$skip : void 0, oDataFilter.$expand ? "$expand=" + (this._getExpand(srcName, oDataFilter.$expand)) : void 0);
       };
 
       ODataProvider.prototype.save = function(srcName, item, callback) {
