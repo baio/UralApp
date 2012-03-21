@@ -28,14 +28,16 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Libs/datajs"
 
     _getExpand: (srcName, expand) ->
       res = frOpts.expandOpts.get srcName, expand
+      if res == "" then null
       res ?= expand
 
     _getSatementByODataFilter: (srcName, oDataFilter) ->
+      expand = @_getExpand srcName, oDataFilter.$expand
       _u.urlAddSearch "#{ODataProvider.serviceHost()}#{srcName}s",
         if oDataFilter.$filter then "$filter=#{oDataFilter.$filter}",
         if oDataFilter.$top then "$top=#{oDataFilter.$top}",
         if oDataFilter.$skip then "$skip=#{oDataFilter.$skip}",
-        if oDataFilter.$expand then "$expand=#{@_getExpand srcName, oDataFilter.$expand}"
+        if expand then "$expand=#{expand}"
 
     save: (srcName, item, callback) ->
       OData.request

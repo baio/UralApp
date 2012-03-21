@@ -4,7 +4,7 @@ define ->
     constructor: ->
       @id = ko.observable()
       @name = ko.observable()
-      @shortName = ko.computed (-> @name), @
+      @shortName = ko.computed (-> @name() + " short"), @
 
   ModelConstructor : Tag
 

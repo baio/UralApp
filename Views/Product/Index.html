@@ -6,11 +6,18 @@
         <!-- ko with: item -->
             <td data-bind="text: id"></td>
             <td data-bind="text: name"></td>
+            <td data-bind="template: {name:'tagTemplate', foreach: Tags}"></td>
             <!-- ko if: $data.hasOwnProperty("comp") -->
                 <td data-bind="text: comp"></td>
             <!-- /ko -->
         <!-- /ko -->
     </tr>
+</script>
+<script type="text/x-jquery-tmpl" id="tagTemplate">
+    <span data-bind="text:name"></span>
+    <!-- ko if: $data.hasOwnProperty("shortName") -->
+    <span data-bind="text: shortName"></span>
+    <!-- /ko -->
 </script>
 
 <!-- edit form -->

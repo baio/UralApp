@@ -1,10 +1,8 @@
 (function() {
 
-  define(["Ural/Modules/ODataProvider", "Ural/Modules/DataFilterOpts"], function(ODataProvider, DataFilterOpts) {
+  define(["Ural/Modules/ODataProvider", "setup"], function(ODataProvider) {
     var dataProvider;
     dataProvider = ODataProvider.dataProvider;
-    DataFilterOpts.expandOpts.add("Producer", "$index", "Products");
-    DataFilterOpts.expandOpts.add("Producer", "$item", "Products/Tags");
     describe("OData provider statements", function() {
       it("plain without any filter", function() {
         var actual;
@@ -17,7 +15,8 @@
         actual = dataProvider._getStatement("Product", {
           id: {
             $eq: 0
-          }
+          },
+          $expand: "$item"
         });
         return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=id eq 0");
       });

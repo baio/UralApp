@@ -14,7 +14,9 @@
 
       ProductController.prototype.indexCustom = function(onDone) {
         var _this = this;
-        return this.getDataProvider().load("Product", null, function(err, data) {
+        return this.getDataProvider().load("Product", {
+          $expand: "$index"
+        }, function(err, data) {
           _this.view(new indexVM.IndexVM(data), "index");
           if (onDone) return onDone(err);
         });
@@ -22,7 +24,9 @@
 
       ProductController.prototype.indexCustomWithCustomModel = function(onDone) {
         var _this = this;
-        return this.getDataProvider().load("Product", null, function(err, data) {
+        return this.getDataProvider().load("Product", {
+          $expand: "$index"
+        }, function(err, data) {
           var model;
           model = data.map(function(d) {
             return ko.mapping.fromJS(d, productModel.mappingRules, new productModel.ModelConstructor());

@@ -8,7 +8,7 @@
         this.id = ko.observable();
         this.name = ko.observable();
         this.shortName = ko.computed((function() {
-          return this.name;
+          return this.name() + " short";
         }), this);
       }
 

@@ -48,11 +48,14 @@
       ODataProvider.prototype._getExpand = function(srcName, expand) {
         var res;
         res = frOpts.expandOpts.get(srcName, expand);
+        if (res === "") null;
         return res != null ? res : res = expand;
       };
 
       ODataProvider.prototype._getSatementByODataFilter = function(srcName, oDataFilter) {
-        return _u.urlAddSearch("" + (ODataProvider.serviceHost()) + srcName + "s", oDataFilter.$filter ? "$filter=" + oDataFilter.$filter : void 0, oDataFilter.$top ? "$top=" + oDataFilter.$top : void 0, oDataFilter.$skip ? "$skip=" + oDataFilter.$skip : void 0, oDataFilter.$expand ? "$expand=" + (this._getExpand(srcName, oDataFilter.$expand)) : void 0);
+        var expand;
+        expand = this._getExpand(srcName, oDataFilter.$expand);
+        return _u.urlAddSearch("" + (ODataProvider.serviceHost()) + srcName + "s", oDataFilter.$filter ? "$filter=" + oDataFilter.$filter : void 0, oDataFilter.$top ? "$top=" + oDataFilter.$top : void 0, oDataFilter.$skip ? "$skip=" + oDataFilter.$skip : void 0, expand ? "$expand=" + expand : void 0);
       };
 
       ODataProvider.prototype.save = function(srcName, item, callback) {

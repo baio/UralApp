@@ -9,15 +9,19 @@
       }
 
       ExpandOpts.prototype.add = function(srcName, optName, expand) {
+        if (srcName == null) srcName = "";
         return this.opts[srcName + ":" + optName] = expand;
       };
 
       ExpandOpts.prototype.remove = function(srcName, optName) {
+        if (srcName == null) srcName = "";
         return delete this.opts[srcName + ":" + optName];
       };
 
       ExpandOpts.prototype.get = function(srcName, optName) {
-        return this.opts[srcName + ":" + optName];
+        var res;
+        res = this.opts[srcName + ":" + optName];
+        return res != null ? res : res = this.opts[":" + optName];
       };
 
       return ExpandOpts;

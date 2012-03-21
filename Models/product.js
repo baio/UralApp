@@ -1,6 +1,6 @@
 (function() {
 
-  define(function() {
+  define(["Models/tag"], function(tag) {
     var Product, mappingRules;
     Product = (function() {
 
@@ -10,7 +10,7 @@
         this.comp = ko.computed((function() {
           return this.id() + " " + this.name();
         }), this);
-        this.tags = ko.observableArray();
+        this.Tags = ko.observableArray();
       }
 
       return Product;
@@ -21,6 +21,11 @@
         name: {
           update: function(opts) {
             return opts.data + "foo";
+          }
+        },
+        Tags: {
+          create: function(opts) {
+            return ko.mapping.fromJS(opts.data, tag.mappingRules, new tag.ModelConstructor());
           }
         }
       };

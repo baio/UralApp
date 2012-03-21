@@ -4,7 +4,7 @@ libs = [
 require libs, ->
   require.config
     baseUrl: "."
-  require ["router"], (router) ->
+  require ["router", "setup"], (router) ->
       rr = new router.Router()
       rr.startRouting (action) ->
         $(".nav li.active").toggleClass "active"

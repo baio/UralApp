@@ -1,8 +1,6 @@
-define ["Ural/Modules/ODataProvider", "Ural/Modules/DataFilterOpts"], (ODataProvider, DataFilterOpts) ->
+define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
 
   dataProvider = ODataProvider.dataProvider
-  DataFilterOpts.expandOpts.add "Producer", "$index", "Products"
-  DataFilterOpts.expandOpts.add "Producer", "$item", "Products/Tags"
 
   describe "OData provider statements", ->
     it "plain without any filter", ->
@@ -13,7 +11,7 @@ define ["Ural/Modules/ODataProvider", "Ural/Modules/DataFilterOpts"], (ODataProv
     it "id = 0", ->
 
       expect(dataProvider).toBeTruthy()
-      actual = dataProvider._getStatement "Product", id : {$eq : 0 }
+      actual = dataProvider._getStatement "Product", id : {$eq : 0 }, $expand : "$item"
       expect(actual).toBe "http://localhost:3360/Service.svc/Products?$filter=id eq 0"
 
     it "id in (...)", ->

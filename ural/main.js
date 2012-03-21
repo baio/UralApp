@@ -7,7 +7,7 @@
     require.config({
       baseUrl: "."
     });
-    return require(["router"], function(router) {
+    return require(["router", "setup"], function(router) {
       var rr;
       rr = new router.Router();
       return rr.startRouting(function(action) {
