@@ -54,6 +54,8 @@ define ["Ural/Modules/ODataProvider"
         customModelPath ?= "Models/#{@modelName}"
       async.waterfall [
         (ck) =>
+          filter ?= {}
+          filter.$expand ?= "$index"
           @getDataProvider().load @modelName, filter, ck
         ,(data, ck) =>
           if useCustomModel

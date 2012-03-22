@@ -73,6 +73,8 @@
         }
         return async.waterfall([
           function(ck) {
+            if (filter == null) filter = {};
+            if (filter.$expand == null) filter.$expand = "$index";
             return _this.getDataProvider().load(_this.modelName, filter, ck);
           }, function(data, ck) {
             if (useCustomModel) {

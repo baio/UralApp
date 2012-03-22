@@ -1,5 +1,4 @@
-define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Libs/datajs"], (fr, frOpts) ->
-
+define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/datajs"], (fr, frOpts) ->
   class ODataProvider
     @serviceHost: -> 'http://localhost:3360/Service.svc/'
 
@@ -18,6 +17,43 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Libs/datajs"
         if prop != "__metadata"
           obj[prop] = ODataProvider._parse item[prop]
       obj
+
+    @_formatRequest: (name, item, parentName, parentContentId, totalCount)->
+      res = []
+      flattered = {}
+      totalCount ?= 1
+      cid = totalCount
+
+      for own prop of item
+        val = item[prop]
+
+        if Array.isArray val
+          typeName = prop.replace /^(.*)s$/, "$1"
+          for i in val
+            res = res.concat ODataProvider._formatRequest typeName, i, name, cid, ++totalCount
+          val = null
+        else if typeof val == "object"
+          contentID++
+          res = res.concat ODataProvider._formatRequest prop, val, name, cid, contentID, ++totalCount
+          val = null
+
+        if val != null then flattered[prop] = val
+
+      data = switch item.id
+        when -1 then method : "POST", uri : "#{name}s"
+        when -2 then method : "DELETE", uri : "#{name}s(#{item.id})"
+        else method : "PUT", uri : "#{name}s(#{item.id})"
+
+      if parentName
+        flattered[parentName] = __metadata: {uri: "$" + parentContentId}
+
+      res.push
+        headers: {"Content-ID": cid}
+        requestUri: data.uri
+        method: data.method
+        data: flattered
+
+      res
 
     load: (srcName, filter, callback) ->
       stt = @_getStatement srcName, filter
@@ -39,26 +75,45 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Libs/datajs"
         if oDataFilter.$skip then "$skip=#{oDataFilter.$skip}",
         if expand then "$expand=#{expand}"
 
+    @_getSaveRequestData: (srcName, item) ->
+      __batchRequests: [
+        __changeRequests: ODataProvider._formatRequest srcName, item
+      ]
+
+    @_parseSaveResponseData: (data) ->
+      res = []
+      for batchResponse in data.__batchResponses
+        for changeResponse in batchResponse.__changeResponses
+          res.push
+            type : null
+            data : changeResponse.data
+            error : changeResponse.message
+      res
+
     save: (srcName, item, callback) ->
-      OData.request
-        headers : {"Content-Type" : "application/json"}
-        requestUri: "#{ODataProvider.serviceHost()}#{srcName}s#{if item.id != -1 then "(#{item.id})" else ""}",
-        method: if item.id == -1 then "POST" else "PUT",
-        data: item
-        ,(data, response) =>
-          if data
-            callback null, ODataProvider._parse(data)
+      request =
+        requestUri: "#{ODataProvider.serviceHost()}$batch"
+        method: "POST"
+        data: ODataProvider._getSaveRequestData srcName, item
+
+      OData.request request
+        , (data) =>
+          resp = ODataProvider._parseSaveResponseData data
+          if resp.data
+            callback resp.errors, ODataProvider._parse(resp.data)
           else
             @load srcName, id : {$eq : item.id}, (err, data) ->
               if !err then item = data[0]
               callback err, item
+        , (err) ->
+          callback err
+        , OData.batchHandler
 
     delete: (srcName, id, callback) ->
       OData.request
-        headers : {"Content-Type" : "application/json"}
+        headers: {"Content-Type": "application/json"}
         requestUri: "#{ODataProvider.serviceHost()}#{srcName}s(#{id})",
-        method: "DELETE"
-        ,(data, response) =>
+        method: "DELETE",(data, response) =>
 
-  dataProvider : new ODataProvider()
+  dataProvider: new ODataProvider()
 

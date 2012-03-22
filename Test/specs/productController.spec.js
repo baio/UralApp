@@ -3,8 +3,10 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   define(["Controllers/productController", "Ural/Controllers/controllerBase", "setup"], function(productController, controllerBase) {
-    describe("play with index views, load model then show view", function() {
-      afterEach(function() {});
+    xdescribe("play with index views, load model then show view", function() {
+      afterEach(function() {
+        return $("#_body").empty();
+      });
       it("indexCustom", function() {
         var controller, err;
         controller = new productController.ProductController();
@@ -49,7 +51,7 @@
           return expect($("table#model_container td:eq(23)").text()).toBe("5 fivefoo");
         });
       });
-      xit("index, ini model name explicitly via constructor", function() {
+      it("index, ini model name explicitly via constructor", function() {
         var controller, err;
         controller = new productController.ProductController();
         err = null;
@@ -61,13 +63,13 @@
         waits(500);
         return runs(function() {
           expect(err).toBeFalsy();
-          expect($("table#model_container td:eq(2)").text()).toBe("1");
-          expect($("table#model_container td:eq(3)").text()).toBe("one");
-          expect($("table#model_container td:eq(10)").text()).toBe("5");
-          return expect($("table#model_container td:eq(11)").text()).toBe("five");
+          expect($("table#model_container td:eq(3)").text()).toBe("1");
+          expect($("table#model_container td:eq(4)").text()).toBe("one");
+          expect($("table#model_container td:eq(15)").text()).toBe("5");
+          return expect($("table#model_container td:eq(16)").text()).toBe("five");
         });
       });
-      xit("index, ini model name implicitly via class name", function() {
+      it("index, ini model name implicitly via class name", function() {
         var ProductController, controller, err;
         ProductController = (function(_super) {
 
@@ -90,13 +92,13 @@
         waits(500);
         return runs(function() {
           expect(err).toBeFalsy();
-          expect($("table#model_container td:eq(2)").text()).toBe("1");
-          expect($("table#model_container td:eq(3)").text()).toBe("one");
-          expect($("table#model_container td:eq(10)").text()).toBe("5");
-          return expect($("table#model_container td:eq(11)").text()).toBe("five");
+          expect($("table#model_container td:eq(3)").text()).toBe("1");
+          expect($("table#model_container td:eq(4)").text()).toBe("one");
+          expect($("table#model_container td:eq(15)").text()).toBe("5");
+          return expect($("table#model_container td:eq(16)").text()).toBe("five");
         });
       });
-      return xit("model name impilcitily, create custom model (path to module implicitily) via options", function() {
+      return it("model name impilcitily, create custom model (path to module implicitily) via options", function() {
         var controller, err;
         controller = new productController.ProductController({
           model: {
@@ -105,7 +107,7 @@
         });
         err = null;
         runs(function() {
-          return controller.index(function(e) {
+          return controller.index(null, function(e) {
             return err = e;
           });
         });
@@ -114,14 +116,18 @@
           expect(err).toBeFalsy();
           expect($("table#model_container td:eq(0)").text()).toBe("0");
           expect($("table#model_container td:eq(1)").text()).toBe("zerofoo");
-          expect($("table#model_container td:eq(2)").text()).toBe("0 zerofoo");
-          expect($("table#model_container td:eq(15)").text()).toBe("5");
-          expect($("table#model_container td:eq(16)").text()).toBe("fivefoo");
-          return expect($("table#model_container td:eq(17)").text()).toBe("5 fivefoo");
+          expect($("table#model_container td:eq(2) span:eq(0)").text()).toBe("Sport");
+          expect($("table#model_container td:eq(2) span:eq(1)").text()).toBe("Sport short");
+          expect($("table#model_container td:eq(2) span:eq(2)").text()).toBe("Hobby");
+          expect($("table#model_container td:eq(2) span:eq(3)").text()).toBe("Hobby short");
+          expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo");
+          expect($("table#model_container td:eq(20)").text()).toBe("5");
+          expect($("table#model_container td:eq(21)").text()).toBe("fivefoo");
+          return expect($("table#model_container td:eq(23)").text()).toBe("5 fivefoo");
         });
       });
     });
-    return xdescribe("edit index view's items", function() {
+    return describe("edit index view's items", function() {
       var viewModel;
       viewModel = null;
       beforeEach(function() {
@@ -141,15 +147,12 @@
           return $("table#model_container tr:eq(0)").click();
         });
       });
-      afterEach(function() {
-        viewModel = null;
-        return $("#_body").empty();
-      });
-      it("show edit for first item", function() {
+      afterEach(function() {});
+      xit("show edit for first item", function() {
         expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
         return expect($("#product_name").val()).toBe('zerofoo');
       });
-      it("show edit for first item, then edit name, then cancel", function() {
+      xit("show edit for first item, then edit name, then cancel", function() {
         expect(viewModel.active().item.name()).toBe("zerofoo");
         $("#product_name").val("test").change();
         expect(viewModel.list[0].item.name()).toBe("test");
@@ -158,7 +161,7 @@
         expect(viewModel.list[0].item.name()).toBe("zerofoo");
         return expect(viewModel.active()).toBe(null);
       });
-      return xit("show edit for first item, then edit name, then submit", function() {
+      return it("show edit for first item, then edit name, then submit", function() {
         expect(viewModel.active().item.name()).toBe("zerofoo");
         $("#product_name").val("-nill-").change();
         expect(viewModel.list[0].item.name()).toBe("-nill-");

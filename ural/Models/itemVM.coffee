@@ -32,7 +32,9 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
 
     cancel: -> @_done true
 
-    save: -> @_done false
+    save: (data, event)->
+      event.preventDefault()
+      @_done false
 
     _done: (isCancel) ->
       if !@originItem then throw "item not in edit state"

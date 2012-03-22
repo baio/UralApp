@@ -67,7 +67,8 @@
         return this._done(true);
       };
 
-      ItemVM.prototype.save = function() {
+      ItemVM.prototype.save = function(data, event) {
+        event.preventDefault();
         return this._done(false);
       };
 
