@@ -285,7 +285,13 @@
         runs(function() {
           return dataProvider.save("Product", {
             id: 0,
-            name: "zero-x"
+            name: "zero-x",
+            Tags: [
+              {
+                id: 1,
+                name: "sport-x"
+              }
+            ]
           }, function(e, d) {
             data = d;
             return err = e;

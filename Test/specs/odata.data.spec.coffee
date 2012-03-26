@@ -159,8 +159,8 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
       data = null
       err = null
       runs ->
-        dataProvider.save "Product", {id : 0, name : "zero-x"}, (e, d) -> data = d; err = e
-        #dataProvider.save "Product", {id : 0, name : "zero-x", Tags : [ {id : 1, name : "sport-x"} ] }, (e, d) -> data = d; err = e
+        #dataProvider.save "Product", {id : 0, name : "zero-x"}, (e, d) -> data = d; err = e
+        dataProvider.save "Product", {id : 0, name : "zero-x", Tags : [ {id : 1, name : "sport-x"} ] }, (e, d) -> data = d; err = e
       waits 500
       runs ->
         expect(err).toBeFalsy()

@@ -18,7 +18,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
           obj[prop] = ODataProvider._parse item[prop]
       obj
 
-    @_formatRequest: (name, item, parentName, parentContentId, totalCount)->
+    @x_formatRequest: (name, item, parentName, parentContentId, totalCount)->
       res = []
       flattered = {}
       totalCount ?= 1
@@ -30,7 +30,9 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         if Array.isArray val
           typeName = prop.replace /^(.*)s$/, "$1"
           for i in val
-            res = res.concat ODataProvider._formatRequest typeName, i, name, cid, ++totalCount
+            nested = ODataProvider._formatRequest typeName, i, name, cid, totalCount + 1
+            totalCount += nested.length
+            res = res.concat nested
           val = null
         else if typeof val == "object"
           contentID++
@@ -45,7 +47,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         else method : "PUT", uri : "#{name}s(#{item.id})"
 
       if parentName
-        flattered[parentName] = __metadata: {uri: "$" + parentContentId}
+        flattered[parentName] = __metadata : {uri: "$#{parentContentId}.id"}
 
       res.push
         headers: {"Content-ID": cid}
@@ -54,6 +56,60 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         data: flattered
 
       res
+
+
+    @_formatRequest: ->
+      #product exists, tags exist
+      [
+        {
+          requestUri: "Products(0)/Tags"
+          method: "POST"
+          data : { id : 1, name : "Sport" }
+        }
+      ]
+      #product not extists, tags exist
+      [
+        {
+        headers: {"Content-ID": 1}
+        requestUri: "Products"
+        method: "POST"
+        data : { id : -1, name : "chicken" }
+        },
+        {
+        requestUri: "$1/Tags"
+        method: "POST"
+        data : { id : 1, name : "Sport" }
+        }
+      ]
+      #product extists, tags not exist
+      [
+        {
+        requestUri: "Products(0)/Tags"
+        method: "POST"
+        data : { id : -1, name : "chicken-tag" }
+        }
+      ]
+      #product not extists, tags not exist
+      [
+        {
+        headers: {"Content-ID": 1}
+        requestUri: "Products"
+        method: "POST"
+        data : { id : -1, name : "chicken" }
+        },
+        {
+        requestUri: "$1/Tags"
+        method: "POST"
+        data : { id : -1, name : "chicken-tag" }
+        }
+      ]
+      #delete link
+      [
+        {
+        requestUri: "/Products(91)/$links/Tags(17)"
+        method: "DELETE"
+        }
+      ]
 
     load: (srcName, filter, callback) ->
       stt = @_getStatement srcName, filter
@@ -88,7 +144,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
             type : null
             data : changeResponse.data
             error : changeResponse.message
-      res
+      res[0]
 
     save: (srcName, item, callback) ->
       request =
@@ -99,7 +155,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       OData.request request
         , (data) =>
           resp = ODataProvider._parseSaveResponseData data
-          if resp.data
+          if resp
             callback resp.errors, ODataProvider._parse(resp.data)
           else
             @load srcName, id : {$eq : item.id}, (err, data) ->

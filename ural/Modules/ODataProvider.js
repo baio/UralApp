@@ -33,8 +33,8 @@
         return obj;
       };
 
-      ODataProvider._formatRequest = function(name, item, parentName, parentContentId, totalCount) {
-        var cid, data, flattered, i, prop, res, typeName, val, _i, _len;
+      ODataProvider.x_formatRequest = function(name, item, parentName, parentContentId, totalCount) {
+        var cid, data, flattered, i, nested, prop, res, typeName, val, _i, _len;
         res = [];
         flattered = {};
         if (totalCount == null) totalCount = 1;
@@ -46,7 +46,9 @@
             typeName = prop.replace(/^(.*)s$/, "$1");
             for (_i = 0, _len = val.length; _i < _len; _i++) {
               i = val[_i];
-              res = res.concat(ODataProvider._formatRequest(typeName, i, name, cid, ++totalCount));
+              nested = ODataProvider._formatRequest(typeName, i, name, cid, totalCount + 1);
+              totalCount += nested.length;
+              res = res.concat(nested);
             }
             val = null;
           } else if (typeof val === "object") {
@@ -78,7 +80,7 @@
         if (parentName) {
           flattered[parentName] = {
             __metadata: {
-              uri: "$" + parentContentId
+              uri: "$" + parentContentId + ".id"
             }
           };
         }
@@ -91,6 +93,75 @@
           data: flattered
         });
         return res;
+      };
+
+      ODataProvider._formatRequest = function() {
+        [
+          {
+            requestUri: "Products(0)/Tags",
+            method: "POST",
+            data: {
+              id: 1,
+              name: "Sport"
+            }
+          }
+        ];
+        [
+          {
+            headers: {
+              "Content-ID": 1
+            },
+            requestUri: "Products",
+            method: "POST",
+            data: {
+              id: -1,
+              name: "chicken"
+            }
+          }, {
+            requestUri: "$1/Tags",
+            method: "POST",
+            data: {
+              id: 1,
+              name: "Sport"
+            }
+          }
+        ];
+        [
+          {
+            requestUri: "Products(0)/Tags",
+            method: "POST",
+            data: {
+              id: -1,
+              name: "chicken-tag"
+            }
+          }
+        ];
+        [
+          {
+            headers: {
+              "Content-ID": 1
+            },
+            requestUri: "Products",
+            method: "POST",
+            data: {
+              id: -1,
+              name: "chicken"
+            }
+          }, {
+            requestUri: "$1/Tags",
+            method: "POST",
+            data: {
+              id: -1,
+              name: "chicken-tag"
+            }
+          }
+        ];
+        return [
+          {
+            requestUri: "/Products(91)/$links/Tags(17)",
+            method: "DELETE"
+          }
+        ];
       };
 
       ODataProvider.prototype.load = function(srcName, filter, callback) {
@@ -144,7 +215,7 @@
             });
           }
         }
-        return res;
+        return res[0];
       };
 
       ODataProvider.prototype.save = function(srcName, item, callback) {
@@ -158,7 +229,7 @@
         return OData.request(request, function(data) {
           var resp;
           resp = ODataProvider._parseSaveResponseData(data);
-          if (resp.data) {
+          if (resp) {
             return callback(resp.errors, ODataProvider._parse(resp.data));
           } else {
             return _this.load(srcName, {
