@@ -3,7 +3,7 @@
   define(["Ural/Modules/ODataProvider", "setup"], function(ODataProvider) {
     var dataProvider;
     dataProvider = ODataProvider.dataProvider;
-    xdescribe("OData provider statements", function() {
+    describe("OData provider statements", function() {
       it("plain without any filter", function() {
         var actual;
         actual = dataProvider._getStatement("Product", null);
@@ -91,7 +91,7 @@
         return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products/Tags");
       });
     });
-    xdescribe("load data via OData provider", function() {
+    describe("load data via OData provider", function() {
       var data;
       data = null;
       it("empty filter", function() {
@@ -212,7 +212,7 @@
       });
     });
     describe("save data via OData provider", function() {
-      xit("update first item name to -zero-", function() {
+      it("update first item name to -zero-", function() {
         var data, err;
         data = null;
         err = null;
@@ -245,7 +245,7 @@
           return expect(data[0].name).toBe("-zero-");
         });
       });
-      xit("update first item name to zero", function() {
+      it("update first item name to zero", function() {
         var data, err;
         data = null;
         err = null;
@@ -278,18 +278,18 @@
           return expect(data[0].name).toBe("zero");
         });
       });
-      return it("update data with nested items", function() {
+      return it("update data with relations", function() {
         var data, err;
         data = null;
         err = null;
         runs(function() {
           return dataProvider.save("Product", {
-            id: 0,
-            name: "zero-x",
+            id: 3,
+            name: "three",
             Tags: [
               {
                 id: 1,
-                name: "sport-x"
+                name: "Sport"
               }
             ]
           }, function(e, d) {
@@ -300,12 +300,40 @@
         waits(500);
         runs(function() {
           expect(err).toBeFalsy();
-          expect(data.name).toBe("zero-x");
+          expect(data.name).toBe("three");
+          expect(data.Tags.length).toBe(1);
+          expect(data.Tags[0].id).toBe(1);
+          expect(data.Tags[0].name).toBe("Sport");
           data = null;
           return dataProvider.load("Product", {
             id: {
-              $eq: 0
-            }
+              $eq: 3
+            },
+            $expand: "$item"
+          }, function(e, d) {
+            data = d[0];
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          expect(err).toBeFalsy();
+          expect(data.name).toBe("three");
+          expect(data.Tags.length).toBe(1);
+          expect(data.Tags[0].id).toBe(1);
+          return expect(data.Tags[0].name).toBe("Sport");
+        });
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: 3,
+            name: "three",
+            Tags: [
+              {
+                id: 1,
+                name: "Sport",
+                __action: "delete"
+              }
+            ]
           }, function(e, d) {
             data = d;
             return err = e;
@@ -314,12 +342,12 @@
         waits(500);
         return runs(function() {
           expect(err).toBeFalsy();
-          expect(data[0].name).toBe("zero-x");
-          return expect(data[0].Tags.length).toBe(1);
+          expect(data.name).toBe("three");
+          return expect(data.Tags.length).toBe(0);
         });
       });
     });
-    xdescribe("create data via OData provider", function() {
+    describe("create data via OData provider", function() {
       return it("create six", function() {
         var data, err;
         data = null;
@@ -357,7 +385,7 @@
         });
       });
     });
-    return xdescribe("delete data via OData provider", function() {
+    return describe("delete data via OData provider", function() {
       return it("delete six", function() {
         var data, err;
         data = null;

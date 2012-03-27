@@ -18,36 +18,54 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
           obj[prop] = ODataProvider._parse item[prop]
       obj
 
-    @x_formatRequest: (name, item, parentName, parentContentId, totalCount)->
+    @_isDelete: (item) -> item.__action  and item.__action == "delete"
+
+    @_formatRequest: (name, item, parentName, parentId, parentContentId, totalCount) ->
+      #only root item could be deleted
+      #nested items, marked for delete (id!=-2) - just remove realtion
+      #nested item - either new link (id!=-1) or new item + new link (id==-1)
       res = []
-      flattered = {}
+      expnads = []
+
       totalCount ?= 1
       cid = totalCount
+      isDelete = ODataProvider._isDelete item
 
-      for own prop of item
-        val = item[prop]
+      if !isDelete
 
-        if Array.isArray val
-          typeName = prop.replace /^(.*)s$/, "$1"
-          for i in val
-            nested = ODataProvider._formatRequest typeName, i, name, cid, totalCount + 1
-            totalCount += nested.length
-            res = res.concat nested
-          val = null
-        else if typeof val == "object"
-          contentID++
-          res = res.concat ODataProvider._formatRequest prop, val, name, cid, contentID, ++totalCount
-          val = null
+        flattered = {}
 
-        if val != null then flattered[prop] = val
+        for own prop of item
+          val = item[prop]
 
-      data = switch item.id
-        when -1 then method : "POST", uri : "#{name}s"
-        when -2 then method : "DELETE", uri : "#{name}s(#{item.id})"
-        else method : "PUT", uri : "#{name}s(#{item.id})"
+          if Array.isArray val
+            typeName = prop.replace /^(.*)s$/, "$1"
+            for i in val
+              nested = ODataProvider._formatRequest typeName, i, name, item.id, cid, totalCount + 1
+              totalCount += nested.length
+              res = res.concat nested
+            val = null
+          else if typeof val == "object"
+            contentID++
+            res = res.concat ODataProvider._formatRequest prop, val, name, item.id, cid, contentID, ++totalCount
+            val = null
 
-      if parentName
-        flattered[parentName] = __metadata : {uri: "$#{parentContentId}.id"}
+          if val != null then flattered[prop] = val
+
+      if !parentName
+        #root item
+        if isDelete
+          data = method: "DELETE", uri: "#{name}s(#{item.id})"
+        else
+          data = switch item.id
+            when -1 then method: "POST", uri: "#{name}s"
+            else method: "PUT", uri: "#{name}s(#{item.id})"
+      else
+        #nested item
+        if isDelete
+          data = method: "DELETE", uri: "#{parentName}s(#{parentId})/$links/#{name}s(#{item.id})"
+        else
+          data = method: "POST", uri: if parentId == -1 then "$#{parentContentId}/#{name}s" else "#{parentName}s(#{parentId})/#{name}s"
 
       res.push
         headers: {"Content-ID": cid}
@@ -57,7 +75,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
 
       res
 
-
+    ###
     @_formatRequest: ->
       #product exists, tags exist
       [
@@ -110,6 +128,24 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         method: "DELETE"
         }
       ]
+    ###
+    @_getExpandsFromItem: (name, item) ->
+      res = []
+      nested = []
+      for own prop of item
+        val = item[prop]
+        if Array.isArray val
+          if val.length > 0
+            nested = ODataProvider._getExpandsFromItem prop, val[0]
+        else if typeof val == "object"
+          nested = ODataProvider._getExpandsFromItem prop, val
+      if nested.length
+        for n in nested
+          name = name + "/" if name
+          res.push name + n
+      else if name
+        res.push name
+      res
 
     load: (srcName, filter, callback) ->
       stt = @_getStatement srcName, filter
@@ -141,10 +177,11 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       for batchResponse in data.__batchResponses
         for changeResponse in batchResponse.__changeResponses
           res.push
-            type : null
-            data : changeResponse.data
-            error : changeResponse.message
-      res[0]
+            type: null
+            contentId: changeResponse.headers["Content-ID"]
+            data: changeResponse.data
+            error: changeResponse.message
+      res
 
     save: (srcName, item, callback) ->
       request =
@@ -155,12 +192,12 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       OData.request request
         , (data) =>
           resp = ODataProvider._parseSaveResponseData data
-          if resp
-            callback resp.errors, ODataProvider._parse(resp.data)
-          else
-            @load srcName, id : {$eq : item.id}, (err, data) ->
-              if !err then item = data[0]
-              callback err, item
+          expand = ODataProvider._getExpandsFromItem(name, item).toString()
+          rootResp = resp.filter((x) -> x.contentId == "1")[0]
+          id = if rootResp and rootResp.data then rootResp.data.id else item.id
+          @load srcName, id: {$eq: id}, $expand: expand, (err, data) ->
+            if !err then data = data[0]
+            callback err, data
         , (err) ->
           callback err
         , OData.batchHandler
