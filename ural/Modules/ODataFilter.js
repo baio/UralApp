@@ -7,8 +7,10 @@
       switch (tokenName) {
         case "$eq":
           return "" + fieldName + " eq " + (typeof val === "string" ? "'" + val + "'" : val);
-        case "$like":
+        case "$LIKE":
           return "indexof(" + fieldName + ", '" + val + "') ne -1";
+        case "$like":
+          return "indexof(toupper(" + fieldName + "), '" + (val.toUpperCase()) + "') ne -1";
         case "$in":
           return "(" + ((val.map(function(x) {
             return "" + fieldName + " eq " + x;
