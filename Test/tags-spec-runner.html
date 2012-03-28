@@ -2,7 +2,7 @@
         "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-    <title>Jasmine Spec Runner (product controller)</title>
+    <title>Jasmine Spec Runner (tags)</title>
 
     <link rel="shortcut icon" type="image/png" href="jasmine/jasmine_favicon.png">
 
@@ -11,8 +11,7 @@
     <script type="text/javascript" src="jasmine/jasmine-html.js"></script>
 
     <!-- global css includes -->
-
-    <link rel="stylesheet" type="text/css" href="/Ural/Libs/css/jquery.ui.css">
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/flick/jquery-ui.css">
     <link rel="stylesheet" type="text/css" href="/Ural/Libs/css/jquery.tagit.css">
 
 
@@ -22,6 +21,7 @@
     <script type="text/javascript" src="../Ural/Libs/jquery.js"></script>
     <script type="text/javascript" src="../Ural/Libs/jquery.ui.js"></script>
     <script type="text/javascript" src="../Ural/Libs/async.js"></script>
+    <script type="text/javascript" src="../Ural/Libs/tag-it.js"></script>
     <script type="text/javascript" src="../Ural/Libs/knockout.js"></script>
     <script type="text/javascript" src="../Ural/Libs/knockout.mapping.js"></script>
     <script type="text/javascript" src="../Ural/Libs/knockout.extensions.js"></script>
@@ -40,7 +40,7 @@
                 baseUrl: '../..'
             });
 
-            require(["./Test/specs/productController.spec"], function(){
+            require(["./Test/specs/tags.spec"], function(){
                 var jasmineEnv = jasmine.getEnv();
                 jasmineEnv.updateInterval = 1000;
 
@@ -72,7 +72,7 @@
 </head>
 <body>
 <div>
-    <div id="_layout">test</div>
+    <input data-bind="tags: Tags, tagsOpts : {url : '/Tags'}">
 </div>
 </body>
 </html>

@@ -127,7 +127,7 @@
         });
       });
     });
-    return describe("edit index view's items", function() {
+    xdescribe("edit index view's items", function() {
       var viewModel;
       viewModel = null;
       beforeEach(function() {
@@ -148,11 +148,11 @@
         });
       });
       afterEach(function() {});
-      xit("show edit for first item", function() {
+      it("show edit for first item", function() {
         expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
         return expect($("#product_name").val()).toBe('zerofoo');
       });
-      xit("show edit for first item, then edit name, then cancel", function() {
+      it("show edit for first item, then edit name, then cancel", function() {
         expect(viewModel.active().item.name()).toBe("zerofoo");
         $("#product_name").val("test").change();
         expect(viewModel.list[0].item.name()).toBe("test");
@@ -169,6 +169,31 @@
         $("#product_save").click();
         expect(viewModel.list[0].item.name()).toBe("-nill-");
         return expect(viewModel.active()).toBe(null);
+      });
+    });
+    return describe("Tags", function() {
+      var viewModel;
+      viewModel = null;
+      beforeEach(function() {
+        var controller;
+        controller = new productController.ProductController({
+          model: {
+            useCustomModel: true
+          }
+        });
+        runs(function() {
+          return controller.index(null, function(err, vm) {
+            return viewModel = vm;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          return $("table#model_container tr:eq(0)").click();
+        });
+      });
+      return it("edit tags", function() {
+        expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
+        return expect($("#product_name").val()).toBe('zerofoo');
       });
     });
   });

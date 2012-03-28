@@ -6,7 +6,7 @@
         <!-- ko with: item -->
             <td data-bind="text: id"></td>
             <td data-bind="text: name"></td>
-            <td data-bind="template: {name:'tagTemplate', foreach: Tags}"></td>
+            <td data-bind="template: {name: 'tagTemplate', foreach: Tags}"></td>
             <!-- ko if: $data.hasOwnProperty("comp") -->
                 <td data-bind="text: comp"></td>
             <!-- /ko -->
@@ -25,7 +25,8 @@
     Edit!
     <div data-bind="with: item">
     <input id="product_name" data-bind="value: name">
+    <input id="product_tags" data-bind="tags: Tags, tagsOpts: {url: '/Tags'}">
     </div>
-    <button id="product_save" type="submit" data-bind="click: save">save</button>
-    <button id="product_cancel" type="submit" data-bind="click: cancel">cancel</button>
+    <!--<button id="product_save" type="submit" data-bind="click: save">save</button>-->
+    <!--<button id="product_cancel" type="submit" data-bind="click: cancel">cancel</button>-->
 </form>

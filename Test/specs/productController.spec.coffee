@@ -92,7 +92,7 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
         expect($("table#model_container td:eq(23)").text()).toBe("5 fivefoo")
 
 
-  describe "edit index view's items", ->
+  xdescribe "edit index view's items", ->
     viewModel = null
     beforeEach ->
       controller = new productController.ProductController model : {useCustomModel : true}
@@ -106,11 +106,11 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       #viewModel = null
       #$("#_body").empty()
 
-    xit "show edit for first item", ->
+    it "show edit for first item", ->
       expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
       expect($("#product_name").val()).toBe('zerofoo')
 
-    xit "show edit for first item, then edit name, then cancel", ->
+    it "show edit for first item, then edit name, then cancel", ->
       expect(viewModel.active().item.name()).toBe "zerofoo"
       $("#product_name").val("test").change()
       expect(viewModel.list[0].item.name()).toBe "test"
@@ -127,6 +127,21 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       $("#product_save").click()
       expect(viewModel.list[0].item.name()).toBe "-nill-"
       expect(viewModel.active()).toBe null
+
+  describe "Tags", ->
+    viewModel = null
+    beforeEach ->
+      controller = new productController.ProductController model : {useCustomModel : true}
+      runs ->
+        controller.index null, (err, vm) -> viewModel = vm
+      waits 500
+      runs ->
+        $("table#model_container tr:eq(0)").click()
+
+
+    it "edit tags", ->
+      expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
+      expect($("#product_name").val()).toBe('zerofoo')
 
 
 
