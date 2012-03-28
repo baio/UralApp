@@ -38,7 +38,7 @@
             $eq: 0
           },
           name: {
-            $like: 'r'
+            $LIKE: 'r'
           },
           $page: 5,
           $itemsPerPage: 7

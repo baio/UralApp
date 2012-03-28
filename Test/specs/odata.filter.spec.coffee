@@ -28,7 +28,7 @@ describe "convert framework filter to odata filter expression", ->
         name : {$like : "o"}
       actual = filter.convert frameworkFilter
       expected =
-        $filter : "(id eq 0 or id eq 1 or id eq 5) and indexof(name, 'o') ne -1"
+        $filter : "(id eq 0 or id eq 1 or id eq 5) and indexof(toupper(name), 'O') ne -1"
         $skip : 10
         $top : 10
       expect(actual.$filter).toBe expected.$filter

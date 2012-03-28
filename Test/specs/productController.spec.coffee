@@ -1,6 +1,6 @@
 define ["Controllers/productController", "Ural/Controllers/controllerBase", "setup"], (productController, controllerBase) ->
 
-  xdescribe "play with index views, load model then show view", ->
+  describe "play with index views, load model then show view", ->
 
     afterEach ->
       $("#_body").empty()
@@ -92,7 +92,7 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
         expect($("table#model_container td:eq(23)").text()).toBe("5 fivefoo")
 
 
-  xdescribe "edit index view's items", ->
+  describe "edit index view's items", ->
     viewModel = null
     beforeEach ->
       controller = new productController.ProductController model : {useCustomModel : true}
@@ -126,7 +126,10 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       expect(viewModel.active().item.name()).toBe "-nill-"
       $("#product_save").click()
       expect(viewModel.list[0].item.name()).toBe "-nill-"
-      expect(viewModel.active()).toBe null
+      $("#product_name").val("zero").change()
+      $("#product_save").click()
+      expect(viewModel.list[0].item.name()).toBe "zero"
+
 
   describe "Tags", ->
     viewModel = null
@@ -139,9 +142,10 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
         $("table#model_container tr:eq(0)").click()
 
 
-    it "edit tags", ->
+    it "check tags on the view", ->
       expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
-      expect($("#product_name").val()).toBe('zerofoo')
+      expect($(".tagit .tagit-label:eq(0)").text()).toBe('Sport')
+      expect($(".tagit .tagit-label:eq(1)").text()).toBe('Hobby')
 
 
 

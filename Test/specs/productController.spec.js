@@ -3,7 +3,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   define(["Controllers/productController", "Ural/Controllers/controllerBase", "setup"], function(productController, controllerBase) {
-    xdescribe("play with index views, load model then show view", function() {
+    describe("play with index views, load model then show view", function() {
       afterEach(function() {
         return $("#_body").empty();
       });
@@ -127,7 +127,7 @@
         });
       });
     });
-    xdescribe("edit index view's items", function() {
+    describe("edit index view's items", function() {
       var viewModel;
       viewModel = null;
       beforeEach(function() {
@@ -168,7 +168,9 @@
         expect(viewModel.active().item.name()).toBe("-nill-");
         $("#product_save").click();
         expect(viewModel.list[0].item.name()).toBe("-nill-");
-        return expect(viewModel.active()).toBe(null);
+        $("#product_name").val("zero").change();
+        $("#product_save").click();
+        return expect(viewModel.list[0].item.name()).toBe("zero");
       });
     });
     return describe("Tags", function() {
@@ -191,9 +193,10 @@
           return $("table#model_container tr:eq(0)").click();
         });
       });
-      return it("edit tags", function() {
+      return it("check tags on the view", function() {
         expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
-        return expect($("#product_name").val()).toBe('zerofoo');
+        expect($(".tagit .tagit-label:eq(0)").text()).toBe('Sport');
+        return expect($(".tagit .tagit-label:eq(1)").text()).toBe('Hobby');
       });
     });
   });

@@ -23,7 +23,7 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
     it "id = 0 and name LIKE(...) OFFSET LIMIT", ->
 
       expect(dataProvider).toBeTruthy()
-      actual = dataProvider._getStatement "Product", id : { $eq : 0}, name : {$like : 'r'}, $page : 5, $itemsPerPage : 7
+      actual = dataProvider._getStatement "Product", id : { $eq : 0}, name : {$LIKE : 'r'}, $page : 5, $itemsPerPage : 7
       expect(actual).toBe "http://localhost:3360/Service.svc/Products?$filter=id eq 0 and indexof(name, 'r') ne -1&$top=7&$skip=35"
 
     it "name = 'zero'", ->
