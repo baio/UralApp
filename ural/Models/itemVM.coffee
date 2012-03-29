@@ -18,7 +18,7 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
     _copyFromSrc: (src) ->
       for own prop of src
         if ko.isWriteableObservable(@item[prop])
-          @item[prop] = @src[prop]()
+          @item[prop] src[prop]()
 
     edit: (@onDone) ->
       if @originItem then throw "item already in edit state"
@@ -48,7 +48,7 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
         ###
         pubSub.pub "model", "save", @item, (err, item) =>
           if !err
-            @_copyFromSrc item
+            #@_copyFromSrc item
             @_createOrigin()
           if @onDone then @onDone err, isCancel
 

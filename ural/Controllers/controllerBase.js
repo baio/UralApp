@@ -31,14 +31,30 @@
         ];
       };
 
+      ControllerBase.prototype._getModelModule = function(callback) {
+        var customModelPath, useCustomModel;
+        if (this.opts && this.opts.model) {
+          useCustomModel = this.opts.model.useCustomModel;
+          customModelPath = this.opts.model.customModelPath;
+        }
+        if (customModelPath == null) customModelPath = "Models/" + this.modelName;
+        return require([customModelPath], function(module) {
+          return callback(null, module);
+        });
+      };
+
       ControllerBase.prototype._isOwnModel = function(model) {
         return _u.getClassName(model) === this.modelName;
       };
 
-      ControllerBase.prototype._mapToItem = function(data, modelModule) {
+      ControllerBase.prototype._mapToItems = function(data, modelModule) {
         return data.map(function(d) {
           return ko.mapping.fromJS(d, modelModule.mappingRules, new modelModule.ModelConstructor());
         });
+      };
+
+      ControllerBase.prototype._updateItem = function(data, item, modelModule) {
+        return ko.mapping.fromJS(data, modelModule.mappingRules, item);
       };
 
       ControllerBase.prototype._mapToData = function(item, modelModule) {
@@ -49,10 +65,19 @@
         return $("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']").show();
       };
 
-      ControllerBase.prototype.onSave = function(item, callback) {
+      ControllerBase.prototype.onSave = function(item, onDone) {
         var _this = this;
-        return this.getDataProvider().save(this.modelName, this._mapToData(item), function(err, data) {
-          if (callback) return callback(err, _this._mapToItem(data));
+        if (Array.isArray(item)) throw "upade of multiple items is not supported!";
+        return async.waterfall([
+          function(ck) {
+            return _this.getDataProvider().save(_this.modelName, _this._mapToData(item), ck);
+          }, function(data, ck) {
+            return _this._getModelModule(function(err, modelModule) {
+              return ck(err, data, modelModule);
+            });
+          }
+        ], function(err, data, modelModule) {
+          return onDone(err, !err ? _this._updateItem(data, modelModule, item) : void 0);
         });
       };
 
@@ -62,40 +87,25 @@
       };
 
       ControllerBase.prototype.index = function(filter, onDone) {
-        var customModelPath, useCustomModel,
-          _this = this;
-        if (this.opts && this.opts.model) {
-          useCustomModel = this.opts.model.useCustomModel;
-          customModelPath = this.opts.model.customModelPath;
-          if (customModelPath == null) {
-            customModelPath = "Models/" + this.modelName;
-          }
-        }
+        var _this = this;
+        if (filter == null) filter = {};
+        if (filter.$expand == null) filter.$expand = "$index";
         return async.waterfall([
           function(ck) {
-            if (filter == null) filter = {};
-            if (filter.$expand == null) filter.$expand = "$index";
             return _this.getDataProvider().load(_this.modelName, filter, ck);
           }, function(data, ck) {
-            if (useCustomModel) {
-              return require([customModelPath], function(modelModule) {
-                return ck(null, _this._mapToItem(data, modelModule));
-              });
-            } else {
-              return ck(null, data);
-            }
-          }
-        ], function(err, model) {
-          var viewModel;
-          if (!err) {
+            return _this._getModelModule(function(err, modelModule) {
+              return ck(err, data, modelModule);
+            });
+          }, function(data, modelModule, ck) {
+            var model, viewModel;
+            model = _this._mapToItems(data, modelModule);
             viewModel = new indexVM.IndexVM(model);
             return _this.view(viewModel, "index", null, function(err) {
-              if (onDone) return onDone(err, viewModel);
+              return ck(err, viewModel);
             });
-          } else {
-            if (onDone) return onDone(err);
           }
-        });
+        ], onDone);
       };
 
       ControllerBase.prototype.view = function(viewModel, viewPath, layoutViewPath, onDone) {

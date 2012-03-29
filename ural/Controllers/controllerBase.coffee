@@ -24,13 +24,25 @@ define ["Ural/Modules/ODataProvider"
         { name : "websql", provider :  webSqlProvider.dataProvider }
       ]
 
+    _getModelModule: (callback) ->
+      if @opts and @opts.model
+        useCustomModel = @opts.model.useCustomModel
+        customModelPath = @opts.model.customModelPath
+      customModelPath ?= "Models/#{@modelName}"
+      require [customModelPath], (module) ->
+        callback null, module
+
     _isOwnModel: (model) ->
       _u.getClassName(model) == @modelName
 
-    #convert raw data (json) to app model
-    _mapToItem: (data, modelModule)->
-      #TO DO check is data array or not
-      data.map (d) -> ko.mapping.fromJS d, modelModule.mappingRules, new modelModule.ModelConstructor()
+    #convert raw data (json array) to app model array
+    _mapToItems: (data, modelModule)->
+      data.map (d) ->
+        ko.mapping.fromJS d, modelModule.mappingRules, new modelModule.ModelConstructor()
+
+    #update item from raw (json data)
+     _updateItem: (data, item, modelModule)->
+      ko.mapping.fromJS data, modelModule.mappingRules, item
 
     #convert app model to raw data (json)
     _mapToData: (item, modelModule) ->
@@ -39,38 +51,33 @@ define ["Ural/Modules/ODataProvider"
     onShowForm: (type) ->
       $("[data-form-model-type='#{@modelName}'][data-form-type='#{type}']").show()
 
-    onSave: (item, callback) ->
-      @getDataProvider().save @modelName, @_mapToData(item), (err, data) =>
-        if callback then callback err, @_mapToItem data
+    onSave: (item, onDone) ->
+      if Array.isArray item then throw "upade of multiple items is not supported!"
+      async.waterfall [
+        (ck) =>
+          @getDataProvider().save @modelName, @_mapToData(item), ck
+        ,(data, ck) =>
+          @_getModelModule (err, modelModule) -> ck err, data, modelModule
+      ],(err, data, modelModule) =>
+          onDone err, if !err then @_updateItem data, modelModule, item
 
     getDataProvider: (name) ->
       name ?= @defaultDataProviderName
       @_dataProviders[name]
 
     index: (filter, onDone)->
-      if @opts and @opts.model
-        useCustomModel = @opts.model.useCustomModel
-        customModelPath = @opts.model.customModelPath
-        customModelPath ?= "Models/#{@modelName}"
+      filter ?= {}
+      filter.$expand ?= "$index"
       async.waterfall [
         (ck) =>
-          filter ?= {}
-          filter.$expand ?= "$index"
           @getDataProvider().load @modelName, filter, ck
         ,(data, ck) =>
-          if useCustomModel
-            require [customModelPath], (modelModule) =>
-              #model = data.map (d) -> ko.mapping.fromJS d, modelModule.mappingRules, new modelModule.ModelConstructor()
-              ck null, @_mapToItem data, modelModule
-          else
-            ck null, data
-        ],
-        (err, model) =>
-          if !err
-            viewModel = new indexVM.IndexVM model
-            @view viewModel, "index", null, (err) -> if onDone then onDone err, viewModel
-          else
-            if onDone then onDone err
+          @_getModelModule (err, modelModule) -> ck err, data, modelModule
+        ,(data, modelModule, ck) =>
+          model = @_mapToItems data, modelModule
+          viewModel = new indexVM.IndexVM model
+          @view viewModel, "index", null, (err) -> ck err, viewModel
+      ], onDone
 
     view: (viewModel, viewPath, layoutViewPath, onDone) ->
       lvp = @_prepareViewPath layoutViewPath, "Shared/_layout"
@@ -108,6 +115,3 @@ define ["Ural/Modules/ODataProvider"
     _getControllerName: -> _u.getClassName(@).replace /^(\w*)Controller$/, "$1"
 
   ControllerBase : ControllerBase
-
-
-

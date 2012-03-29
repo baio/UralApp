@@ -68,6 +68,15 @@
       return res;
     };
 
+    Utils.prototype.argsToArray = function(args) {
+      var i, _ref, _results;
+      _results = [];
+      for (i = 0, _ref = args.length - 1; 0 <= _ref ? i <= _ref : i >= _ref; 0 <= _ref ? i++ : i--) {
+        _results.push(args[i]);
+      }
+      return _results;
+    };
+
     return Utils;
 
   })();

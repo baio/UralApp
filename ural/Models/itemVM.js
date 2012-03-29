@@ -43,7 +43,7 @@
         for (prop in src) {
           if (!__hasProp.call(src, prop)) continue;
           if (ko.isWriteableObservable(this.item[prop])) {
-            _results.push(this.item[prop] = this.src[prop]());
+            _results.push(this.item[prop](src[prop]()));
           } else {
             _results.push(void 0);
           }
@@ -84,10 +84,7 @@
                   if @onDone then @onDone null, isCancel
           */
           return pubSub.pub("model", "save", this.item, function(err, item) {
-            if (!err) {
-              _this._copyFromSrc(item);
-              _this._createOrigin();
-            }
+            if (!err) _this._createOrigin();
             if (_this.onDone) return _this.onDone(err, isCancel);
           });
         }

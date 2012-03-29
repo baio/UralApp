@@ -51,10 +51,10 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       waits 500
       runs ->
         expect(err).toBeFalsy()
-        expect($("table#model_container td:eq(3)").text()).toBe("1")
-        expect($("table#model_container td:eq(4)").text()).toBe("one")
-        expect($("table#model_container td:eq(15)").text()).toBe("5")
-        expect($("table#model_container td:eq(16)").text()).toBe("five")
+        expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo")
+        expect($("table#model_container td:eq(4)").text()).toBe("1")
+        expect($("table#model_container td:eq(15)").text()).toBe("3 threefoo")
+        expect($("table#model_container td:eq(16)").text()).toBe("4")
 
     it "index, ini model name implicitly via class name", ->
       class ProductController extends controllerBase.ControllerBase
@@ -66,10 +66,10 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       waits 500
       runs ->
         expect(err).toBeFalsy()
-        expect($("table#model_container td:eq(3)").text()).toBe("1")
-        expect($("table#model_container td:eq(4)").text()).toBe("one")
-        expect($("table#model_container td:eq(15)").text()).toBe("5")
-        expect($("table#model_container td:eq(16)").text()).toBe("five")
+        expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo")
+        expect($("table#model_container td:eq(4)").text()).toBe("1")
+        expect($("table#model_container td:eq(15)").text()).toBe("3 threefoo")
+        expect($("table#model_container td:eq(16)").text()).toBe("4")
 
     it "model name impilcitily, create custom model (path to module implicitily) via options", ->
       controller = new productController.ProductController model : {useCustomModel : true}

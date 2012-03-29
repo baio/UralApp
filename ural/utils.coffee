@@ -39,4 +39,8 @@ class Utils
       if exceptProps.indexOf(prop) == -1 then res[prop] = src[prop]
     res
 
+  argsToArray: (args) ->
+    for i in [0..args.length-1]
+      args[i]
+
 @_u = new Utils()
