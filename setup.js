@@ -1,7 +1,10 @@
 (function() {
 
   define(["Ural/Modules/DataFilterOpts", "Ural/Modules/ODataProvider", "Ural/Plugins/tags-binding", "Ural/Plugins/autocomplete-binding", "Models/Tag"], function(frOpt, odataProvider, tagsBinding, autocompleteBinding, tagModel) {
-    var autocompleteOpts, tagsBindingOpts;
+    var autocompleteOpts, tagsBindingOpts, __g;
+    __g = {
+      REF_NULL_ID: -100500
+    };
     frOpt.expandOpts.add(null, "$index", "");
     frOpt.expandOpts.add(null, "$item", "");
     frOpt.expandOpts.add("Product", "$index", "Tags,Producer");
@@ -44,7 +47,7 @@
     tagsBinding.ini(tagsBindingOpts);
     autocompleteOpts = {
       source: function(req, resp) {
-        return odataProvider.dataProvider.load("Tag", {
+        return odataProvider.dataProvider.load(req.modelType, {
           name: {
             $like: req.term
           }
@@ -71,6 +74,11 @@
           key: item.id(),
           label: item.name(),
           value: item.name()
+        };
+      },
+      _empty: function() {
+        return {
+          key: __g.REF_NULL_ID
         };
       }
     };

@@ -5,13 +5,23 @@
     ini = function(opts) {
       return ko.bindingHandlers.autocomplete = {
         init: function(element, valueAccessor, allBindingsAccessor, viewModel) {
-          var autocompleteOpts;
+          var autocompleteOpts, bindingOpts, lastLabel;
+          bindingOpts = allBindingsAccessor().autocompleteOpts;
+          lastLabel = null;
           autocompleteOpts = {
             source: function(req, resp) {
+              req.modelType = bindingOpts.modelType;
               return opts.source(req, resp);
             },
-            select: function(event, ui) {},
-            change: function(event, ui) {}
+            select: function(event, ui) {
+              lastLabel = ui.item.value;
+              return valueAccessor()(opts._parse(ui.item));
+            },
+            change: function(event, ui) {
+              if (lastLabel !== $(element).val()) {
+                return valueAccessor()(opts._parse(opts._empty()));
+              }
+            }
           };
           return $(element).autocomplete(autocompleteOpts);
         },

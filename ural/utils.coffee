@@ -43,4 +43,7 @@ class Utils
     for i in [0..args.length-1]
       args[i]
 
+  trim: (str) ->
+    str.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
+
 @_u = new Utils()

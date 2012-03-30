@@ -6,6 +6,9 @@ define ["Ural/Modules/DataFilterOpts"
   ]
   , (frOpt, odataProvider, tagsBinding, autocompleteBinding, tagModel) ->
 
+    __g =
+      REF_NULL_ID : -100500;
+
     frOpt.expandOpts.add null, "$index", ""
     frOpt.expandOpts.add null, "$item", ""
     frOpt.expandOpts.add "Product", "$index", "Tags,Producer"
@@ -36,7 +39,7 @@ define ["Ural/Modules/DataFilterOpts"
     #autocomplete
     autocompleteOpts =
       source: (req, resp) ->
-        odataProvider.dataProvider.load "Tag", name : {$like : req.term}, (err, data) ->
+        odataProvider.dataProvider.load req.modelType, name : {$like : req.term}, (err, data) ->
           if !err
             resp data.map (d) ->
               key : d.id
@@ -48,6 +51,8 @@ define ["Ural/Modules/DataFilterOpts"
         key : item.id()
         label : item.name()
         value : item.name()
+      _empty : ->
+        key : __g.REF_NULL_ID
 
     autocompleteBinding.ini autocompleteOpts
 

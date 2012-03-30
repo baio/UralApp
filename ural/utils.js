@@ -77,6 +77,10 @@
       return _results;
     };
 
+    Utils.prototype.trim = function(str) {
+      return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+    };
+
     return Utils;
 
   })();
