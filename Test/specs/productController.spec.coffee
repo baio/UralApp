@@ -1,6 +1,6 @@
 define ["Controllers/productController", "Ural/Controllers/controllerBase", "setup"], (productController, controllerBase) ->
 
-  describe "play with index views, load model then show view", ->
+  xdescribe "play with index views, load model then show view", ->
 
     afterEach ->
       $("#_body").empty()
@@ -92,7 +92,7 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
         expect($("table#model_container td:eq(23)").text()).toBe("5 fivefoo")
 
 
-  describe "edit index view's items", ->
+  xdescribe "edit index view's items", ->
     viewModel = null
     beforeEach ->
       controller = new productController.ProductController model : {useCustomModel : true}
@@ -131,7 +131,7 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       expect(viewModel.list[0].item.name()).toBe "zero"
 
 
-  describe "Tags", ->
+  xdescribe "Tags", ->
     viewModel = null
     beforeEach ->
       controller = new productController.ProductController model : {useCustomModel : true}
@@ -147,6 +147,17 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       expect($(".tagit .tagit-label:eq(0)").text()).toBe('Sport')
       expect($(".tagit .tagit-label:eq(1)").text()).toBe('Hobby')
 
+  describe "Autocomplete", ->
+    viewModel = null
+    beforeEach ->
+      controller = new productController.ProductController model : {useCustomModel : true}
+      runs ->
+        controller.index null, (err, vm) -> viewModel = vm
+      waits 500
+      runs ->
+        $("table#model_container tr:eq(0)").click()
+
+    it "check autocomplete value", ->
 
 
 

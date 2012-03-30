@@ -11,6 +11,7 @@
           return this.id() + " " + this.name();
         }), this);
         this.Tags = ko.observableArray();
+        this.Producer = ko.observable();
       }
 
       return Product;
@@ -20,11 +21,16 @@
       return {
         name: {
           update: function(opts) {
-            return opts.data + "foo";
+            return opts.data + "xxx";
           }
         },
         Tags: {
-          create: function(opts) {
+          update: function(opts) {
+            return ko.mapping.fromJS(opts.data, tag.mappingRules, new tag.ModelConstructor());
+          }
+        },
+        Producer: {
+          update: function(opts) {
             return ko.mapping.fromJS(opts.data, tag.mappingRules, new tag.ModelConstructor());
           }
         }

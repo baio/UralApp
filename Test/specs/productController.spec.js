@@ -3,7 +3,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   define(["Controllers/productController", "Ural/Controllers/controllerBase", "setup"], function(productController, controllerBase) {
-    describe("play with index views, load model then show view", function() {
+    xdescribe("play with index views, load model then show view", function() {
       afterEach(function() {
         return $("#_body").empty();
       });
@@ -127,7 +127,7 @@
         });
       });
     });
-    describe("edit index view's items", function() {
+    xdescribe("edit index view's items", function() {
       var viewModel;
       viewModel = null;
       beforeEach(function() {
@@ -173,7 +173,7 @@
         return expect(viewModel.list[0].item.name()).toBe("zero");
       });
     });
-    return describe("Tags", function() {
+    xdescribe("Tags", function() {
       var viewModel;
       viewModel = null;
       beforeEach(function() {
@@ -198,6 +198,28 @@
         expect($(".tagit .tagit-label:eq(0)").text()).toBe('Sport');
         return expect($(".tagit .tagit-label:eq(1)").text()).toBe('Hobby');
       });
+    });
+    return describe("Autocomplete", function() {
+      var viewModel;
+      viewModel = null;
+      beforeEach(function() {
+        var controller;
+        controller = new productController.ProductController({
+          model: {
+            useCustomModel: true
+          }
+        });
+        runs(function() {
+          return controller.index(null, function(err, vm) {
+            return viewModel = vm;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          return $("table#model_container tr:eq(0)").click();
+        });
+      });
+      return it("check autocomplete value", function() {});
     });
   });
 
