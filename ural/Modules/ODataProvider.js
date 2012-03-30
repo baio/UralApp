@@ -213,10 +213,15 @@
         return res != null ? res : res = expand;
       };
 
+      ODataProvider.prototype._getOrderBy = function(orderby) {
+        return orderby != null ? orderby : orderby = frOpts.orderBy.def();
+      };
+
       ODataProvider.prototype._getSatementByODataFilter = function(srcName, oDataFilter) {
-        var expand;
+        var expand, orderby;
         expand = this._getExpand(srcName, oDataFilter.$expand);
-        return _u.urlAddSearch("" + (ODataProvider.serviceHost()) + srcName + "s", oDataFilter.$filter ? "$filter=" + oDataFilter.$filter : void 0, oDataFilter.$top ? "$top=" + oDataFilter.$top : void 0, oDataFilter.$skip ? "$skip=" + oDataFilter.$skip : void 0, expand ? "$expand=" + expand : void 0);
+        orderby = this._getOrderBy(oDataFilter.$orderby);
+        return _u.urlAddSearch("" + (ODataProvider.serviceHost()) + srcName + "s", oDataFilter.$filter ? "$filter=" + oDataFilter.$filter : void 0, oDataFilter.$top ? "$top=" + oDataFilter.$top : void 0, oDataFilter.$skip ? "$skip=" + oDataFilter.$skip : void 0, expand ? "$expand=" + expand : void 0, orderby ? "$orderby=" + orderby : void 0);
       };
 
       ODataProvider._getSaveRequestData = function(srcName, item) {

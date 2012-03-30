@@ -159,13 +159,18 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       if res == "" then null
       res ?= expand
 
+    _getOrderBy: (orderby) ->
+      orderby ?= frOpts.orderBy.def()
+
     _getSatementByODataFilter: (srcName, oDataFilter) ->
       expand = @_getExpand srcName, oDataFilter.$expand
+      orderby = @_getOrderBy oDataFilter.$orderby
       _u.urlAddSearch "#{ODataProvider.serviceHost()}#{srcName}s",
         if oDataFilter.$filter then "$filter=#{oDataFilter.$filter}",
         if oDataFilter.$top then "$top=#{oDataFilter.$top}",
         if oDataFilter.$skip then "$skip=#{oDataFilter.$skip}",
-        if expand then "$expand=#{expand}"
+        if expand then "$expand=#{expand}",
+        if orderby then "$orderby=#{orderby}"
 
     @_getSaveRequestData: (srcName, item) ->
       __batchRequests: [

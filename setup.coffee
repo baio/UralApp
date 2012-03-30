@@ -12,6 +12,7 @@ define ["Ural/Modules/DataFilterOpts"
     frOpt.expandOpts.add "Product", "$item", "Tags,Producer"
     frOpt.expandOpts.add "Producer", "$index", "Products"
     frOpt.expandOpts.add "Producer", "$item", "Products/Tags"
+    frOpt.orderBy.def "id"
 
     #widgets
     #tags

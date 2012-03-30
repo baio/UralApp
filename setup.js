@@ -8,6 +8,7 @@
     frOpt.expandOpts.add("Product", "$item", "Tags,Producer");
     frOpt.expandOpts.add("Producer", "$index", "Products");
     frOpt.expandOpts.add("Producer", "$item", "Products/Tags");
+    frOpt.orderBy.def("id");
     tagsBindingOpts = {
       tagSource: function(req, resp) {
         return odataProvider.dataProvider.load("Tag", {

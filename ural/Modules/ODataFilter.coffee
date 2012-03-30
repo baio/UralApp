@@ -30,6 +30,8 @@ define  ->
         itemsPerPage = frameworkFilter[field]
       else if field == "$expand"
         expand = frameworkFilter[field]
+      else if field == "$orderby"
+        orderby = "$orderby"
       else
         fieldFilters.push _convertField(field, frameworkFilter[field])
 
@@ -43,6 +45,9 @@ define  ->
 
     if expand
       res.$expand = expand
+
+    if orderby
+      res.$orderby = $orderby
 
     res
 

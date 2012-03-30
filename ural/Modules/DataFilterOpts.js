@@ -1,7 +1,7 @@
 (function() {
 
   define(function() {
-    var ExpandOpts;
+    var ExpandOpts, OrderBy;
     ExpandOpts = (function() {
 
       function ExpandOpts() {
@@ -27,8 +27,23 @@
       return ExpandOpts;
 
     })();
+    OrderBy = (function() {
+
+      function OrderBy() {
+        this._def = null;
+      }
+
+      OrderBy.prototype.def = function(d) {
+        if (d !== void 0) this._def = d;
+        return this._def;
+      };
+
+      return OrderBy;
+
+    })();
     return {
-      expandOpts: new ExpandOpts()
+      expandOpts: new ExpandOpts(),
+      orderBy: new OrderBy()
     };
   });
 

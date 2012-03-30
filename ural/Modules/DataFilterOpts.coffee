@@ -1,6 +1,7 @@
 define ->
 
   class ExpandOpts
+
     constructor: ->
       @opts = []
 
@@ -16,4 +17,15 @@ define ->
       res = @opts[srcName+":"+optName]
       res ?= @opts[":"+optName]
 
+  class OrderBy
+
+    constructor: ->
+        @_def = null
+
+    def: (d) ->
+      if d != undefined
+        @_def = d
+      @_def
+
   expandOpts : new ExpandOpts()
+  orderBy : new OrderBy()
