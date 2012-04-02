@@ -67,7 +67,7 @@
         res.$skip = page * itemsPerPage;
       }
       if (expand) res.$expand = expand;
-      if (orderby) res.$orderby = $orderby;
+      if (orderby) res.$orderby = orderby;
       return res;
     };
     return {

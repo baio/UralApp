@@ -47,7 +47,7 @@ define  ->
       res.$expand = expand
 
     if orderby
-      res.$orderby = $orderby
+      res.$orderby = orderby
 
     res
 

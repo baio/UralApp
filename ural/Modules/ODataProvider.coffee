@@ -20,7 +20,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
 
     @_isDelete: (item) -> item.__action  and item.__action == "delete"
 
-    @_formatRequest: (name, item, parentName, parentId, parentContentId, totalCount) ->
+    @_formatRequest: (name, item, metadata, parentName, parentId, parentContentId, totalCount) ->
       #only root item could be deleted
       #nested items, marked for delete (id!=-2) - just remove realtion
       #nested item - either new link (id!=-1) or new item + new link (id==-1)
@@ -37,17 +37,18 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
 
         for own prop of item
           val = item[prop]
+          typeName = prop.replace /^(.*)s$/, "$1"
 
           if Array.isArray val
-            typeName = prop.replace /^(.*)s$/, "$1"
             for i in val
-              nested = ODataProvider._formatRequest typeName, i, name, item.id, cid, totalCount + 1
+              nested = ODataProvider._formatRequest typeName, i, metadata, name, item.id, cid, totalCount + 1
               totalCount += nested.length
               res = res.concat nested
             val = null
           else if typeof val == "object"
-            contentID++
-            res = res.concat ODataProvider._formatRequest prop, val, name, item.id, cid, contentID, ++totalCount
+            nested = ODataProvider._formatRequest typeName, val, metadata, name, item.id, cid, totalCount + 1
+            totalCount += nested.length
+            res = res.concat nested
             val = null
 
           if val != null then flattered[prop] = val
@@ -65,7 +66,8 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         if isDelete
           data = method: "DELETE", uri: "#{parentName}s(#{parentId})/$links/#{name}s(#{item.id})"
         else
-          data = method: "POST", uri: if parentId == -1 then "$#{parentContentId}/#{name}s" else "#{parentName}s(#{parentId})/#{name}s"
+          #data = method: "POST", uri: if parentId == -1 then "$#{parentContentId}/#{name}s" else "#{parentName}s(#{parentId})/#{name}s"
+          data = method: "POST", uri: if parentId == -1 then "$#{parentContentId}/#{name}" else "#{parentName}s(#{parentId})/#{name}"
 
       res.push
         headers: {"Content-ID": cid}
@@ -159,12 +161,14 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       if res == "" then null
       res ?= expand
 
-    _getOrderBy: (orderby) ->
+    _getOrderBy: (filter, orderby) ->
+      singleItemFilter = filter.match /^.*id eq .*$/
+      if singleItemFilter then return null
       orderby ?= frOpts.orderBy.def()
 
     _getSatementByODataFilter: (srcName, oDataFilter) ->
       expand = @_getExpand srcName, oDataFilter.$expand
-      orderby = @_getOrderBy oDataFilter.$orderby
+      orderby = @_getOrderBy oDataFilter.$filter, oDataFilter.$orderby
       _u.urlAddSearch "#{ODataProvider.serviceHost()}#{srcName}s",
         if oDataFilter.$filter then "$filter=#{oDataFilter.$filter}",
         if oDataFilter.$top then "$top=#{oDataFilter.$top}",
@@ -172,9 +176,13 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         if expand then "$expand=#{expand}",
         if orderby then "$orderby=#{orderby}"
 
+    @_getMetadata: (srcName, item) ->
+      null
+
     @_getSaveRequestData: (srcName, item) ->
+      metadata = ODataProvider._getMetadata srcName, item
       __batchRequests: [
-        __changeRequests: ODataProvider._formatRequest srcName, item
+        __changeRequests: ODataProvider._formatRequest srcName, item, metadata
       ]
 
     @_parseSaveResponseData: (data) ->

@@ -3,7 +3,7 @@
   define(["Ural/Modules/ODataProvider", "setup"], function(ODataProvider) {
     var dataProvider;
     dataProvider = ODataProvider.dataProvider;
-    describe("OData provider statements", function() {
+    xdescribe("OData provider statements", function() {
       it("plain without any filter", function() {
         var actual;
         actual = dataProvider._getStatement("Product", null);
@@ -91,7 +91,7 @@
         return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products/Tags");
       });
     });
-    describe("load data via OData provider", function() {
+    xdescribe("load data via OData provider", function() {
       var data;
       data = null;
       it("empty filter", function() {
@@ -212,7 +212,7 @@
       });
     });
     describe("save data via OData provider", function() {
-      it("update first item name to -zero-", function() {
+      xit("update first item name to -zero-", function() {
         var data, err;
         data = null;
         err = null;
@@ -245,7 +245,7 @@
           return expect(data[0].name).toBe("-zero-");
         });
       });
-      it("update first item name to zero", function() {
+      xit("update first item name to zero", function() {
         var data, err;
         data = null;
         err = null;
@@ -278,7 +278,7 @@
           return expect(data[0].name).toBe("zero");
         });
       });
-      return it("update data with relations", function() {
+      xit("update data with relations (tags - many to many)", function() {
         var data, err;
         data = null;
         err = null;
@@ -346,8 +346,47 @@
           return expect(data.Tags.length).toBe(0);
         });
       });
+      return it("update data with relations (producer - one to many)", function() {
+        var data, err;
+        data = null;
+        err = null;
+        return runs(function() {
+          return dataProvider.save("Product", {
+            id: 3,
+            name: "three"
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        /*
+              waits 500
+              runs ->
+                expect(err).toBeFalsy()
+                expect(data.name).toBe "three"
+                expect(data.Tags.length).toBe 1
+                expect(data.Tags[0].id).toBe 1
+                expect(data.Tags[0].name).toBe "Sport"
+                data = null
+                dataProvider.load "Product", id : { $eq : 3}, $expand : "$item", (e, d) -> data = d[0]; err = e
+              waits 500
+              runs ->
+                expect(err).toBeFalsy()
+                expect(data.name).toBe "three"
+                expect(data.Tags.length).toBe 1
+                expect(data.Tags[0].id).toBe 1
+                expect(data.Tags[0].name).toBe "Sport"
+              runs ->
+                dataProvider.save "Product", {id : 3, name : "three", Tags : [ {id : 1, name : "Sport", __action : "delete"} ] }, (e, d) -> data = d; err = e
+              waits 500
+              runs ->
+                expect(err).toBeFalsy()
+                expect(data.name).toBe "three"
+                expect(data.Tags.length).toBe 0
+        */
+      });
     });
-    describe("create data via OData provider", function() {
+    xdescribe("create data via OData provider", function() {
       return it("create six", function() {
         var data, err;
         data = null;
@@ -385,7 +424,7 @@
         });
       });
     });
-    return describe("delete data via OData provider", function() {
+    return xdescribe("delete data via OData provider", function() {
       return it("delete six", function() {
         var data, err;
         data = null;

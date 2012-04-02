@@ -37,7 +37,7 @@
         return item.__action && item.__action === "delete";
       };
 
-      ODataProvider._formatRequest = function(name, item, parentName, parentId, parentContentId, totalCount) {
+      ODataProvider._formatRequest = function(name, item, metadata, parentName, parentId, parentContentId, totalCount) {
         var cid, data, expnads, flattered, i, isDelete, nested, prop, res, typeName, val, _i, _len;
         res = [];
         expnads = [];
@@ -49,18 +49,19 @@
           for (prop in item) {
             if (!__hasProp.call(item, prop)) continue;
             val = item[prop];
+            typeName = prop.replace(/^(.*)s$/, "$1");
             if (Array.isArray(val)) {
-              typeName = prop.replace(/^(.*)s$/, "$1");
               for (_i = 0, _len = val.length; _i < _len; _i++) {
                 i = val[_i];
-                nested = ODataProvider._formatRequest(typeName, i, name, item.id, cid, totalCount + 1);
+                nested = ODataProvider._formatRequest(typeName, i, metadata, name, item.id, cid, totalCount + 1);
                 totalCount += nested.length;
                 res = res.concat(nested);
               }
               val = null;
             } else if (typeof val === "object") {
-              contentID++;
-              res = res.concat(ODataProvider._formatRequest(prop, val, name, item.id, cid, contentID, ++totalCount));
+              nested = ODataProvider._formatRequest(typeName, val, metadata, name, item.id, cid, totalCount + 1);
+              totalCount += nested.length;
+              res = res.concat(nested);
               val = null;
             }
             if (val !== null) flattered[prop] = val;
@@ -97,7 +98,7 @@
           } else {
             data = {
               method: "POST",
-              uri: parentId === -1 ? "$" + parentContentId + "/" + name + "s" : "" + parentName + "s(" + parentId + ")/" + name + "s"
+              uri: parentId === -1 ? "$" + parentContentId + "/" + name : "" + parentName + "s(" + parentId + ")/" + name
             };
           }
         }
@@ -213,22 +214,31 @@
         return res != null ? res : res = expand;
       };
 
-      ODataProvider.prototype._getOrderBy = function(orderby) {
+      ODataProvider.prototype._getOrderBy = function(filter, orderby) {
+        var singleItemFilter;
+        singleItemFilter = filter.match(/^.*id eq .*$/);
+        if (singleItemFilter) return null;
         return orderby != null ? orderby : orderby = frOpts.orderBy.def();
       };
 
       ODataProvider.prototype._getSatementByODataFilter = function(srcName, oDataFilter) {
         var expand, orderby;
         expand = this._getExpand(srcName, oDataFilter.$expand);
-        orderby = this._getOrderBy(oDataFilter.$orderby);
+        orderby = this._getOrderBy(oDataFilter.$filter, oDataFilter.$orderby);
         return _u.urlAddSearch("" + (ODataProvider.serviceHost()) + srcName + "s", oDataFilter.$filter ? "$filter=" + oDataFilter.$filter : void 0, oDataFilter.$top ? "$top=" + oDataFilter.$top : void 0, oDataFilter.$skip ? "$skip=" + oDataFilter.$skip : void 0, expand ? "$expand=" + expand : void 0, orderby ? "$orderby=" + orderby : void 0);
       };
 
+      ODataProvider._getMetadata = function(srcName, item) {
+        return null;
+      };
+
       ODataProvider._getSaveRequestData = function(srcName, item) {
+        var metadata;
+        metadata = ODataProvider._getMetadata(srcName, item);
         return {
           __batchRequests: [
             {
-              __changeRequests: ODataProvider._formatRequest(srcName, item)
+              __changeRequests: ODataProvider._formatRequest(srcName, item, metadata)
             }
           ]
         };
