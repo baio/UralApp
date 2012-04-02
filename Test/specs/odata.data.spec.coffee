@@ -190,32 +190,27 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
       runs ->
         #dataProvider.save "Product", {id : 0, name : "zero-x"}, (e, d) -> data = d; err = e
         #dataProvider.save "Product", {id : 3, name : "three", Producer : {id : 1, name : "IBM"}, Tags : [ ] }, (e, d) -> data = d; err = e
-        dataProvider.save "Product", {id : 3, name : "three" }, (e, d) -> data = d; err = e
-      ###
+        dataProvider.save "Product", {id : 3, name : "three", Producer : {id : 1, name : "IBM"}, Tags : [] }, (e, d) -> data = d; err = e
       waits 500
       runs ->
         expect(err).toBeFalsy()
         expect(data.name).toBe "three"
-        expect(data.Tags.length).toBe 1
-        expect(data.Tags[0].id).toBe 1
-        expect(data.Tags[0].name).toBe "Sport"
+        expect(data.Producer.id).toBe 1
+        expect(data.Producer.name).toBe "IBM"
         data = null
         dataProvider.load "Product", id : { $eq : 3}, $expand : "$item", (e, d) -> data = d[0]; err = e
       waits 500
       runs ->
         expect(err).toBeFalsy()
         expect(data.name).toBe "three"
-        expect(data.Tags.length).toBe 1
-        expect(data.Tags[0].id).toBe 1
-        expect(data.Tags[0].name).toBe "Sport"
+        expect(data.Producer.id).toBe 1
+        expect(data.Producer.name).toBe "IBM"
       runs ->
-        dataProvider.save "Product", {id : 3, name : "three", Tags : [ {id : 1, name : "Sport", __action : "delete"} ] }, (e, d) -> data = d; err = e
+        dataProvider.save "Product", {id : 3, name : "three", Producer : [ {id : -100500} ] }, (e, d) -> data = d; err = e
       waits 500
       runs ->
         expect(err).toBeFalsy()
-        expect(data.name).toBe "three"
-        expect(data.Tags.length).toBe 0
-      ###
+        expect(data.Producer.id).toBe -100500
 
   xdescribe "create data via OData provider", ->
     it "create six", ->

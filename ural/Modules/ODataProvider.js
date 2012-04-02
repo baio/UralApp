@@ -34,11 +34,11 @@
       };
 
       ODataProvider._isDelete = function(item) {
-        return item.__action && item.__action === "delete";
+        return (item.__action && item.__action === "delete") || frOpts.filterOpts.isNullRef(item);
       };
 
       ODataProvider._formatRequest = function(name, item, metadata, parentName, parentId, parentContentId, totalCount) {
-        var cid, data, expnads, flattered, i, isDelete, nested, prop, res, typeName, val, _i, _len;
+        var cid, data, expnads, flattered, i, isDelete, nested, prop, ref, res, typeName, val, _i, _len;
         res = [];
         expnads = [];
         if (totalCount == null) totalCount = 1;
@@ -91,15 +91,27 @@
           }
         } else {
           if (isDelete) {
+            ref = frOpts.filterOpts.isNullRef(item) ? name : "" + name + "s(" + item.id + ")";
             data = {
               method: "DELETE",
-              uri: "" + parentName + "s(" + parentId + ")/$links/" + name + "s(" + item.id + ")"
+              uri: "" + parentName + "s(" + parentId + ")/$links/" + ref
             };
           } else {
-            data = {
-              method: "POST",
-              uri: parentId === -1 ? "$" + parentContentId + "/" + name : "" + parentName + "s(" + parentId + ")/" + name
-            };
+            ref = parentId === -1 ? "$" + parentContentId : "" + parentName + "s(" + parentId + ")";
+            if (item.id !== -1) {
+              data = {
+                method: "PUT",
+                uri: "" + ref + "/$links/" + name
+              };
+              flattered = {
+                uri: "" + name + "s(" + item.id + ")"
+              };
+            } else {
+              data = {
+                method: "POST",
+                uri: "$" + ref + "/" + name
+              };
+            }
           }
         }
         res.push({

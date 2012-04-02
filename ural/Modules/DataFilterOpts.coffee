@@ -27,5 +27,19 @@ define ->
         @_def = d
       @_def
 
+  class FilterOpts
+
+    constructor: ->
+
+    nullRefVal: (val) ->
+      if val != undefined
+        @nullRefVal = val
+      @nullRefVal
+
+    isNullRef: (item) -> item.id == @nullRefVal
+
+
+
   expandOpts : new ExpandOpts()
   orderBy : new OrderBy()
+  filterOpts : new FilterOpts()

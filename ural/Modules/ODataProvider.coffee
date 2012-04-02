@@ -18,7 +18,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
           obj[prop] = ODataProvider._parse item[prop]
       obj
 
-    @_isDelete: (item) -> item.__action  and item.__action == "delete"
+    @_isDelete: (item) -> (item.__action  and item.__action == "delete") or frOpts.filterOpts.isNullRef item
 
     @_formatRequest: (name, item, metadata, parentName, parentId, parentContentId, totalCount) ->
       #only root item could be deleted
@@ -64,10 +64,17 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       else
         #nested item
         if isDelete
-          data = method: "DELETE", uri: "#{parentName}s(#{parentId})/$links/#{name}s(#{item.id})"
+          ref = if frOpts.filterOpts.isNullRef item then name else "#{name}s(#{item.id})"
+          data = method: "DELETE", uri: "#{parentName}s(#{parentId})/$links/#{ref}"
         else
           #data = method: "POST", uri: if parentId == -1 then "$#{parentContentId}/#{name}s" else "#{parentName}s(#{parentId})/#{name}s"
-          data = method: "POST", uri: if parentId == -1 then "$#{parentContentId}/#{name}" else "#{parentName}s(#{parentId})/#{name}"
+          #data = method: "PUT", uri: if parentId == -1 then "$#{parentContentId}/#{name}" else "#{parentName}s(#{parentId})/#{name}"
+          ref = if parentId == -1 then "$#{parentContentId}" else "#{parentName}s(#{parentId})"
+          if item.id != -1
+            data = method: "PUT", uri: "#{ref}/$links/#{name}"
+            flattered = uri : "#{name}s(#{item.id})"
+          else
+            data = method: "POST", uri: "$#{ref}/#{name}"
 
       res.push
         headers: {"Content-ID": cid}

@@ -350,40 +350,63 @@
         var data, err;
         data = null;
         err = null;
-        return runs(function() {
+        runs(function() {
           return dataProvider.save("Product", {
             id: 3,
-            name: "three"
+            name: "three",
+            Producer: {
+              id: 1,
+              name: "IBM"
+            },
+            Tags: []
           }, function(e, d) {
             data = d;
             return err = e;
           });
         });
-        /*
-              waits 500
-              runs ->
-                expect(err).toBeFalsy()
-                expect(data.name).toBe "three"
-                expect(data.Tags.length).toBe 1
-                expect(data.Tags[0].id).toBe 1
-                expect(data.Tags[0].name).toBe "Sport"
-                data = null
-                dataProvider.load "Product", id : { $eq : 3}, $expand : "$item", (e, d) -> data = d[0]; err = e
-              waits 500
-              runs ->
-                expect(err).toBeFalsy()
-                expect(data.name).toBe "three"
-                expect(data.Tags.length).toBe 1
-                expect(data.Tags[0].id).toBe 1
-                expect(data.Tags[0].name).toBe "Sport"
-              runs ->
-                dataProvider.save "Product", {id : 3, name : "three", Tags : [ {id : 1, name : "Sport", __action : "delete"} ] }, (e, d) -> data = d; err = e
-              waits 500
-              runs ->
-                expect(err).toBeFalsy()
-                expect(data.name).toBe "three"
-                expect(data.Tags.length).toBe 0
-        */
+        waits(500);
+        runs(function() {
+          expect(err).toBeFalsy();
+          expect(data.name).toBe("three");
+          expect(data.Producer.id).toBe(1);
+          expect(data.Producer.name).toBe("IBM");
+          data = null;
+          return dataProvider.load("Product", {
+            id: {
+              $eq: 3
+            },
+            $expand: "$item"
+          }, function(e, d) {
+            data = d[0];
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          expect(err).toBeFalsy();
+          expect(data.name).toBe("three");
+          expect(data.Producer.id).toBe(1);
+          return expect(data.Producer.name).toBe("IBM");
+        });
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: 3,
+            name: "three",
+            Producer: [
+              {
+                id: -100500
+              }
+            ]
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(err).toBeFalsy();
+          return expect(data.Producer.id).toBe(-100500);
+        });
       });
     });
     xdescribe("create data via OData provider", function() {

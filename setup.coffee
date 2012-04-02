@@ -6,9 +6,6 @@ define ["Ural/Modules/DataFilterOpts"
   ]
   , (frOpt, odataProvider, tagsBinding, autocompleteBinding, tagModel) ->
 
-    __g =
-      REF_NULL_ID : -100500;
-
     frOpt.expandOpts.add null, "$index", ""
     frOpt.expandOpts.add null, "$item", ""
     frOpt.expandOpts.add "Product", "$index", "Tags,Producer"
@@ -16,6 +13,7 @@ define ["Ural/Modules/DataFilterOpts"
     frOpt.expandOpts.add "Producer", "$index", "Products"
     frOpt.expandOpts.add "Producer", "$item", "Products/Tags"
     frOpt.orderBy.def "id"
+    frOpt.filterOpts.nullRefVal -100500
 
     #widgets
     #tags
@@ -52,7 +50,7 @@ define ["Ural/Modules/DataFilterOpts"
         label : item.name()
         value : item.name()
       _empty : ->
-        key : __g.REF_NULL_ID
+        key : frOpt.filterOpts.nullRefVal()
 
     autocompleteBinding.ini autocompleteOpts
 

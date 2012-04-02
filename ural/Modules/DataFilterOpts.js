@@ -1,7 +1,7 @@
 (function() {
 
   define(function() {
-    var ExpandOpts, OrderBy;
+    var ExpandOpts, FilterOpts, OrderBy;
     ExpandOpts = (function() {
 
       function ExpandOpts() {
@@ -41,9 +41,26 @@
       return OrderBy;
 
     })();
+    FilterOpts = (function() {
+
+      function FilterOpts() {}
+
+      FilterOpts.prototype.nullRefVal = function(val) {
+        if (val !== void 0) this.nullRefVal = val;
+        return this.nullRefVal;
+      };
+
+      FilterOpts.prototype.isNullRef = function(item) {
+        return item.id === this.nullRefVal;
+      };
+
+      return FilterOpts;
+
+    })();
     return {
       expandOpts: new ExpandOpts(),
-      orderBy: new OrderBy()
+      orderBy: new OrderBy(),
+      filterOpts: new FilterOpts()
     };
   });
 
