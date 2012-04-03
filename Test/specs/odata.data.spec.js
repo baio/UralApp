@@ -596,7 +596,6 @@
             id: data.id,
             __action: "delete"
           }, function(e, d) {
-            data = d[0];
             return err = e;
           });
         });

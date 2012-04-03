@@ -288,7 +288,7 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
         expect(data.name).toBe "seven"
         expect(data.Producer.id).toBe 1
         expect(data.Producer.name).toBe "IBM"
-        dataProvider.save "Product", {id : data.id , __action : "delete" }, (e, d) -> data = d[0]; err = e
+        dataProvider.save "Product", {id : data.id , __action : "delete" }, (e, d) -> err = e
       runs ->
         expect(err).toBeFalsy()
     xit "create product then create and add producer ref then delete", ->

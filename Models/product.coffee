@@ -10,7 +10,7 @@ define ["Models/tag"], (tag) ->
 
   mappingRules = ->
     name :
-      update: (opts) -> opts.data + "xxx"
+      update: (opts) -> opts.data + "foo"
     Tags :
       update: (opts) -> ko.mapping.fromJS opts.data, tag.mappingRules, new tag.ModelConstructor()
     Producer :

@@ -1,9 +1,9 @@
 define ["Controllers/productController", "Ural/Controllers/controllerBase", "setup"], (productController, controllerBase) ->
 
-  xdescribe "play with index views, load model then show view", ->
+  describe "play with index views, load model then show view", ->
 
     afterEach ->
-      $("#_body").empty()
+      #$("#_body").empty()
 
     it "indexCustom", ->
       controller = new productController.ProductController()
@@ -37,9 +37,9 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
         expect($("table#model_container td:eq(2) span:eq(2)").text()).toBe("Hobby")
         expect($("table#model_container td:eq(2) span:eq(3)").text()).toBe("Hobby short")
         expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo")
-        expect($("table#model_container td:eq(20)").text()).toBe("5")
-        expect($("table#model_container td:eq(21)").text()).toBe("fivefoo")
-        expect($("table#model_container td:eq(23)").text()).toBe("5 fivefoo")
+        expect($("table#model_container tr:eq(5) td:eq(0)").text()).toBe("5")
+        expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("fivefoo")
+        expect($("table#model_container tr:eq(5) td:eq(3)").text()).toBe("5 fivefoo")
         #expect($("table#model_container td:eq(14)").text()).toBe("5 fivefoo")
 
     it "index, ini model name explicitly via constructor", ->
@@ -51,10 +51,10 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       waits 500
       runs ->
         expect(err).toBeFalsy()
-        expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo")
-        expect($("table#model_container td:eq(4)").text()).toBe("1")
-        expect($("table#model_container td:eq(15)").text()).toBe("3 threefoo")
-        expect($("table#model_container td:eq(16)").text()).toBe("4")
+        expect($("table#model_container tr:eq(0) td:eq(3)").text()).toBe("0 zerofoo")
+        expect($("table#model_container tr:eq(1) td:eq(0)").text()).toBe("1")
+        expect($("table#model_container tr:eq(3) td:eq(3)").text()).toBe("3 threefoo")
+        expect($("table#model_container tr:eq(4) td:eq(0)").text()).toBe("4")
 
     it "index, ini model name implicitly via class name", ->
       class ProductController extends controllerBase.ControllerBase
@@ -66,10 +66,10 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       waits 500
       runs ->
         expect(err).toBeFalsy()
-        expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo")
-        expect($("table#model_container td:eq(4)").text()).toBe("1")
-        expect($("table#model_container td:eq(15)").text()).toBe("3 threefoo")
-        expect($("table#model_container td:eq(16)").text()).toBe("4")
+        expect($("table#model_container tr:eq(0) td:eq(3)").text()).toBe("0 zerofoo")
+        expect($("table#model_container tr:eq(1) td:eq(0)").text()).toBe("1")
+        expect($("table#model_container tr:eq(3) td:eq(3)").text()).toBe("3 threefoo")
+        expect($("table#model_container tr:eq(4) td:eq(0)").text()).toBe("4")
 
     it "model name impilcitily, create custom model (path to module implicitily) via options", ->
       controller = new productController.ProductController model : {useCustomModel : true}
@@ -80,19 +80,19 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       waits 500
       runs ->
         expect(err).toBeFalsy()
-        expect($("table#model_container td:eq(0)").text()).toBe("0")
-        expect($("table#model_container td:eq(1)").text()).toBe("zerofoo")
-        expect($("table#model_container td:eq(2) span:eq(0)").text()).toBe("Sport")
-        expect($("table#model_container td:eq(2) span:eq(1)").text()).toBe("Sport short")
-        expect($("table#model_container td:eq(2) span:eq(2)").text()).toBe("Hobby")
-        expect($("table#model_container td:eq(2) span:eq(3)").text()).toBe("Hobby short")
-        expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo")
-        expect($("table#model_container td:eq(20)").text()).toBe("5")
-        expect($("table#model_container td:eq(21)").text()).toBe("fivefoo")
-        expect($("table#model_container td:eq(23)").text()).toBe("5 fivefoo")
+        expect($("table#model_container tr:eq(0) td:eq(0)").text()).toBe("0")
+        expect($("table#model_container tr:eq(0) td:eq(1)").text()).toBe("zerofoo")
+        expect($("table#model_container tr:eq(0) td:eq(2) span:eq(0)").text()).toBe("Sport")
+        expect($("table#model_container tr:eq(0) td:eq(2) span:eq(1)").text()).toBe("Sport short")
+        expect($("table#model_container tr:eq(0) td:eq(2) span:eq(2)").text()).toBe("Hobby")
+        expect($("table#model_container tr:eq(0) td:eq(2) span:eq(3)").text()).toBe("Hobby short")
+        expect($("table#model_container tr:eq(0) td:eq(3)").text()).toBe("0 zerofoo")
+        expect($("table#model_container tr:eq(5) td:eq(0)").text()).toBe("5")
+        expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("fivefoo")
+        expect($("table#model_container tr:eq(5) td:eq(3)").text()).toBe("5 fivefoo")
 
 
-  xdescribe "edit index view's items", ->
+  describe "edit index view's items", ->
     viewModel = null
     beforeEach ->
       controller = new productController.ProductController model : {useCustomModel : true}
@@ -131,7 +131,7 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       expect(viewModel.list[0].item.name()).toBe "zero"
 
 
-  xdescribe "Tags", ->
+  describe "Tags", ->
     viewModel = null
     beforeEach ->
       controller = new productController.ProductController model : {useCustomModel : true}
@@ -147,7 +147,7 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       expect($(".tagit .tagit-label:eq(0)").text()).toBe('Sport')
       expect($(".tagit .tagit-label:eq(1)").text()).toBe('Hobby')
 
-  describe "Autocomplete", ->
+  xdescribe "Autocomplete", ->
     viewModel = null
     beforeEach ->
       controller = new productController.ProductController model : {useCustomModel : true}

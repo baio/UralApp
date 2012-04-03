@@ -21,7 +21,7 @@
       return {
         name: {
           update: function(opts) {
-            return opts.data + "xxx";
+            return opts.data + "foo";
           }
         },
         Tags: {

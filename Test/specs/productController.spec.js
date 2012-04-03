@@ -3,10 +3,8 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   define(["Controllers/productController", "Ural/Controllers/controllerBase", "setup"], function(productController, controllerBase) {
-    xdescribe("play with index views, load model then show view", function() {
-      afterEach(function() {
-        return $("#_body").empty();
-      });
+    describe("play with index views, load model then show view", function() {
+      afterEach(function() {});
       it("indexCustom", function() {
         var controller, err;
         controller = new productController.ProductController();
@@ -46,9 +44,9 @@
           expect($("table#model_container td:eq(2) span:eq(2)").text()).toBe("Hobby");
           expect($("table#model_container td:eq(2) span:eq(3)").text()).toBe("Hobby short");
           expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo");
-          expect($("table#model_container td:eq(20)").text()).toBe("5");
-          expect($("table#model_container td:eq(21)").text()).toBe("fivefoo");
-          return expect($("table#model_container td:eq(23)").text()).toBe("5 fivefoo");
+          expect($("table#model_container tr:eq(5) td:eq(0)").text()).toBe("5");
+          expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("fivefoo");
+          return expect($("table#model_container tr:eq(5) td:eq(3)").text()).toBe("5 fivefoo");
         });
       });
       it("index, ini model name explicitly via constructor", function() {
@@ -63,10 +61,10 @@
         waits(500);
         return runs(function() {
           expect(err).toBeFalsy();
-          expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo");
-          expect($("table#model_container td:eq(4)").text()).toBe("1");
-          expect($("table#model_container td:eq(15)").text()).toBe("3 threefoo");
-          return expect($("table#model_container td:eq(16)").text()).toBe("4");
+          expect($("table#model_container tr:eq(0) td:eq(3)").text()).toBe("0 zerofoo");
+          expect($("table#model_container tr:eq(1) td:eq(0)").text()).toBe("1");
+          expect($("table#model_container tr:eq(3) td:eq(3)").text()).toBe("3 threefoo");
+          return expect($("table#model_container tr:eq(4) td:eq(0)").text()).toBe("4");
         });
       });
       it("index, ini model name implicitly via class name", function() {
@@ -92,10 +90,10 @@
         waits(500);
         return runs(function() {
           expect(err).toBeFalsy();
-          expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo");
-          expect($("table#model_container td:eq(4)").text()).toBe("1");
-          expect($("table#model_container td:eq(15)").text()).toBe("3 threefoo");
-          return expect($("table#model_container td:eq(16)").text()).toBe("4");
+          expect($("table#model_container tr:eq(0) td:eq(3)").text()).toBe("0 zerofoo");
+          expect($("table#model_container tr:eq(1) td:eq(0)").text()).toBe("1");
+          expect($("table#model_container tr:eq(3) td:eq(3)").text()).toBe("3 threefoo");
+          return expect($("table#model_container tr:eq(4) td:eq(0)").text()).toBe("4");
         });
       });
       return it("model name impilcitily, create custom model (path to module implicitily) via options", function() {
@@ -114,20 +112,20 @@
         waits(500);
         return runs(function() {
           expect(err).toBeFalsy();
-          expect($("table#model_container td:eq(0)").text()).toBe("0");
-          expect($("table#model_container td:eq(1)").text()).toBe("zerofoo");
-          expect($("table#model_container td:eq(2) span:eq(0)").text()).toBe("Sport");
-          expect($("table#model_container td:eq(2) span:eq(1)").text()).toBe("Sport short");
-          expect($("table#model_container td:eq(2) span:eq(2)").text()).toBe("Hobby");
-          expect($("table#model_container td:eq(2) span:eq(3)").text()).toBe("Hobby short");
-          expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo");
-          expect($("table#model_container td:eq(20)").text()).toBe("5");
-          expect($("table#model_container td:eq(21)").text()).toBe("fivefoo");
-          return expect($("table#model_container td:eq(23)").text()).toBe("5 fivefoo");
+          expect($("table#model_container tr:eq(0) td:eq(0)").text()).toBe("0");
+          expect($("table#model_container tr:eq(0) td:eq(1)").text()).toBe("zerofoo");
+          expect($("table#model_container tr:eq(0) td:eq(2) span:eq(0)").text()).toBe("Sport");
+          expect($("table#model_container tr:eq(0) td:eq(2) span:eq(1)").text()).toBe("Sport short");
+          expect($("table#model_container tr:eq(0) td:eq(2) span:eq(2)").text()).toBe("Hobby");
+          expect($("table#model_container tr:eq(0) td:eq(2) span:eq(3)").text()).toBe("Hobby short");
+          expect($("table#model_container tr:eq(0) td:eq(3)").text()).toBe("0 zerofoo");
+          expect($("table#model_container tr:eq(5) td:eq(0)").text()).toBe("5");
+          expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("fivefoo");
+          return expect($("table#model_container tr:eq(5) td:eq(3)").text()).toBe("5 fivefoo");
         });
       });
     });
-    xdescribe("edit index view's items", function() {
+    describe("edit index view's items", function() {
       var viewModel;
       viewModel = null;
       beforeEach(function() {
@@ -173,7 +171,7 @@
         return expect(viewModel.list[0].item.name()).toBe("zero");
       });
     });
-    xdescribe("Tags", function() {
+    describe("Tags", function() {
       var viewModel;
       viewModel = null;
       beforeEach(function() {
@@ -199,7 +197,7 @@
         return expect($(".tagit .tagit-label:eq(1)").text()).toBe('Hobby');
       });
     });
-    return describe("Autocomplete", function() {
+    return xdescribe("Autocomplete", function() {
       var viewModel;
       viewModel = null;
       beforeEach(function() {
