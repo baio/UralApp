@@ -3,11 +3,11 @@
   define(["Ural/Modules/ODataProvider", "setup"], function(ODataProvider) {
     var dataProvider;
     dataProvider = ODataProvider.dataProvider;
-    xdescribe("OData provider statements", function() {
+    describe("OData provider statements", function() {
       it("plain without any filter", function() {
         var actual;
         actual = dataProvider._getStatement("Product", null);
-        return expect(actual).toBe("http://localhost:3360/Service.svc/Products");
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$orderby=id");
       });
       it("id = 0", function() {
         var actual;
@@ -18,7 +18,7 @@
           },
           $expand: "$item"
         });
-        return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=id eq 0&$expand=Tags");
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=id eq 0&$expand=Tags,Producer");
       });
       it("id in (...)", function() {
         var actual;
@@ -53,7 +53,7 @@
             $eq: 'zero'
           }
         });
-        return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=name eq 'zero'");
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Products?$filter=name eq 'zero'&$orderby=id");
       });
       it("Producer id = '0' expand = Products", function() {
         var actual;
@@ -72,7 +72,7 @@
         actual = dataProvider._getStatement("Producer", {
           $expand: "Products/Tags"
         });
-        return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products/Tags");
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products/Tags&$orderby=id");
       });
       it("Producers expand = $index", function() {
         var actual;
@@ -80,7 +80,7 @@
         actual = dataProvider._getStatement("Producer", {
           $expand: "$index"
         });
-        return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products");
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products&$orderby=id");
       });
       return it("Producers expand = $item", function() {
         var actual;
@@ -88,10 +88,10 @@
         actual = dataProvider._getStatement("Producer", {
           $expand: "$item"
         });
-        return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products/Tags");
+        return expect(actual).toBe("http://localhost:3360/Service.svc/Producers?$expand=Products/Tags&$orderby=id");
       });
     });
-    xdescribe("load data via OData provider", function() {
+    describe("load data via OData provider", function() {
       var data;
       data = null;
       it("empty filter", function() {
@@ -233,16 +233,20 @@
           return dataProvider.load("Product", {
             id: {
               $eq: 0
-            }
+            },
+            $expand: "$item"
           }, function(e, d) {
-            data = d;
+            data = d[0];
             return err = e;
           });
         });
         waits(500);
         return runs(function() {
           expect(err).toBeFalsy();
-          return expect(data[0].name).toBe("-zero-");
+          expect(data.name).toBe("-zero-");
+          expect(data.Producer).toBeTruthy();
+          expect(data.Producer.id).toBe(1);
+          return expect(data.Producer.name).toBe("IBM");
         });
       });
       it("update first item name to zero", function() {
@@ -460,21 +464,32 @@
           expect(data.Tags[1].id).not.toBe(-1);
           return expect(data.Tags[1].name).toBe("seven-tag-1");
         });
-        runs(function() {
-          return dataProvider.save("Product", {
+        return runs(function() {
+          var _this = this;
+          dataProvider.save("Product", {
             id: data.id,
             __action: "delete"
           }, function(e, d) {
-            data = d;
-            return err = e;
+            err = e;
+            return expect(err).toBeFalsy();
+          });
+          dataProvider.save("Tag", {
+            id: data.Tags[0].id,
+            __action: "delete"
+          }, function(e, d) {
+            err = e;
+            return expect(err).toBeFalsy();
+          });
+          return dataProvider.save("Tag", {
+            id: data.Tags[1].id,
+            __action: "delete"
+          }, function(e, d) {
+            err = e;
+            return expect(err).toBeFalsy();
           });
         });
-        waits(500);
-        return runs(function() {
-          return expect(err).toBeFalsy();
-        });
       });
-      xit("update data with relations (producer - one to many)", function() {
+      it("update data with relations (producer - one to many)", function() {
         var data, err;
         data = null;
         err = null;
@@ -520,11 +535,9 @@
           return dataProvider.save("Product", {
             id: 3,
             name: "three",
-            Producer: [
-              {
-                id: -100500
-              }
-            ]
+            Producer: {
+              id: -100500
+            }
           }, function(e, d) {
             data = d;
             return err = e;
@@ -536,7 +549,7 @@
           return expect(data.Producer.id).toBe(-100500);
         });
       });
-      return xit("create product then producer then update then delete", function() {
+      it("create product then add producer ref then delete", function() {
         var data, err;
         data = null;
         err = null;
@@ -554,14 +567,18 @@
           });
         });
         waits(500);
-        return runs(function() {
+        runs(function() {
+          var id;
           expect(err).toBeFalsy();
           expect(data.Producer.id).not.toBe(-1);
           expect(data.name).toBe("seven");
+          expect(data.Producer.id).toBe(1);
+          expect(data.Producer.name).toBe("IBM");
+          id = data.id;
           data = null;
           return dataProvider.load("Product", {
             id: {
-              $eq: 3
+              $eq: id
             },
             $expand: "$item"
           }, function(e, d) {
@@ -569,9 +586,80 @@
             return err = e;
           });
         });
+        waits(500);
+        runs(function() {
+          expect(err).toBeFalsy();
+          expect(data.name).toBe("seven");
+          expect(data.Producer.id).toBe(1);
+          expect(data.Producer.name).toBe("IBM");
+          return dataProvider.save("Product", {
+            id: data.id,
+            __action: "delete"
+          }, function(e, d) {
+            data = d[0];
+            return err = e;
+          });
+        });
+        return runs(function() {
+          return expect(err).toBeFalsy();
+        });
+      });
+      return xit("create product then create and add producer ref then delete", function() {
+        var data, err;
+        data = null;
+        err = null;
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: -1,
+            name: "seven",
+            Producer: {
+              id: -1,
+              name: "seven-producer"
+            }
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          var id;
+          expect(err).toBeFalsy();
+          expect(data.Producer.id).not.toBe(-1);
+          expect(data.name).toBe("seven");
+          expect(data.Producer.id).not.toBe(-1);
+          expect(data.Producer.name).toBe("seven-producer");
+          id = data.id;
+          data = null;
+          return dataProvider.load("Product", {
+            id: {
+              $eq: id
+            },
+            $expand: "$item"
+          }, function(e, d) {
+            data = d[0];
+            return err = e;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          var _this = this;
+          expect(err).toBeFalsy();
+          expect(data.Producer.id).not.toBe(-1);
+          expect(data.name).toBe("seven");
+          expect(data.Producer.id).not.toBe(-1);
+          expect(data.Producer.name).toBe("seven-producer");
+          return dataProvider.save("Product", {
+            id: data.id,
+            __action: "delete"
+          }, function(e, d) {
+            err = e;
+            return expect(err).toBeFalsy();
+          });
+        });
       });
     });
-    xdescribe("create data via OData provider", function() {
+    describe("create data via OData provider", function() {
       return it("create six", function() {
         var data, err;
         data = null;
@@ -609,7 +697,7 @@
         });
       });
     });
-    return xdescribe("delete data via OData provider", function() {
+    return describe("delete data via OData provider", function() {
       return it("delete six", function() {
         var data, err;
         data = null;

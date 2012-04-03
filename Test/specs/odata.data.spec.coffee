@@ -2,17 +2,17 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
 
   dataProvider = ODataProvider.dataProvider
 
-  xdescribe "OData provider statements", ->
+  describe "OData provider statements", ->
     it "plain without any filter", ->
 
       actual = dataProvider._getStatement "Product", null
-      expect(actual).toBe "http://localhost:3360/Service.svc/Products"
+      expect(actual).toBe "http://localhost:3360/Service.svc/Products?$orderby=id"
 
     it "id = 0", ->
 
       expect(dataProvider).toBeTruthy()
       actual = dataProvider._getStatement "Product", id : {$eq : 0 }, $expand : "$item"
-      expect(actual).toBe "http://localhost:3360/Service.svc/Products?$filter=id eq 0&$expand=Tags"
+      expect(actual).toBe "http://localhost:3360/Service.svc/Products?$filter=id eq 0&$expand=Tags,Producer"
 
     it "id in (...)", ->
 
@@ -30,7 +30,7 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
 
       expect(dataProvider).toBeTruthy()
       actual = dataProvider._getStatement "Product", name : {$eq : 'zero'}
-      expect(actual).toBe "http://localhost:3360/Service.svc/Products?$filter=name eq 'zero'"
+      expect(actual).toBe "http://localhost:3360/Service.svc/Products?$filter=name eq 'zero'&$orderby=id"
 
     it "Producer id = '0' expand = Products", ->
 
@@ -42,22 +42,22 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
 
       expect(dataProvider).toBeTruthy()
       actual = dataProvider._getStatement "Producer", $expand : "Products/Tags"
-      expect(actual).toBe "http://localhost:3360/Service.svc/Producers?$expand=Products/Tags"
+      expect(actual).toBe "http://localhost:3360/Service.svc/Producers?$expand=Products/Tags&$orderby=id"
 
     it "Producers expand = $index", ->
 
       expect(dataProvider).toBeTruthy()
       actual = dataProvider._getStatement "Producer", $expand : "$index"
-      expect(actual).toBe "http://localhost:3360/Service.svc/Producers?$expand=Products"
+      expect(actual).toBe "http://localhost:3360/Service.svc/Producers?$expand=Products&$orderby=id"
 
     it "Producers expand = $item", ->
 
       expect(dataProvider).toBeTruthy()
       actual = dataProvider._getStatement "Producer", $expand : "$item"
-      expect(actual).toBe "http://localhost:3360/Service.svc/Producers?$expand=Products/Tags"
+      expect(actual).toBe "http://localhost:3360/Service.svc/Producers?$expand=Products/Tags&$orderby=id"
 
 
-  xdescribe "load data via OData provider", ->
+  describe "load data via OData provider", ->
     data = null
     it "empty filter", ->
       runs ->
@@ -135,11 +135,14 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
         expect(err).toBeFalsy()
         expect(data.name).toBe "-zero-"
         data = null
-        dataProvider.load "Product", id : { $eq : 0}, (e, d) -> data = d; err = e
+        dataProvider.load "Product", id : { $eq : 0}, $expand : "$item", (e, d) -> data = d[0]; err = e
       waits 500
       runs ->
         expect(err).toBeFalsy()
-        expect(data[0].name).toBe "-zero-"
+        expect(data.name).toBe "-zero-"
+        expect(data.Producer).toBeTruthy()
+        expect(data.Producer.id).toBe 1
+        expect(data.Producer.name).toBe "IBM"
     it "update first item name to zero", ->
       data = null
       err = null
@@ -236,11 +239,10 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
         expect(data.Tags[1].id).not.toBe -1
         expect(data.Tags[1].name).toBe "seven-tag-1"
       runs ->
-        dataProvider.save "Product", {id : data.id, __action : "delete"} , (e, d) -> data = d; err = e
-      waits 500
-      runs ->
-        expect(err).toBeFalsy()
-    xit "update data with relations (producer - one to many)", ->
+        dataProvider.save "Product", {id : data.id, __action : "delete"} , (e, d) => err = e ; expect(err).toBeFalsy()
+        dataProvider.save "Tag", {id : data.Tags[0].id , __action : "delete" }, (e, d) => err = e ; expect(err).toBeFalsy()
+        dataProvider.save "Tag", {id : data.Tags[1].id , __action : "delete" }, (e, d) => err = e ; expect(err).toBeFalsy()
+    it "update data with relations (producer - one to many)", ->
       data = null
       err = null
       runs ->
@@ -260,12 +262,12 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
         expect(data.Producer.id).toBe 1
         expect(data.Producer.name).toBe "IBM"
       runs ->
-        dataProvider.save "Product", {id : 3, name : "three", Producer : [ {id : -100500} ] }, (e, d) -> data = d; err = e
+        dataProvider.save "Product", {id : 3, name : "three", Producer :  {id : -100500} }, (e, d) -> data = d; err = e
       waits 500
       runs ->
         expect(err).toBeFalsy()
         expect(data.Producer.id).toBe -100500
-    xit "create product then producer then update then delete", ->
+    it "create product then add producer ref then delete", ->
       data = null
       err = null
       runs ->
@@ -275,12 +277,45 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
         expect(err).toBeFalsy()
         expect(data.Producer.id).not.toBe -1
         expect(data.name).toBe "seven"
-        #expect(data.Producer.id).not.toBe -1
-        #expect(data.Producer.name).toBe "seven-producer"
+        expect(data.Producer.id).toBe 1
+        expect(data.Producer.name).toBe "IBM"
+        id = data.id
         data = null
-        dataProvider.load "Product", id : { $eq : 3}, $expand : "$item", (e, d) -> data = d[0]; err = e
+        dataProvider.load "Product", id : { $eq : id }, $expand : "$item", (e, d) -> data = d[0]; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data.name).toBe "seven"
+        expect(data.Producer.id).toBe 1
+        expect(data.Producer.name).toBe "IBM"
+        dataProvider.save "Product", {id : data.id , __action : "delete" }, (e, d) -> data = d[0]; err = e
+      runs ->
+        expect(err).toBeFalsy()
+    xit "create product then create and add producer ref then delete", ->
+      data = null
+      err = null
+      runs ->
+        dataProvider.save "Product", {id : -1, name : "seven", Producer : { id : -1, name : "seven-producer" } }, (e, d) -> data = d; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data.Producer.id).not.toBe -1
+        expect(data.name).toBe "seven"
+        expect(data.Producer.id).not.toBe -1
+        expect(data.Producer.name).toBe "seven-producer"
+        id = data.id
+        data = null
+        dataProvider.load "Product", id : { $eq : id }, $expand : "$item", (e, d) -> data = d[0]; err = e;
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data.Producer.id).not.toBe -1
+        expect(data.name).toBe "seven"
+        expect(data.Producer.id).not.toBe -1
+        expect(data.Producer.name).toBe "seven-producer"
+        dataProvider.save "Product", {id : data.id , __action : "delete" }, (e, d) =>  err = e ; expect(err).toBeFalsy()
 
-  xdescribe "create data via OData provider", ->
+  describe "create data via OData provider", ->
     it "create six", ->
       data = null
       err = null
@@ -299,7 +334,7 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
         expect(err).toBeFalsy()
         expect(data[0].name).toBe "six"
 
-  xdescribe "delete data via OData provider", ->
+  describe "delete data via OData provider", ->
     it "delete six", ->
       data = null
       err = null

@@ -202,7 +202,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         for changeResponse in batchResponse.__changeResponses
           res.push
             type: null
-            contentId: changeResponse.headers["Content-ID"]
+            contentId: changeResponse.headers["Content-ID"] if changeResponse.headers
             data: changeResponse.data
             error: changeResponse.message
       res

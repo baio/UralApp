@@ -269,7 +269,7 @@
             changeResponse = _ref2[_j];
             res.push({
               type: null,
-              contentId: changeResponse.headers["Content-ID"],
+              contentId: changeResponse.headers ? changeResponse.headers["Content-ID"] : void 0,
               data: changeResponse.data,
               error: changeResponse.message
             });
