@@ -38,7 +38,7 @@
       };
 
       ODataProvider._formatRequest = function(name, item, metadata, parentName, parentId, parentContentId, totalCount) {
-        var cid, data, expnads, flattered, i, isDelete, nested, prop, ref, res, typeName, val, _i, _len;
+        var cid, data, expnads, flattered, i, isArrayProp, isDelete, nested, prop, ref, res, typeName, val, _i, _len;
         res = [];
         expnads = [];
         if (totalCount == null) totalCount = 1;
@@ -49,17 +49,16 @@
           for (prop in item) {
             if (!__hasProp.call(item, prop)) continue;
             val = item[prop];
-            typeName = prop.replace(/^(.*)s$/, "$1");
             if (Array.isArray(val)) {
               for (_i = 0, _len = val.length; _i < _len; _i++) {
                 i = val[_i];
-                nested = ODataProvider._formatRequest(typeName, i, metadata, name, item.id, cid, totalCount + 1);
+                nested = ODataProvider._formatRequest(prop, i, metadata, name, item.id, cid, totalCount + 1);
                 totalCount += nested.length;
                 res = res.concat(nested);
               }
               val = null;
             } else if (typeof val === "object") {
-              nested = ODataProvider._formatRequest(typeName, val, metadata, name, item.id, cid, totalCount + 1);
+              nested = ODataProvider._formatRequest(prop, val, metadata, name, item.id, cid, totalCount + 1);
               totalCount += nested.length;
               res = res.concat(nested);
               val = null;
@@ -90,8 +89,9 @@
             })();
           }
         } else {
+          typeName = name.replace(/^(.*)s$/, "$1");
           if (isDelete) {
-            ref = frOpts.filterOpts.isNullRef(item) ? name : "" + name + "s(" + item.id + ")";
+            ref = frOpts.filterOpts.isNullRef(item) ? name : "" + typeName + "s(" + item.id + ")";
             data = {
               method: "DELETE",
               uri: "" + parentName + "s(" + parentId + ")/$links/" + ref
@@ -99,17 +99,18 @@
           } else {
             ref = parentId === -1 ? "$" + parentContentId : "" + parentName + "s(" + parentId + ")";
             if (item.id !== -1) {
+              isArrayProp = typeName !== name;
               data = {
-                method: "PUT",
+                method: (isArrayProp ? "POST" : "PUT"),
                 uri: "" + ref + "/$links/" + name
               };
               flattered = {
-                uri: "" + name + "s(" + item.id + ")"
+                uri: "" + typeName + "s(" + item.id + ")"
               };
             } else {
               data = {
                 method: "POST",
-                uri: "$" + ref + "/" + name
+                uri: "" + ref + "/$links/" + name
               };
             }
           }
@@ -122,11 +123,11 @@
           method: data.method,
           data: flattered
         });
-        return res;
+        return res.reverse();
       };
 
       /*
-          @_formatRequest: ->
+          @x_formatRequest: ->
             #product exists, tags exist
             [
               {

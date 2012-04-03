@@ -37,16 +37,16 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
 
         for own prop of item
           val = item[prop]
-          typeName = prop.replace /^(.*)s$/, "$1"
+          #typeName = prop.replace /^(.*)s$/, "$1"
 
           if Array.isArray val
             for i in val
-              nested = ODataProvider._formatRequest typeName, i, metadata, name, item.id, cid, totalCount + 1
+              nested = ODataProvider._formatRequest prop, i, metadata, name, item.id, cid, totalCount + 1
               totalCount += nested.length
               res = res.concat nested
             val = null
           else if typeof val == "object"
-            nested = ODataProvider._formatRequest typeName, val, metadata, name, item.id, cid, totalCount + 1
+            nested = ODataProvider._formatRequest prop, val, metadata, name, item.id, cid, totalCount + 1
             totalCount += nested.length
             res = res.concat nested
             val = null
@@ -62,19 +62,21 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
             when -1 then method: "POST", uri: "#{name}s"
             else method: "PUT", uri: "#{name}s(#{item.id})"
       else
+        typeName = name.replace /^(.*)s$/, "$1"
         #nested item
         if isDelete
-          ref = if frOpts.filterOpts.isNullRef item then name else "#{name}s(#{item.id})"
+          ref = if frOpts.filterOpts.isNullRef item then name else "#{typeName}s(#{item.id})"
           data = method: "DELETE", uri: "#{parentName}s(#{parentId})/$links/#{ref}"
         else
           #data = method: "POST", uri: if parentId == -1 then "$#{parentContentId}/#{name}s" else "#{parentName}s(#{parentId})/#{name}s"
           #data = method: "PUT", uri: if parentId == -1 then "$#{parentContentId}/#{name}" else "#{parentName}s(#{parentId})/#{name}"
           ref = if parentId == -1 then "$#{parentContentId}" else "#{parentName}s(#{parentId})"
           if item.id != -1
-            data = method: "PUT", uri: "#{ref}/$links/#{name}"
-            flattered = uri : "#{name}s(#{item.id})"
+            isArrayProp = typeName != name
+            data = method: (if isArrayProp then "POST" else "PUT"), uri: "#{ref}/$links/#{name}"
+            flattered = uri : "#{typeName}s(#{item.id})"
           else
-            data = method: "POST", uri: "$#{ref}/#{name}"
+            data = method: "POST", uri: "#{ref}/$links/#{name}"
 
       res.push
         headers: {"Content-ID": cid}
@@ -82,10 +84,10 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         method: data.method
         data: flattered
 
-      res
+      res.reverse()
 
     ###
-    @_formatRequest: ->
+    @x_formatRequest: ->
       #product exists, tags exist
       [
         {
@@ -138,6 +140,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         }
       ]
     ###
+
     @_getExpandsFromItem: (name, item) ->
       res = []
       nested = []

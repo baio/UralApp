@@ -278,7 +278,7 @@
           return expect(data[0].name).toBe("zero");
         });
       });
-      xit("update data with relations (tags - many to many)", function() {
+      xit("update data with relations (tags - many to many) create relation then delete", function() {
         var data, err;
         data = null;
         err = null;
@@ -346,7 +346,71 @@
           return expect(data.Tags.length).toBe(0);
         });
       });
-      return it("update data with relations (producer - one to many)", function() {
+      it("update data with relations (tags - many to many) create new Product then relation then delete", function() {
+        var data, err;
+        data = null;
+        err = null;
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: -1,
+            name: "seven",
+            Tags: [
+              {
+                id: 1,
+                name: "Sport"
+              }, {
+                id: 2,
+                name: "Hobby"
+              }
+            ]
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          var id;
+          expect(err).toBeFalsy();
+          expect(data.name).toBe("seven");
+          expect(data.Tags.length).toBe(2);
+          expect(data.Tags[1].id).toBe(1);
+          expect(data.Tags[1].name).toBe("Sport");
+          id = data.id;
+          data = null;
+          return dataProvider.load("Product", {
+            id: {
+              $eq: id
+            },
+            $expand: "$item"
+          }, function(e, d) {
+            data = d[0];
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          expect(err).toBeFalsy();
+          expect(data.name).toBe("seven");
+          expect(data.Tags.length).toBe(2);
+          expect(data.Tags[1].id).toBe(1);
+          return expect(data.Tags[1].name).toBe("Sport");
+        });
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: data.id,
+            __action: "delete"
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          return expect(err).toBeFalsy();
+        });
+      });
+      xit("update data with relations (producer - one to many)", function() {
         var data, err;
         data = null;
         err = null;
@@ -406,6 +470,40 @@
         return runs(function() {
           expect(err).toBeFalsy();
           return expect(data.Producer.id).toBe(-100500);
+        });
+      });
+      return xit("create product then producer then update then delete", function() {
+        var data, err;
+        data = null;
+        err = null;
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: -1,
+            name: "seven",
+            Producer: {
+              id: 1,
+              name: "IBM"
+            }
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          expect(err).toBeFalsy();
+          expect(data.Producer.id).not.toBe(-1);
+          expect(data.name).toBe("seven");
+          data = null;
+          return dataProvider.load("Product", {
+            id: {
+              $eq: 3
+            },
+            $expand: "$item"
+          }, function(e, d) {
+            data = d[0];
+            return err = e;
+          });
         });
       });
     });
