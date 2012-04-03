@@ -212,7 +212,7 @@
       });
     });
     describe("save data via OData provider", function() {
-      xit("update first item name to -zero-", function() {
+      it("update first item name to -zero-", function() {
         var data, err;
         data = null;
         err = null;
@@ -245,7 +245,7 @@
           return expect(data[0].name).toBe("-zero-");
         });
       });
-      xit("update first item name to zero", function() {
+      it("update first item name to zero", function() {
         var data, err;
         data = null;
         err = null;
@@ -278,7 +278,7 @@
           return expect(data[0].name).toBe("zero");
         });
       });
-      xit("update data with relations (tags - many to many) create relation then delete", function() {
+      it("update data with relations (tags - many to many) create relation then delete", function() {
         var data, err;
         data = null;
         err = null;
@@ -395,6 +395,70 @@
           expect(data.Tags.length).toBe(2);
           expect(data.Tags[1].id).toBe(1);
           return expect(data.Tags[1].name).toBe("Sport");
+        });
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: data.id,
+            __action: "delete"
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        return runs(function() {
+          return expect(err).toBeFalsy();
+        });
+      });
+      it("update data with relations (tags - many to many) create new Product then new Tag relation then delete", function() {
+        var data, err;
+        data = null;
+        err = null;
+        runs(function() {
+          return dataProvider.save("Product", {
+            id: -1,
+            name: "seven",
+            Tags: [
+              {
+                id: -1,
+                name: "seven-tag-1"
+              }, {
+                id: -1,
+                name: "seven-tag-2"
+              }
+            ]
+          }, function(e, d) {
+            data = d;
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          var id;
+          expect(err).toBeFalsy();
+          expect(data.name).toBe("seven");
+          expect(data.Tags.length).toBe(2);
+          expect(data.Tags[1].id).not.toBe(-1);
+          expect(data.Tags[1].name).toBe("seven-tag-1");
+          id = data.id;
+          data = null;
+          return dataProvider.load("Product", {
+            id: {
+              $eq: id
+            },
+            $expand: "$item"
+          }, function(e, d) {
+            data = d[0];
+            return err = e;
+          });
+        });
+        waits(500);
+        runs(function() {
+          expect(err).toBeFalsy();
+          expect(data.name).toBe("seven");
+          expect(data.Tags.length).toBe(2);
+          expect(data.Tags[1].id).not.toBe(-1);
+          return expect(data.Tags[1].name).toBe("seven-tag-1");
         });
         runs(function() {
           return dataProvider.save("Product", {

@@ -38,7 +38,7 @@
       };
 
       ODataProvider._formatRequest = function(name, item, metadata, parentName, parentId, parentContentId, totalCount) {
-        var cid, data, expnads, flattered, i, isArrayProp, isDelete, nested, prop, ref, res, typeName, val, _i, _len;
+        var cid, data, expnads, flattered, i, isArrayProp, isDelete, links, nested, prop, ref, res, typeName, val, _i, _len;
         res = [];
         expnads = [];
         if (totalCount == null) totalCount = 1;
@@ -108,9 +108,10 @@
                 uri: "" + typeName + "s(" + item.id + ")"
               };
             } else {
+              links = item.id !== -1 ? "$links/" : "";
               data = {
                 method: "POST",
-                uri: "" + ref + "/$links/" + name
+                uri: "" + ref + "/" + links + name
               };
             }
           }

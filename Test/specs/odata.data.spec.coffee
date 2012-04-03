@@ -125,7 +125,7 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
         expect(data[0].Products[0].Tags[1].name).toBe "Hobby"
 
   describe "save data via OData provider", ->
-    xit "update first item name to -zero-", ->
+    it "update first item name to -zero-", ->
       data = null
       err = null
       runs ->
@@ -140,7 +140,7 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
       runs ->
         expect(err).toBeFalsy()
         expect(data[0].name).toBe "-zero-"
-    xit "update first item name to zero", ->
+    it "update first item name to zero", ->
       data = null
       err = null
       runs ->
@@ -155,7 +155,7 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
       runs ->
         expect(err).toBeFalsy()
         expect(data[0].name).toBe "zero"
-    xit "update data with relations (tags - many to many) create relation then delete", ->
+    it "update data with relations (tags - many to many) create relation then delete", ->
       data = null
       err = null
       runs ->
@@ -207,6 +207,34 @@ define ["Ural/Modules/ODataProvider", "setup"], (ODataProvider) ->
         expect(data.Tags.length).toBe 2
         expect(data.Tags[1].id).toBe 1
         expect(data.Tags[1].name).toBe "Sport"
+      runs ->
+        dataProvider.save "Product", {id : data.id, __action : "delete"} , (e, d) -> data = d; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+    it "update data with relations (tags - many to many) create new Product then new Tag relation then delete", ->
+      data = null
+      err = null
+      runs ->
+        #dataProvider.save "Product", {id : 0, name : "zero-x"}, (e, d) -> data = d; err = e
+        dataProvider.save "Product", {id : -1, name : "seven", Tags : [ {id : -1, name : "seven-tag-1"}, {id : -1, name : "seven-tag-2"} ] }, (e, d) -> data = d; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data.name).toBe "seven"
+        expect(data.Tags.length).toBe 2
+        expect(data.Tags[1].id).not.toBe -1
+        expect(data.Tags[1].name).toBe "seven-tag-1"
+        id = data.id
+        data = null
+        dataProvider.load "Product", id : { $eq : id}, $expand : "$item", (e, d) -> data = d[0]; err = e
+      waits 500
+      runs ->
+        expect(err).toBeFalsy()
+        expect(data.name).toBe "seven"
+        expect(data.Tags.length).toBe 2
+        expect(data.Tags[1].id).not.toBe -1
+        expect(data.Tags[1].name).toBe "seven-tag-1"
       runs ->
         dataProvider.save "Product", {id : data.id, __action : "delete"} , (e, d) -> data = d; err = e
       waits 500

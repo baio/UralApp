@@ -76,7 +76,8 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
             data = method: (if isArrayProp then "POST" else "PUT"), uri: "#{ref}/$links/#{name}"
             flattered = uri : "#{typeName}s(#{item.id})"
           else
-            data = method: "POST", uri: "#{ref}/$links/#{name}"
+            links = if item.id != -1 then "$links/" else ""
+            data = method: "POST", uri: "#{ref}/#{links}#{name}"
 
       res.push
         headers: {"Content-ID": cid}
