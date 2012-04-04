@@ -1,4 +1,5 @@
 (function() {
+  var __hasProp = Object.prototype.hasOwnProperty;
 
   define(["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider", "Ural/Models/indexVM", "Ural/Modules/pubSub"], function(odataProvider, webSqlProvider, indexVM, pubSub) {
     var ControllerBase;
@@ -14,8 +15,10 @@
         pubSub.sub("model", "edit", function(model, name) {
           if (_this._isOwnModel(model)) return _this.onShowForm("edit");
         });
-        pubSub.sub("model", "save", function(model, name, callback) {
-          if (_this._isOwnModel(model)) return _this.onSave(model, callback);
+        pubSub.sub("model", "save", function(data, name, callback) {
+          if (_this._isOwnModel(data.item)) {
+            return _this.onSave(data.item, data.remove, callback);
+          }
         });
       }
 
@@ -65,12 +68,40 @@
         return $("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']").show();
       };
 
-      ControllerBase.prototype.onSave = function(item, onDone) {
-        var _this = this;
+      /*
+          converge item, remove pair to a single object complyed to dataProvider.save
+          i.e. removed item should be included in the updated object with {id : id, __action = "delete"}
+      */
+
+      ControllerBase._prepareDataForSave = function(item, remove) {
+        var id, prop, res, val, _i, _len;
+        res = item;
+        for (prop in item) {
+          if (!__hasProp.call(item, prop)) continue;
+          val = remove[prop];
+          if (Array.isArray(val)) {
+            for (_i = 0, _len = val.length; _i < _len; _i++) {
+              id = val[_i];
+              res[prop].push({
+                id: id,
+                __action: "delete"
+              });
+            }
+          } else if (typeof val === "object") {
+            ControllerBase._prepareDataForSave(item[prop], val);
+          }
+        }
+        return res;
+      };
+
+      ControllerBase.prototype.onSave = function(item, remove, onDone) {
+        var dataForSave,
+          _this = this;
         if (Array.isArray(item)) throw "upade of multiple items is not supported!";
+        dataForSave = ControllerBase._prepareDataForSave(this._mapToData(item), remove);
         return async.waterfall([
           function(ck) {
-            return _this.getDataProvider().save(_this.modelName, _this._mapToData(item), ck);
+            return _this.getDataProvider().save(_this.modelName, dataForSave, ck);
           }, function(data, ck) {
             return _this._getModelModule(function(err, modelModule) {
               return ck(err, data, modelModule);
@@ -100,7 +131,7 @@
           }, function(data, modelModule, ck) {
             var model, viewModel;
             model = _this._mapToItems(data, modelModule);
-            viewModel = new indexVM.IndexVM(model);
+            viewModel = new indexVM.IndexVM(model, modelModule.mappingRules);
             return _this.view(viewModel, "index", null, function(err) {
               return ck(err, viewModel);
             });

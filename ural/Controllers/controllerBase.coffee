@@ -14,9 +14,9 @@ define ["Ural/Modules/ODataProvider"
         if @_isOwnModel model
           @onShowForm "edit"
 
-      pubSub.sub "model", "save", (model, name, callback) =>
-        if @_isOwnModel model
-          @onSave model, callback
+      pubSub.sub "model", "save", (data, name, callback) =>
+        if @_isOwnModel data.item
+          @onSave data.item, data.remove, callback
 
     onCreateDataProviders: ->
       [
@@ -41,7 +41,7 @@ define ["Ural/Modules/ODataProvider"
         ko.mapping.fromJS d, modelModule.mappingRules, new modelModule.ModelConstructor()
 
     #update item from raw (json data)
-     _updateItem: (data, item, modelModule)->
+    _updateItem: (data, item, modelModule)->
       ko.mapping.fromJS data, modelModule.mappingRules, item
 
     #convert app model to raw data (json)
@@ -51,11 +51,26 @@ define ["Ural/Modules/ODataProvider"
     onShowForm: (type) ->
       $("[data-form-model-type='#{@modelName}'][data-form-type='#{type}']").show()
 
-    onSave: (item, onDone) ->
+    ###
+    converge item, remove pair to a single object complyed to dataProvider.save
+    i.e. removed item should be included in the updated object with {id : id, __action = "delete"}
+    ###
+    @_prepareDataForSave: (item, remove) ->
+      res = item
+      for own prop of item
+        val = remove[prop]
+        if Array.isArray val
+          res[prop].push id : id, __action : "delete" for id in val
+        else if typeof val == "object"
+          ControllerBase._prepareDataForSave item[prop], val
+      res
+
+    onSave: (item, remove, onDone) ->
       if Array.isArray item then throw "upade of multiple items is not supported!"
+      dataForSave = ControllerBase._prepareDataForSave @_mapToData(item), remove
       async.waterfall [
         (ck) =>
-          @getDataProvider().save @modelName, @_mapToData(item), ck
+          @getDataProvider().save @modelName, dataForSave, ck
         ,(data, ck) =>
           @_getModelModule (err, modelModule) -> ck err, data, modelModule
       ],(err, data, modelModule) =>
@@ -75,7 +90,7 @@ define ["Ural/Modules/ODataProvider"
           @_getModelModule (err, modelModule) -> ck err, data, modelModule
         ,(data, modelModule, ck) =>
           model = @_mapToItems data, modelModule
-          viewModel = new indexVM.IndexVM model
+          viewModel = new indexVM.IndexVM model, modelModule.mappingRules
           @view viewModel, "index", null, (err) -> ck err, viewModel
       ], onDone
 

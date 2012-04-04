@@ -2,23 +2,34 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
 
   class ItemVM
 
-    constructor: (@item) ->
+    constructor: (@item, @mappingRules) ->
       @originItem = null
 
     _createOrigin: ->
-      @originItem = {}
-      for own prop of @item
-        if ko.isWriteableObservable(@item[prop])
-          @originItem[prop] = @item[prop]()
+      @originItem = ko.mapping.toJS @item
 
     _copyFromOrigin: ->
-      for own prop of @originItem
-        @item[prop] @originItem[prop]
+      ko.mapping.fromJS @originItem, @mappingRules, @item
 
-    _copyFromSrc: (src) ->
-      for own prop of src
-        if ko.isWriteableObservable(@item[prop])
-          @item[prop] src[prop]()
+    ###
+    Append removed referrences (via comparison with original item)
+    ###
+    getRemoved: -> ItemVM._getRemoved @originItem, @item
+
+    @_getRemoved: (origItem, curObservableItem) ->
+      res = null
+      for own prop of origItem
+        val = origItem[prop]
+        if Array.isArray val
+          removed = val.filter((v) -> ko.utils.arrayFirst(curObservableItem[prop](), (i) -> i.id() == v.id) == null)
+            .map (v) -> v.id
+          if removed.length
+            res ?= {}
+            res[prop] = removed
+        else if typeof val == "object"
+           subRes = ItemVM._getRemoved val, curObservableItem[prop]()
+           if subRes then res[prop] = subRes
+      res
 
     edit: (@onDone) ->
       if @originItem then throw "item already in edit state"
@@ -42,13 +53,11 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
         @_copyFromOrigin()
         if @onDone then @onDone null, isCancel
       else
-        ###
-        @_createOrigin()
-        if @onDone then @onDone null, isCancel
-        ###
-        pubSub.pub "model", "save", @item, (err, item) =>
+        remove = @getRemoved()
+        remove ?= {}
+        data = item : @item, remove : remove
+        pubSub.pub "model", "save", data, (err, item) =>
           if !err
-            #@_copyFromSrc item
             @_createOrigin()
           if @onDone then @onDone err, isCancel
 

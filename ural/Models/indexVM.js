@@ -5,9 +5,9 @@
     var IndexVM;
     IndexVM = (function() {
 
-      function IndexVM(model) {
+      function IndexVM(model, mappingRules) {
         this.edit = __bind(this.edit, this);        this.list = model.map(function(m) {
-          return new itemVM.ItemVM(m);
+          return new itemVM.ItemVM(m, mappingRules);
         });
         this.active = ko.observable();
       }

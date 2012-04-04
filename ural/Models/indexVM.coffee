@@ -1,8 +1,8 @@
 define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
 
   class IndexVM
-    constructor: (model) ->
-      @list = model.map (m) -> new itemVM.ItemVM m
+    constructor: (model, mappingRules) ->
+      @list = model.map (m) -> new itemVM.ItemVM m, mappingRules
       @active = ko.observable()
 
     edit: (viewModel, event) =>

@@ -11,18 +11,29 @@
         var opts,
           _this = this;
         this.tags = [];
+        this.lastRespTags = [];
         opts = {
-          tagSource: this.options.tagSource,
+          tagSource: function(req, resp) {
+            return _this.options.tagSource(req, function(respTags) {
+              _this.lastRespTags = respTags ? respTags : [];
+              return resp(respTags);
+            });
+          },
           onTagAdded: function(e, tag) {
             var t, tagLabel;
             t = _this.__tagToBeAdded;
             if (!t) {
               tagLabel = $(e.target).tagit("tagLabel", tag);
-              t = {
-                key: -1,
-                value: tagLabel,
-                label: tagLabel
-              };
+              t = _this.lastRespTags.filter(function(f) {
+                return f.value === tagLabel;
+              })[0];
+              if (t == null) {
+                t = {
+                  key: -1,
+                  value: tagLabel,
+                  label: tagLabel
+                };
+              }
             }
             _this.tags.push(t);
             if (_this.options.onTagAdded) {

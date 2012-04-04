@@ -10,14 +10,19 @@ define ["Ural/Libs/tag-it"], ->
 
     _create: ->
       @tags = []
+      @lastRespTags = []
 
       opts =
-        tagSource : @options.tagSource
+        tagSource : (req, resp) =>
+          @options.tagSource req, (respTags) =>
+            @lastRespTags = if respTags then respTags else []
+            resp respTags
         onTagAdded : (e, tag) =>
           t = @__tagToBeAdded
           if !t
             tagLabel = $(e.target).tagit "tagLabel", tag
-            t = key : -1, value : tagLabel, label : tagLabel
+            t = @lastRespTags.filter((f) -> f.value == tagLabel)[0]
+            t ?= key : -1, value : tagLabel, label : tagLabel
           @tags.push t
           if @options.onTagAdded
             @options.onTagAdded t, if @__tagToBeAdded then false else true
