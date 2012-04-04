@@ -1,6 +1,6 @@
 define ["Controllers/productController", "Ural/Controllers/controllerBase", "setup"], (productController, controllerBase) ->
 
-  xdescribe "play with index views, load model then show view", ->
+  describe "play with index views, load model then show view", ->
 
     afterEach ->
       #$("#_body").empty()
@@ -31,14 +31,14 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       runs ->
         expect(err).toBeFalsy()
         expect($("table#model_container td:eq(0)").text()).toBe("0")
-        expect($("table#model_container td:eq(1)").text()).toBe("zerofoo")
+        expect($("table#model_container td:eq(1)").text()).toBe("zero")
         expect($("table#model_container td:eq(2) span:eq(0)").text()).toBe("Sport")
         expect($("table#model_container td:eq(2) span:eq(1)").text()).toBe("Sport short")
         expect($("table#model_container td:eq(2) span:eq(2)").text()).toBe("Hobby")
         expect($("table#model_container td:eq(2) span:eq(3)").text()).toBe("Hobby short")
         expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo")
         expect($("table#model_container tr:eq(5) td:eq(0)").text()).toBe("5")
-        expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("fivefoo")
+        expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("five")
         expect($("table#model_container tr:eq(5) td:eq(3)").text()).toBe("5 fivefoo")
         #expect($("table#model_container td:eq(14)").text()).toBe("5 fivefoo")
 
@@ -81,18 +81,18 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       runs ->
         expect(err).toBeFalsy()
         expect($("table#model_container tr:eq(0) td:eq(0)").text()).toBe("0")
-        expect($("table#model_container tr:eq(0) td:eq(1)").text()).toBe("zerofoo")
+        expect($("table#model_container tr:eq(0) td:eq(1)").text()).toBe("zero")
         expect($("table#model_container tr:eq(0) td:eq(2) span:eq(0)").text()).toBe("Sport")
         expect($("table#model_container tr:eq(0) td:eq(2) span:eq(1)").text()).toBe("Sport short")
         expect($("table#model_container tr:eq(0) td:eq(2) span:eq(2)").text()).toBe("Hobby")
         expect($("table#model_container tr:eq(0) td:eq(2) span:eq(3)").text()).toBe("Hobby short")
         expect($("table#model_container tr:eq(0) td:eq(3)").text()).toBe("0 zerofoo")
         expect($("table#model_container tr:eq(5) td:eq(0)").text()).toBe("5")
-        expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("fivefoo")
+        expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("five")
         expect($("table#model_container tr:eq(5) td:eq(3)").text()).toBe("5 fivefoo")
 
 
-  xdescribe "edit index view's items", ->
+  describe "edit index view's items", ->
     viewModel = null
     beforeEach ->
       controller = new productController.ProductController model : {useCustomModel : true}
@@ -108,19 +108,19 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
 
     it "show edit for first item", ->
       expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
-      expect($("#product_name").val()).toBe('zerofoo')
+      expect($("#product_name").val()).toBe('zero')
 
     it "show edit for first item, then edit name, then cancel", ->
-      expect(viewModel.active().item.name()).toBe "zerofoo"
+      expect(viewModel.active().item.name()).toBe "zero"
       $("#product_name").val("test").change()
       expect(viewModel.list[0].item.name()).toBe "test"
       expect(viewModel.active().item.name()).toBe "test"
       $("#product_cancel").click()
-      expect(viewModel.list[0].item.name()).toBe "zerofoo"
+      expect(viewModel.list[0].item.name()).toBe "zero"
       expect(viewModel.active()).toBe null
 
     it "show edit for first item, then edit name, then submit", ->
-      expect(viewModel.active().item.name()).toBe "zerofoo"
+      expect(viewModel.active().item.name()).toBe "zero"
       $("#product_name").val("-nill-").change()
       expect(viewModel.list[0].item.name()).toBe "-nill-"
       expect(viewModel.active().item.name()).toBe "-nill-"
@@ -141,27 +141,63 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
       runs ->
         $("table#model_container tr:eq(0)").click()
 
-    xit "check tags on the view", ->
+    it "check tags on the view", ->
       expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
       expect($(".tagit .tagit-label:eq(0)").text()).toBe('Sport')
       expect($(".tagit .tagit-label:eq(1)").text()).toBe('Hobby')
 
-    xit "remove - cancel", ->
+    it "remove - cancel", ->
       expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
       $(".tagit .tagit-choice:eq(0) .tagit-close").click()
       expect(viewModel.list[0].item.Tags().length).toBe 1
       $("#product_cancel").click()
       expect(viewModel.list[0].item.Tags().length).toBe 2
 
-    it "remove - save", ->
+    xit "remove Hobby tag - save", ->
       expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
-      #$(".tagit .tagit-choice:eq(0) .tagit-close").click()
-      #expect(viewModel.list[0].item.Tags().length).toBe 1
-      #$("#product_save").click()
-      #expect(viewModel.list[0].item.Tags().length).toBe 1
+      $(".tagit .tagit-choice:eq(0) .tagit-close").click()
+      expect(viewModel.list[0].item.Tags().length).toBe 1
+      $("#product_save").click()
+      expect(viewModel.list[0].item.Tags().length).toBe 1
 
+    xit "append Hobby tag - save", ->
+      expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
+      runs ->
+        $(".tagit .ui-autocomplete-input").keypress "h"
+      waits 500
+      runs ->
+        $(".tagit .ui-autocomplete-input").val("Hobby").change()
+        expect(viewModel.list[0].item.Tags().length).toBe 2
+        expect(viewModel.list[0].item.Tags()[1].name()).toBe "Hobby"
+        $("#product_save").click()
+      waits 500
+      runs ->
+        expect(viewModel.list[0].item.Tags().length).toBe 2
+        expect(viewModel.list[0].item.Tags()[1].name()).toBe "Hobby"
+        $("#product_save").click()
 
-  xdescribe "Autocomplete", ->
+    xit "remove all Tags, append all Tags - save", ->
+      expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
+      $(".tagit .tagit-choice:eq(0) .tagit-close").click()
+      $(".tagit .tagit-choice:eq(1) .tagit-close").click()
+      expect(viewModel.list[0].item.Tags().length).toBe 0
+      runs ->
+        $(".tagit .ui-autocomplete-input").keypress "s"
+      waits 1000
+      runs ->
+        $(".tagit .ui-autocomplete-input").val("Sport").change()
+        $(".tagit .ui-autocomplete-input").keypress 13
+      waits 1000
+      runs ->
+        $(".tagit .ui-autocomplete-input").keypress "h"
+      waits 1000
+      runs ->
+        $(".tagit .ui-autocomplete-input").val("Hobby").change()
+        $(".tagit .ui-autocomplete-input").keypress 13
+        expect(viewModel.list[0].item.Tags().length).toBe 2
+        #$("#product_save").click()
+
+  describe "Autocomplete", ->
     viewModel = null
     beforeEach ->
       controller = new productController.ProductController model : {useCustomModel : true}

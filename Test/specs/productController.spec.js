@@ -3,7 +3,7 @@
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; };
 
   define(["Controllers/productController", "Ural/Controllers/controllerBase", "setup"], function(productController, controllerBase) {
-    xdescribe("play with index views, load model then show view", function() {
+    describe("play with index views, load model then show view", function() {
       afterEach(function() {});
       it("indexCustom", function() {
         var controller, err;
@@ -38,14 +38,14 @@
         return runs(function() {
           expect(err).toBeFalsy();
           expect($("table#model_container td:eq(0)").text()).toBe("0");
-          expect($("table#model_container td:eq(1)").text()).toBe("zerofoo");
+          expect($("table#model_container td:eq(1)").text()).toBe("zero");
           expect($("table#model_container td:eq(2) span:eq(0)").text()).toBe("Sport");
           expect($("table#model_container td:eq(2) span:eq(1)").text()).toBe("Sport short");
           expect($("table#model_container td:eq(2) span:eq(2)").text()).toBe("Hobby");
           expect($("table#model_container td:eq(2) span:eq(3)").text()).toBe("Hobby short");
           expect($("table#model_container td:eq(3)").text()).toBe("0 zerofoo");
           expect($("table#model_container tr:eq(5) td:eq(0)").text()).toBe("5");
-          expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("fivefoo");
+          expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("five");
           return expect($("table#model_container tr:eq(5) td:eq(3)").text()).toBe("5 fivefoo");
         });
       });
@@ -113,19 +113,19 @@
         return runs(function() {
           expect(err).toBeFalsy();
           expect($("table#model_container tr:eq(0) td:eq(0)").text()).toBe("0");
-          expect($("table#model_container tr:eq(0) td:eq(1)").text()).toBe("zerofoo");
+          expect($("table#model_container tr:eq(0) td:eq(1)").text()).toBe("zero");
           expect($("table#model_container tr:eq(0) td:eq(2) span:eq(0)").text()).toBe("Sport");
           expect($("table#model_container tr:eq(0) td:eq(2) span:eq(1)").text()).toBe("Sport short");
           expect($("table#model_container tr:eq(0) td:eq(2) span:eq(2)").text()).toBe("Hobby");
           expect($("table#model_container tr:eq(0) td:eq(2) span:eq(3)").text()).toBe("Hobby short");
           expect($("table#model_container tr:eq(0) td:eq(3)").text()).toBe("0 zerofoo");
           expect($("table#model_container tr:eq(5) td:eq(0)").text()).toBe("5");
-          expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("fivefoo");
+          expect($("table#model_container tr:eq(5) td:eq(1)").text()).toBe("five");
           return expect($("table#model_container tr:eq(5) td:eq(3)").text()).toBe("5 fivefoo");
         });
       });
     });
-    xdescribe("edit index view's items", function() {
+    describe("edit index view's items", function() {
       var viewModel;
       viewModel = null;
       beforeEach(function() {
@@ -148,19 +148,19 @@
       afterEach(function() {});
       it("show edit for first item", function() {
         expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
-        return expect($("#product_name").val()).toBe('zerofoo');
+        return expect($("#product_name").val()).toBe('zero');
       });
       it("show edit for first item, then edit name, then cancel", function() {
-        expect(viewModel.active().item.name()).toBe("zerofoo");
+        expect(viewModel.active().item.name()).toBe("zero");
         $("#product_name").val("test").change();
         expect(viewModel.list[0].item.name()).toBe("test");
         expect(viewModel.active().item.name()).toBe("test");
         $("#product_cancel").click();
-        expect(viewModel.list[0].item.name()).toBe("zerofoo");
+        expect(viewModel.list[0].item.name()).toBe("zero");
         return expect(viewModel.active()).toBe(null);
       });
       return it("show edit for first item, then edit name, then submit", function() {
-        expect(viewModel.active().item.name()).toBe("zerofoo");
+        expect(viewModel.active().item.name()).toBe("zero");
         $("#product_name").val("-nill-").change();
         expect(viewModel.list[0].item.name()).toBe("-nill-");
         expect(viewModel.active().item.name()).toBe("-nill-");
@@ -191,23 +191,70 @@
           return $("table#model_container tr:eq(0)").click();
         });
       });
-      xit("check tags on the view", function() {
+      it("check tags on the view", function() {
         expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
         expect($(".tagit .tagit-label:eq(0)").text()).toBe('Sport');
         return expect($(".tagit .tagit-label:eq(1)").text()).toBe('Hobby');
       });
-      xit("remove - cancel", function() {
+      it("remove - cancel", function() {
         expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
         $(".tagit .tagit-choice:eq(0) .tagit-close").click();
         expect(viewModel.list[0].item.Tags().length).toBe(1);
         $("#product_cancel").click();
         return expect(viewModel.list[0].item.Tags().length).toBe(2);
       });
-      return it("remove - save", function() {
-        return expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
+      xit("remove Hobby tag - save", function() {
+        expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
+        $(".tagit .tagit-choice:eq(0) .tagit-close").click();
+        expect(viewModel.list[0].item.Tags().length).toBe(1);
+        $("#product_save").click();
+        return expect(viewModel.list[0].item.Tags().length).toBe(1);
+      });
+      xit("append Hobby tag - save", function() {
+        expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
+        runs(function() {
+          return $(".tagit .ui-autocomplete-input").keypress("h");
+        });
+        waits(500);
+        runs(function() {
+          $(".tagit .ui-autocomplete-input").val("Hobby").change();
+          expect(viewModel.list[0].item.Tags().length).toBe(2);
+          expect(viewModel.list[0].item.Tags()[1].name()).toBe("Hobby");
+          return $("#product_save").click();
+        });
+        waits(500);
+        return runs(function() {
+          expect(viewModel.list[0].item.Tags().length).toBe(2);
+          expect(viewModel.list[0].item.Tags()[1].name()).toBe("Hobby");
+          return $("#product_save").click();
+        });
+      });
+      return xit("remove all Tags, append all Tags - save", function() {
+        expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
+        $(".tagit .tagit-choice:eq(0) .tagit-close").click();
+        $(".tagit .tagit-choice:eq(1) .tagit-close").click();
+        expect(viewModel.list[0].item.Tags().length).toBe(0);
+        runs(function() {
+          return $(".tagit .ui-autocomplete-input").keypress("s");
+        });
+        waits(1000);
+        runs(function() {
+          $(".tagit .ui-autocomplete-input").val("Sport").change();
+          return $(".tagit .ui-autocomplete-input").keypress(13);
+        });
+        waits(1000);
+        runs(function() {
+          return $(".tagit .ui-autocomplete-input").keypress("h");
+        });
+        waits(1000);
+        return runs(function() {
+          $(".tagit .ui-autocomplete-input").val("Hobby").change();
+          $(".tagit .ui-autocomplete-input").keypress(13);
+          return expect(viewModel.list[0].item.Tags().length).toBe(2);
+        });
       });
     });
-    return xdescribe("Autocomplete", function() {
+    return describe("Autocomplete", function() {
       var viewModel;
       viewModel = null;
       beforeEach(function() {

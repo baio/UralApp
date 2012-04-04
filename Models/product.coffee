@@ -4,13 +4,13 @@ define ["Models/tag"], (tag) ->
     constructor: ->
       @id = ko.observable()
       @name = ko.observable()
-      @comp = ko.computed (-> @id() + " " + @name()), @
+      @comp = ko.computed (-> @id() + " " + @name() + "foo"), @
       @Tags = ko.observableArray()
       @Producer = ko.observable()
 
   mappingRules = ->
     name :
-      update: (opts) -> opts.data + "foo"
+      update: (opts) -> opts.data
     Tags :
       update: (opts) -> ko.mapping.fromJS opts.data, tag.mappingRules, new tag.ModelConstructor()
     Producer :

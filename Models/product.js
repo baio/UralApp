@@ -8,7 +8,7 @@
         this.id = ko.observable();
         this.name = ko.observable();
         this.comp = ko.computed((function() {
-          return this.id() + " " + this.name();
+          return this.id() + " " + this.name() + "foo";
         }), this);
         this.Tags = ko.observableArray();
         this.Producer = ko.observable();
@@ -21,7 +21,7 @@
       return {
         name: {
           update: function(opts) {
-            return opts.data + "foo";
+            return opts.data;
           }
         },
         Tags: {
