@@ -1,8 +1,9 @@
 define ["Ural/Modules/ODataProvider"
   , "Ural/Modules/WebSqlProvider"
   , "Ural/Models/indexVM"
+  , "Ural/Models/itemVM"
   , "Ural/Modules/pubSub"
-], (odataProvider, webSqlProvider, indexVM, pubSub) ->
+], (odataProvider, webSqlProvider, indexVM, itemVM, pubSub) ->
 
   class ControllerBase
     constructor: (@modelName, @opts)->
@@ -13,6 +14,10 @@ define ["Ural/Modules/ODataProvider"
       pubSub.sub "model", "edit", (model, name) =>
         if @_isOwnModel model
           @onShowForm "edit"
+
+      pubSub.sub "model", "detail", (model, name) =>
+        if @_isOwnModel model
+          @onShowDetails model
 
       pubSub.sub "model", "save", (data, name, callback) =>
         if @_isOwnModel data.item
@@ -50,6 +55,9 @@ define ["Ural/Modules/ODataProvider"
 
     onShowForm: (type) ->
       $("[data-form-model-type='#{@modelName}'][data-form-type='#{type}']").show()
+
+    onShowDetails: (model) ->
+      window.location.hash = "#{@modelName}/item/#{model.id()}"
 
     ###
     converge item, remove pair to a single object complyed to dataProvider.save
@@ -93,6 +101,21 @@ define ["Ural/Modules/ODataProvider"
           viewModel = new indexVM.IndexVM model, modelModule.mappingRules
           @view viewModel, "index", null, (err) -> ck err, viewModel
       ], onDone
+
+    item: (id, onDone)->
+      async.waterfall [
+        (ck) =>
+          @getDataProvider().load @modelName, {id : { $eq : id}, $expand : "$item"}, ck
+        ,(data, ck) =>
+          @_getModelModule (err, modelModule) -> ck err, data, modelModule
+        ,(data, modelModule, ck) =>
+          model = @_mapToItems data, modelModule
+          viewModel = new itemVM.ItemVM model[0], modelModule.mappingRules
+          @view viewModel, "item", null, (err) ->
+            viewModel.edit()
+            ck err, viewModel
+      ], onDone
+
 
     view: (viewModel, viewPath, layoutViewPath, onDone) ->
       lvp = @_prepareViewPath layoutViewPath, "Shared/_layout"

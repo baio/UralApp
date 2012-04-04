@@ -1,7 +1,7 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider", "Ural/Models/indexVM", "Ural/Modules/pubSub"], function(odataProvider, webSqlProvider, indexVM, pubSub) {
+  define(["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider", "Ural/Models/indexVM", "Ural/Models/itemVM", "Ural/Modules/pubSub"], function(odataProvider, webSqlProvider, indexVM, itemVM, pubSub) {
     var ControllerBase;
     ControllerBase = (function() {
 
@@ -14,6 +14,9 @@
         this.defaultDataProviderName = _u.firstKey(this._dataProviders);
         pubSub.sub("model", "edit", function(model, name) {
           if (_this._isOwnModel(model)) return _this.onShowForm("edit");
+        });
+        pubSub.sub("model", "detail", function(model, name) {
+          if (_this._isOwnModel(model)) return _this.onShowDetails(model);
         });
         pubSub.sub("model", "save", function(data, name, callback) {
           if (_this._isOwnModel(data.item)) {
@@ -66,6 +69,10 @@
 
       ControllerBase.prototype.onShowForm = function(type) {
         return $("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']").show();
+      };
+
+      ControllerBase.prototype.onShowDetails = function(model) {
+        return window.location.hash = "" + this.modelName + "/item/" + (model.id());
       };
 
       /*
@@ -133,6 +140,32 @@
             model = _this._mapToItems(data, modelModule);
             viewModel = new indexVM.IndexVM(model, modelModule.mappingRules);
             return _this.view(viewModel, "index", null, function(err) {
+              return ck(err, viewModel);
+            });
+          }
+        ], onDone);
+      };
+
+      ControllerBase.prototype.item = function(id, onDone) {
+        var _this = this;
+        return async.waterfall([
+          function(ck) {
+            return _this.getDataProvider().load(_this.modelName, {
+              id: {
+                $eq: id
+              },
+              $expand: "$item"
+            }, ck);
+          }, function(data, ck) {
+            return _this._getModelModule(function(err, modelModule) {
+              return ck(err, data, modelModule);
+            });
+          }, function(data, modelModule, ck) {
+            var model, viewModel;
+            model = _this._mapToItems(data, modelModule);
+            viewModel = new itemVM.ItemVM(model[0], modelModule.mappingRules);
+            return _this.view(viewModel, "item", null, function(err) {
+              viewModel.edit();
               return ck(err, viewModel);
             });
           }

@@ -33,10 +33,10 @@ define ->
 
     nullRefVal: (val) ->
       if val != undefined
-        @nullRefVal = val
-      @nullRefVal
+        @_nullRefVal = val
+      @_nullRefVal
 
-    isNullRef: (item) -> item.id == @nullRefVal
+    isNullRef: (item) -> item.id == @_nullRefVal
 
 
 

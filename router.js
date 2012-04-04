@@ -13,8 +13,8 @@
       }
 
       Router.prototype.onRouteChanged = function(controller, action) {
-        $(".navbar .nav li .active").toggleClass("active");
-        $(".navbar .nav a[href='#" + controller + "/" + action + "']").parent().toggleClass("active");
+        $(".navbar .nav li.active").removeClass("active");
+        $(".navbar .nav a[href='#" + controller + "/" + action + "']").parent().addClass("active");
         return Router.__super__.onRouteChanged.call(this, controller, action);
       };
 

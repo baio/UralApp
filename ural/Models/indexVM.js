@@ -6,14 +6,22 @@
     IndexVM = (function() {
 
       function IndexVM(model, mappingRules) {
+        this.detail = __bind(this.detail, this);
         this.edit = __bind(this.edit, this);        this.list = model.map(function(m) {
           return new itemVM.ItemVM(m, mappingRules);
         });
         this.active = ko.observable();
       }
 
+      IndexVM.prototype._checkEventHandler = function(event, name) {
+        var eventHandler;
+        eventHandler = $(event.target).attr("data-event-handler");
+        return !eventHandler || eventHandler === name;
+      };
+
       IndexVM.prototype.edit = function(viewModel, event) {
         var _this = this;
+        if (!this._checkEventHandler(event, "edit")) return;
         event.preventDefault();
         if (this.active()) this.active().cancel();
         this.active(viewModel);
@@ -24,7 +32,13 @@
         return pubSub.pub("model", "edit", viewModel.item);
       };
 
-      IndexVM.prototype.details = function(id) {};
+      IndexVM.prototype.detail = function(viewModel, event) {
+        if (!this._checkEventHandler(event, "detail")) return;
+        event.preventDefault();
+        if (this.active()) this.active().cancel();
+        this.active(viewModel);
+        return pubSub.pub("model", "detail", viewModel.item);
+      };
 
       return IndexVM;
 

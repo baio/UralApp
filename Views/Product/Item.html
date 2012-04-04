@@ -1,9 +1,30 @@
-<span>_item</span>
-<form data-form-model-type="Product" data-form-type="edit" style="display: none;">
-    Edit!
-    <input readonly data-bind="text: id">
-    <input data-bind="text: name">
-    <input data-bind="text: comp" readonly>
-    <button id="product_save" type="submit" data-bind="click: save">save</button>
-    <button id="product_cancel" type="submit" data-bind="click: cancel">cancel</button>
+<!-- edit form -->
+<form class="form-horizontal">
+    <fieldset>
+        <legend>Edit product</legend>
+        <!-- ko with: item -->
+        <div class="control-group">
+            <label class="control-label" for="product_name">Name</label>
+            <div class="controls">
+                <input id="product_name" data-bind="value: name">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="product_tags">Tags</label>
+            <div class="controls">
+                <input id="product_tags" data-bind="tags: Tags">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="product_producer">Producer</label>
+            <div class="controls">
+                <input id="product_producer" data-bind="autocomplete: Producer, autocompleteOpts : {modelType : 'Producer'}">
+            </div>
+        </div>
+        <!-- /ko -->
+        <div class="form-actions">
+            <button id="product_save" type="submit" class="btn btn-primary" data-bind="click: save">Save changes</button>
+            <button class="btn" data-bind="click: cancel">Cancel</button>
+        </div>
+    </fieldset>
 </form>

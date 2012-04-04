@@ -46,12 +46,12 @@
       function FilterOpts() {}
 
       FilterOpts.prototype.nullRefVal = function(val) {
-        if (val !== void 0) this.nullRefVal = val;
-        return this.nullRefVal;
+        if (val !== void 0) this._nullRefVal = val;
+        return this._nullRefVal;
       };
 
       FilterOpts.prototype.isNullRef = function(item) {
-        return item.id === this.nullRefVal;
+        return item.id === this._nullRefVal;
       };
 
       return FilterOpts;
