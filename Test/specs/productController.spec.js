@@ -231,27 +231,33 @@
       });
       return xit("remove all Tags, append all Tags - save", function() {
         expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true);
-        $(".tagit .tagit-choice:eq(0) .tagit-close").click();
-        $(".tagit .tagit-choice:eq(1) .tagit-close").click();
-        expect(viewModel.list[0].item.Tags().length).toBe(0);
+        runs(function() {
+          $(".tagit .tagit-choice:eq(0) .tagit-close").click();
+          $(".tagit .tagit-choice:eq(1) .tagit-close").click();
+          expect(viewModel.list[0].item.Tags().length).toBe(0);
+          return $("#product_save").click();
+        });
+        waits(500);
         runs(function() {
           return $(".tagit .ui-autocomplete-input").keypress("s");
         });
-        waits(1000);
-        runs(function() {
-          $(".tagit .ui-autocomplete-input").val("Sport").change();
-          return $(".tagit .ui-autocomplete-input").keypress(13);
-        });
-        waits(1000);
-        runs(function() {
-          return $(".tagit .ui-autocomplete-input").keypress("h");
-        });
-        waits(1000);
+        waits(500);
         return runs(function() {
-          $(".tagit .ui-autocomplete-input").val("Hobby").change();
-          $(".tagit .ui-autocomplete-input").keypress(13);
-          return expect(viewModel.list[0].item.Tags().length).toBe(2);
+          $(".tagit .ui-autocomplete-input").val("Sport").change();
+          return $("#product_save").click();
         });
+        /*
+              waits 500
+              runs ->
+                $(".tagit .ui-autocomplete-input").keypress "h"
+              waits 5000
+              runs ->
+                $(".tagit .ui-autocomplete-input").val("Hobby").change()
+                $("#product_save").click()
+              waits 5000
+              runs ->
+                expect(viewModel.list[0].item.Tags().length).toBe 2
+        */
       });
     });
     return describe("Autocomplete", function() {

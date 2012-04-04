@@ -8,12 +8,11 @@
         this.controllerDirectory = controllerDirectory;
         this.defaultRoute = defaultRoute;
         this.currentHash = "";
-        this.onRouteChanged = null;
       }
 
-      RouterBase.prototype.startRouting = function(OnRouteChanged) {
+      RouterBase.prototype.startRouting = function(onRouteChangedCallback) {
         var _this = this;
-        this.onRouteChanged = OnRouteChanged;
+        this.onRouteChangedCallback = onRouteChangedCallback;
         window.location.hash = window.location.hash || this.defaultRoute;
         return setInterval((function() {
           return _this.hashCheck();
@@ -23,22 +22,29 @@
       RouterBase.prototype.hashCheck = function() {
         if (window.location.hash !== this.currentHash) {
           this.currentHash = window.location.hash;
-          this.refresh();
-          if (this.onRouteChanged) return this.onRouteChanged(this.currentHash);
+          return this.refresh();
         }
       };
 
       RouterBase.prototype.refresh = function() {
-        var actionName, controllerName, index, match, regexp;
+        var action, controller, controllerName, index, match, regexp,
+          _this = this;
         regexp = new RegExp("#/?(\\w+)/(\\w+)/?(\\w+)?");
         match = this.currentHash.match(regexp);
-        controllerName = match[1];
-        actionName = match[2];
+        controller = match[1];
+        action = match[2];
         index = match[3];
-        controllerName = "" + controllerName + "Controller";
-        return require(["" + this.controllerDirectory + "/" + controllerName], function(controller) {
-          return eval("new controller." + controllerName + "()." + actionName + "(" + index + ")");
+        controllerName = "" + (_.str.capitalize(controller)) + "Controller";
+        return require(["" + this.controllerDirectory + "/" + controllerName], function(controllerModule) {
+          eval("new controllerModule." + controllerName + "()." + action + "(" + index + ")");
+          return _this.onRouteChanged(controller, action);
         });
+      };
+
+      RouterBase.prototype.onRouteChanged = function(controller, action) {
+        if (this.onRouteChangedCallback) {
+          return this.onRouteChangedCallback(controller, action);
+        }
       };
 
       return RouterBase;

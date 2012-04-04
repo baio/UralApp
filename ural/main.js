@@ -1,7 +1,7 @@
 (function() {
   var libs;
 
-  libs = ["Libs/jquery", "Libs/async", "utils"];
+  libs = ["order!Libs/jquery", "order!Libs/jquery.ui", "order!Libs/knockout", "order!Libs/knockout.mapping", "Libs/async", "utils", "Libs/underscore.string"];
 
   require(libs, function() {
     require.config({
@@ -10,10 +10,12 @@
     return require(["router", "setup"], function(router) {
       var rr;
       rr = new router.Router();
-      return rr.startRouting(function(action) {
-        $(".nav li.active").toggleClass("active");
-        return $(".nav li").has("a[href='" + action + "']").toggleClass("active");
-      });
+      return rr.startRouting();
+      /*
+            (action) ->
+              $(".nav li.active").toggleClass "active"
+              $(".nav li").has("a[href='#{action}']").toggleClass "active"
+      */
     });
   });
 

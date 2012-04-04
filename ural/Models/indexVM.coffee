@@ -7,6 +7,8 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
 
     edit: (viewModel, event) =>
       event.preventDefault()
+      if @active()
+        @active().cancel()
       @active viewModel
       viewModel.edit =>
         viewModel.endEdit()

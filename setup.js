@@ -1,6 +1,6 @@
 (function() {
 
-  define(["Ural/Modules/DataFilterOpts", "Ural/Modules/ODataProvider", "Ural/Plugins/tags-binding", "Ural/Plugins/autocomplete-binding", "Models/Tag"], function(frOpt, odataProvider, tagsBinding, autocompleteBinding, tagModel) {
+  define(["Ural/Modules/DataFilterOpts", "Ural/Modules/ODataProvider", "Ural/Plugins/tags-binding", "Ural/Plugins/autocomplete-binding", "Models/Tag", "bootstrap/js/bootstrap.min.js"], function(frOpt, odataProvider, tagsBinding, autocompleteBinding, tagModel) {
     var autocompleteOpts, tagsBindingOpts;
     frOpt.expandOpts.add(null, "$index", "");
     frOpt.expandOpts.add(null, "$item", "");

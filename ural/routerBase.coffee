@@ -3,10 +3,8 @@ define ->
   class RouterBase
     constructor: (@controllerDirectory, @defaultRoute) ->
       @currentHash = ""
-      @onRouteChanged = null
 
-    startRouting: (OnRouteChanged) ->
-      @onRouteChanged = OnRouteChanged
+    startRouting: (@onRouteChangedCallback) ->
       window.location.hash = window.location.hash or @defaultRoute
       setInterval (=> @hashCheck()), 100
 
@@ -14,16 +12,19 @@ define ->
       if window.location.hash != @currentHash
         @currentHash = window.location.hash
         @refresh()
-        if (@onRouteChanged) then @onRouteChanged @currentHash
 
     refresh: ->
       regexp = new RegExp "#/?(\\w+)/(\\w+)/?(\\w+)?"
       match = @currentHash.match regexp
-      controllerName = match[1]
-      actionName = match[2]
+      controller = match[1]
+      action = match[2]
       index = match[3]
-      controllerName = "#{controllerName}Controller"
-      require ["#{@controllerDirectory}/#{controllerName}"], (controller) ->
-        eval "new controller.#{controllerName}().#{actionName}(#{index})"
+      controllerName = "#{_.str.capitalize controller}Controller"
+      require ["#{@controllerDirectory}/#{controllerName}"], (controllerModule) =>
+        eval "new controllerModule.#{controllerName}().#{action}(#{index})"
+        @onRouteChanged controller, action
+
+    onRouteChanged: (controller, action) ->
+      if @onRouteChangedCallback then @onRouteChangedCallback controller, action
 
   RouterBase : RouterBase

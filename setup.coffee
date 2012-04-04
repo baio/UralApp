@@ -3,6 +3,7 @@ define ["Ural/Modules/DataFilterOpts"
   , "Ural/Plugins/tags-binding"
   , "Ural/Plugins/autocomplete-binding"
   , "Models/Tag"
+  , "bootstrap/js/bootstrap.min.js"
   ]
   , (frOpt, odataProvider, tagsBinding, autocompleteBinding, tagModel) ->
 

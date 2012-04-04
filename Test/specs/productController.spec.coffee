@@ -178,24 +178,30 @@ define ["Controllers/productController", "Ural/Controllers/controllerBase", "set
 
     xit "remove all Tags, append all Tags - save", ->
       expect($("[data-form-model-type='Product'][data-form-type='edit']").is(":visible")).toBe(true)
-      $(".tagit .tagit-choice:eq(0) .tagit-close").click()
-      $(".tagit .tagit-choice:eq(1) .tagit-close").click()
-      expect(viewModel.list[0].item.Tags().length).toBe 0
+      runs ->
+        $(".tagit .tagit-choice:eq(0) .tagit-close").click()
+        $(".tagit .tagit-choice:eq(1) .tagit-close").click()
+        expect(viewModel.list[0].item.Tags().length).toBe 0
+        $("#product_save").click()
+      waits 500
       runs ->
         $(".tagit .ui-autocomplete-input").keypress "s"
-      waits 1000
+      waits 500
       runs ->
         $(".tagit .ui-autocomplete-input").val("Sport").change()
-        $(".tagit .ui-autocomplete-input").keypress 13
-      waits 1000
+        $("#product_save").click()
+      ###
+      waits 500
       runs ->
         $(".tagit .ui-autocomplete-input").keypress "h"
-      waits 1000
+      waits 5000
       runs ->
         $(".tagit .ui-autocomplete-input").val("Hobby").change()
-        $(".tagit .ui-autocomplete-input").keypress 13
+        $("#product_save").click()
+      waits 5000
+      runs ->
         expect(viewModel.list[0].item.Tags().length).toBe 2
-        #$("#product_save").click()
+      ###
 
   describe "Autocomplete", ->
     viewModel = null

@@ -9,8 +9,14 @@
       __extends(Router, _super);
 
       function Router() {
-        Router.__super__.constructor.call(this, "Controllers", "Product/index");
+        Router.__super__.constructor.call(this, "Controllers", "product/index");
       }
+
+      Router.prototype.onRouteChanged = function(controller, action) {
+        $(".navbar .nav li .active").toggleClass("active");
+        $(".navbar .nav a[href='#" + controller + "/" + action + "']").parent().toggleClass("active");
+        return Router.__super__.onRouteChanged.call(this, controller, action);
+      };
 
       return Router;
 

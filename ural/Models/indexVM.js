@@ -15,6 +15,7 @@
       IndexVM.prototype.edit = function(viewModel, event) {
         var _this = this;
         event.preventDefault();
+        if (this.active()) this.active().cancel();
         this.active(viewModel);
         viewModel.edit(function() {
           viewModel.endEdit();
