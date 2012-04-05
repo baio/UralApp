@@ -118,16 +118,22 @@ define ["Ural/Modules/ODataProvider"
 
 
     view: (viewModel, viewPath, layoutViewPath, onDone) ->
-      lvp = @_prepareViewPath layoutViewPath, "Shared/_layout"
-      bvp = @_prepareViewPath viewPath
+      crName = @_getControllerName()
+      lvp = ControllerBase._prepareViewPath crName, layoutViewPath, "Shared/_layout"
+      bvp = ControllerBase._prepareViewPath crName, viewPath
 
       async.waterfall [
         (ck) ->
           require ["Ural/text!#{lvp}"], (layoutHtml) ->
             ck null, layoutHtml
         ,(layoutHtml, ck) ->
+          ControllerBase._renderPartialViews crName, layoutHtml, ck
+        ,(layoutHtml, ck) ->
           require ["Ural/text!#{bvp}"], (bodyHtml) ->
             ck null, layoutHtml, bodyHtml
+        ,(layoutHtml, bodyHtml, ck) ->
+          ControllerBase._renderPartialViews crName, bodyHtml, (err, renderedBody) ->
+            ck err, layoutHtml, renderedBody
         ,(layoutHtml, bodyHtml, ck) ->
           $("#_layout").empty()
           $("#_layout").append layoutHtml
@@ -136,14 +142,31 @@ define ["Ural/Modules/ODataProvider"
           ck()
       ], (err) -> if onDone then onDone err
 
-    _prepareViewPath: (path, defPath) ->
+    @_renderPartialViews: (controllerName, html, callback) ->
+      partialViews = $("[data-partial-view]", html)
+      paths = partialViews.map (i, p) ->
+        "Ural/text!#{ControllerBase._prepareViewPath controllerName, $(p).attr "data-partial-view"}"
+      if paths.length
+        require $.makeArray(paths), ->
+          partialHtmls = _u.argsToArray arguments
+          for partialHtml, i in partialHtmls
+            $h = $(html)
+            $h.find("[data-partial-view]:eq(#{i})").html partialHtml
+            html = $h.html()
+          async.forEach partialHtmls
+            ,(partialHtml, ck) ->
+              ControllerBase._renderPartialViews controllerName, html, ck
+            ,(err) -> callback err, html
+      else
+        callback null, html
+
+    @_prepareViewPath: (controllerName, path, defPath) ->
       path ?= defPath
       if path
         if !path.match /.*\.htm[l]?/
           path += ".html"
         if !path.match /^Views\/.*/
           if !path.match /.*\/.*/
-            controllerName = @_getControllerName()
             "Views/#{controllerName}/#{path}"
           else
             "Views/#{path}"

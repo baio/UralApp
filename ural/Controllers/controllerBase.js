@@ -173,17 +173,24 @@
       };
 
       ControllerBase.prototype.view = function(viewModel, viewPath, layoutViewPath, onDone) {
-        var bvp, lvp;
-        lvp = this._prepareViewPath(layoutViewPath, "Shared/_layout");
-        bvp = this._prepareViewPath(viewPath);
+        var bvp, crName, lvp;
+        crName = this._getControllerName();
+        lvp = ControllerBase._prepareViewPath(crName, layoutViewPath, "Shared/_layout");
+        bvp = ControllerBase._prepareViewPath(crName, viewPath);
         return async.waterfall([
           function(ck) {
             return require(["Ural/text!" + lvp], function(layoutHtml) {
               return ck(null, layoutHtml);
             });
           }, function(layoutHtml, ck) {
+            return ControllerBase._renderPartialViews(crName, layoutHtml, ck);
+          }, function(layoutHtml, ck) {
             return require(["Ural/text!" + bvp], function(bodyHtml) {
               return ck(null, layoutHtml, bodyHtml);
+            });
+          }, function(layoutHtml, bodyHtml, ck) {
+            return ControllerBase._renderPartialViews(crName, bodyHtml, function(err, renderedBody) {
+              return ck(err, layoutHtml, renderedBody);
             });
           }, function(layoutHtml, bodyHtml, ck) {
             $("#_layout").empty();
@@ -197,14 +204,39 @@
         });
       };
 
-      ControllerBase.prototype._prepareViewPath = function(path, defPath) {
-        var controllerName;
+      ControllerBase._renderPartialViews = function(controllerName, html, callback) {
+        var partialViews, paths;
+        partialViews = $("[data-partial-view]", html);
+        paths = partialViews.map(function(i, p) {
+          return "Ural/text!" + (ControllerBase._prepareViewPath(controllerName, $(p).attr("data-partial-view")));
+        });
+        if (paths.length) {
+          return require($.makeArray(paths), function() {
+            var $h, i, partialHtml, partialHtmls, _len;
+            partialHtmls = _u.argsToArray(arguments);
+            for (i = 0, _len = partialHtmls.length; i < _len; i++) {
+              partialHtml = partialHtmls[i];
+              $h = $(html);
+              $h.find("[data-partial-view]:eq(" + i + ")").html(partialHtml);
+              html = $h.html();
+            }
+            return async.forEach(partialHtmls, function(partialHtml, ck) {
+              return ControllerBase._renderPartialViews(controllerName, html, ck);
+            }, function(err) {
+              return callback(err, html);
+            });
+          });
+        } else {
+          return callback(null, html);
+        }
+      };
+
+      ControllerBase._prepareViewPath = function(controllerName, path, defPath) {
         if (path == null) path = defPath;
         if (path) {
           if (!path.match(/.*\.htm[l]?/)) path += ".html";
           if (!path.match(/^Views\/.*/)) {
             if (!path.match(/.*\/.*/)) {
-              controllerName = this._getControllerName();
               return "Views/" + controllerName + "/" + path;
             } else {
               return "Views/" + path;
