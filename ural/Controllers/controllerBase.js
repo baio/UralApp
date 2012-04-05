@@ -12,13 +12,13 @@
         if (this.modelName == null) this.modelName = this._getControllerName();
         this._dataProviders = _u.toHashTable(this.onCreateDataProviders());
         this.defaultDataProviderName = _u.firstKey(this._dataProviders);
-        pubSub.sub("model", "edit", function(model, name) {
+        pubSub.subOnce("model", "edit", this.modelName, function(model, name) {
           if (_this._isOwnModel(model)) return _this.onShowForm("edit");
         });
-        pubSub.sub("model", "detail", function(model, name) {
+        pubSub.subOnce("model", "detail", this.modelName, function(model, name) {
           if (_this._isOwnModel(model)) return _this.onShowDetails(model);
         });
-        pubSub.sub("model", "save", function(data, name, callback) {
+        pubSub.subOnce("model", "save", this.modelName, function(data, name, callback) {
           if (_this._isOwnModel(data.item)) {
             return _this.onSave(data.item, data.remove, callback);
           }

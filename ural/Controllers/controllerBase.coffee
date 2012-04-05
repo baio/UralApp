@@ -11,15 +11,15 @@ define ["Ural/Modules/ODataProvider"
       @_dataProviders = _u.toHashTable @onCreateDataProviders()
       @defaultDataProviderName = _u.firstKey @_dataProviders
 
-      pubSub.sub "model", "edit", (model, name) =>
+      pubSub.subOnce "model", "edit", @modelName, (model, name) =>
         if @_isOwnModel model
           @onShowForm "edit"
 
-      pubSub.sub "model", "detail", (model, name) =>
+      pubSub.subOnce "model", "detail", @modelName, (model, name) =>
         if @_isOwnModel model
           @onShowDetails model
 
-      pubSub.sub "model", "save", (data, name, callback) =>
+      pubSub.subOnce "model", "save", @modelName, (data, name, callback) =>
         if @_isOwnModel data.item
           @onSave data.item, data.remove, callback
 

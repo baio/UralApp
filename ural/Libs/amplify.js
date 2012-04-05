@@ -7,4 +7,782 @@
  * 
  * http://amplifyjs.com
  */
-(function(a,b){var c=[].slice,d={},e=a.amplify={publish:function(a){var b=c.call(arguments,1),e,f,g,h=0,i;if(!d[a])return!0;e=d[a].slice();for(g=e.length;h<g;h++){f=e[h],i=f.callback.apply(f.context,b);if(i===!1)break}return i!==!1},subscribe:function(a,b,c,e){arguments.length===3&&typeof c=="number"&&(e=c,c=b,b=null),arguments.length===2&&(c=b,b=null),e=e||10;var f=0,g=a.split(/\s/),h=g.length,i;for(;f<h;f++){a=g[f],i=!1,d[a]||(d[a]=[]);var j=d[a].length-1,k={callback:c,context:b,priority:e};for(;j>=0;j--)if(d[a][j].priority<=e){d[a].splice(j+1,0,k),i=!0;break}i||d[a].unshift(k)}return c},unsubscribe:function(a,b){if(!!d[a]){var c=d[a].length,e=0;for(;e<c;e++)if(d[a][e].callback===b){d[a].splice(e,1);break}}}}})(this),function(a,b){function e(a,e){c.addType(a,function(f,g,h){var i,j,k,l,m=g,n=(new Date).getTime();if(!f){m={},l=[],k=0;try{f=e.length;while(f=e.key(k++))d.test(f)&&(j=JSON.parse(e.getItem(f)),j.expires&&j.expires<=n?l.push(f):m[f.replace(d,"")]=j.data);while(f=l.pop())e.removeItem(f)}catch(o){}return m}f="__amplify__"+f;if(g===b){i=e.getItem(f),j=i?JSON.parse(i):{expires:-1};if(j.expires&&j.expires<=n)e.removeItem(f);else return j.data}else if(g===null)e.removeItem(f);else{j=JSON.stringify({data:g,expires:h.expires?n+h.expires:null});try{e.setItem(f,j)}catch(o){c[a]();try{e.setItem(f,j)}catch(o){throw c.error()}}}return m})}var c=a.store=function(a,b,d,e){var e=c.type;d&&d.type&&d.type in c.types&&(e=d.type);return c.types[e](a,b,d||{})};c.types={},c.type=null,c.addType=function(a,b){c.type||(c.type=a),c.types[a]=b,c[a]=function(b,d,e){e=e||{},e.type=a;return c(b,d,e)}},c.error=function(){return"amplify.store quota exceeded"};var d=/^__amplify__/;for(var f in{localStorage:1,sessionStorage:1})try{window[f].getItem&&e(f,window[f])}catch(g){}if(window.globalStorage)try{e("globalStorage",window.globalStorage[window.location.hostname]),c.type==="sessionStorage"&&(c.type="globalStorage")}catch(g){}(function(){if(!c.types.localStorage){var a=document.createElement("div"),d="amplify";a.style.display="none",document.getElementsByTagName("head")[0].appendChild(a);try{a.addBehavior("#default#userdata"),a.load(d)}catch(e){a.parentNode.removeChild(a);return}c.addType("userData",function(e,f,g){a.load(d);var h,i,j,k,l,m=f,n=(new Date).getTime();if(!e){m={},l=[],k=0;while(h=a.XMLDocument.documentElement.attributes[k++])i=JSON.parse(h.value),i.expires&&i.expires<=n?l.push(h.name):m[h.name]=i.data;while(e=l.pop())a.removeAttribute(e);a.save(d);return m}e=e.replace(/[^-._0-9A-Za-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u37f-\u1fff\u200c-\u200d\u203f\u2040\u2070-\u218f]/g,"-");if(f===b){h=a.getAttribute(e),i=h?JSON.parse(h):{expires:-1};if(i.expires&&i.expires<=n)a.removeAttribute(e);else return i.data}else f===null?a.removeAttribute(e):(j=a.getAttribute(e),i=JSON.stringify({data:f,expires:g.expires?n+g.expires:null}),a.setAttribute(e,i));try{a.save(d)}catch(o){j===null?a.removeAttribute(e):a.setAttribute(e,j),c.userData();try{a.setAttribute(e,i),a.save(d)}catch(o){j===null?a.removeAttribute(e):a.setAttribute(e,j);throw c.error()}}return m})}})(),function(){function e(a){return a===b?b:JSON.parse(JSON.stringify(a))}var a={},d={};c.addType("memory",function(c,f,g){if(!c)return e(a);if(f===b)return e(a[c]);d[c]&&(clearTimeout(d[c]),delete d[c]);if(f===null){delete a[c];return null}a[c]=f,g.expires&&(d[c]=setTimeout(function(){delete a[c],delete d[c]},g.expires));return f})}()}(this.amplify=this.amplify||{}),function(a,b){function e(a){var b=!1;setTimeout(function(){b=!0},1);return function(){var c=this,d=arguments;b?a.apply(c,d):setTimeout(function(){a.apply(c,d)},1)}}function d(a){return{}.toString.call(a)==="[object Function]"}function c(){}a.request=function(b,f,g){var h=b||{};typeof h=="string"&&(d(f)&&(g=f,f={}),h={resourceId:b,data:f||{},success:g});var i={abort:c},j=a.request.resources[h.resourceId],k=h.success||c,l=h.error||c;h.success=e(function(b,c){c=c||"success",a.publish("request.success",h,b,c),a.publish("request.complete",h,b,c),k(b,c)}),h.error=e(function(b,c){c=c||"error",a.publish("request.error",h,b,c),a.publish("request.complete",h,b,c),l(b,c)});if(!j){if(!h.resourceId)throw"amplify.request: no resourceId provided";throw"amplify.request: unknown resourceId: "+h.resourceId}if(!a.publish("request.before",h))h.error(null,"abort");else{a.request.resources[h.resourceId](h,i);return i}},a.request.types={},a.request.resources={},a.request.define=function(b,c,d){if(typeof c=="string"){if(!(c in a.request.types))throw"amplify.request.define: unknown type: "+c;d.resourceId=b,a.request.resources[b]=a.request.types[c](d)}else a.request.resources[b]=c}}(amplify),function(a,b,c){var d=["status","statusText","responseText","responseXML","readyState"],e=/\{([^\}]+)\}/g;a.request.types.ajax=function(e){e=b.extend({type:"GET"},e);return function(f,g){function n(a,e){b.each(d,function(a,b){try{m[b]=h[b]}catch(c){}}),/OK$/.test(m.statusText)&&(m.statusText="success"),a===c&&(a=null),l&&(e="abort"),/timeout|error|abort/.test(e)?m.error(a,e):m.success(a,e),n=b.noop}var h,i=e.url,j=g.abort,k=b.extend(!0,{},e,{data:f.data}),l=!1,m={readyState:0,setRequestHeader:function(a,b){return h.setRequestHeader(a,b)},getAllResponseHeaders:function(){return h.getAllResponseHeaders()},getResponseHeader:function(a){return h.getResponseHeader(a)},overrideMimeType:function(a){return h.overrideMideType(a)},abort:function(){l=!0;try{h.abort()}catch(a){}n(null,"abort")},success:function(a,b){f.success(a,b)},error:function(a,b){f.error(a,b)}};a.publish("request.ajax.preprocess",e,f,k,m),b.extend(k,{success:function(a,b){n(a,b)},error:function(a,b){n(null,b)},beforeSend:function(b,c){h=b,k=c;var d=e.beforeSend?e.beforeSend.call(this,m,k):!0;return d&&a.publish("request.before.ajax",e,f,k,m)}}),b.ajax(k),g.abort=function(){m.abort(),j.call(this)}}},a.subscribe("request.ajax.preprocess",function(a,c,d){var f=[],g=d.data;typeof g!="string"&&(g=b.extend(!0,{},a.data,g),d.url=d.url.replace(e,function(a,b){if(b in g){f.push(b);return g[b]}}),b.each(f,function(a,b){delete g[b]}),d.data=g)}),a.subscribe("request.ajax.preprocess",function(a,c,d){var e=d.data,f=a.dataMap;!!f&&typeof e!="string"&&(b.isFunction(f)?d.data=f(e):(b.each(a.dataMap,function(a,b){a in e&&(e[b]=e[a],delete e[a])}),d.data=e))});var f=a.request.cache={_key:function(a,b,c){function g(){return c.charCodeAt(e++)<<24|c.charCodeAt(e++)<<16|c.charCodeAt(e++)<<8|c.charCodeAt(e++)<<0}c=b+c;var d=c.length,e=0,f=g();while(e<d)f^=g();return"request-"+a+"-"+f},_default:function(){var a={};return function(b,c,d,e){var g=f._key(c.resourceId,d.url,d.data),h=b.cache;if(g in a){e.success(a[g]);return!1}var i=e.success;e.success=function(b){a[g]=b,typeof h=="number"&&setTimeout(function(){delete a[g]},h),i.apply(this,arguments)}}}()};a.store&&(b.each(a.store.types,function(b){f[b]=function(c,d,e,g){var h=f._key(d.resourceId,e.url,e.data),i=a.store[b](h);if(i){e.success(i);return!1}var j=g.success;g.success=function(d){a.store[b](h,d,{expires:c.cache.expires}),j.apply(this,arguments)}}}),f.persist=f[a.store.type]),a.subscribe("request.before.ajax",function(a){var b=a.cache;if(b){b=b.type||b;return f[b in f?b:"_default"].apply(this,arguments)}}),a.request.decoders={jsend:function(a,b,c,d,e){a.status==="success"?d(a.data):a.status==="fail"?e(a.data,"fail"):a.status==="error"&&(delete a.status,e(a,"error"))}},a.subscribe("request.before.ajax",function(c,d,e,f){function k(a,b){h(a,b)}function j(a,b){g(a,b)}var g=f.success,h=f.error,i=b.isFunction(c.decoder)?c.decoder:c.decoder in a.request.decoders?a.request.decoders[c.decoder]:a.request.decoders._default;!i||(f.success=function(a,b){i(a,b,f,j,k)},f.error=function(a,b){i(a,b,f,j,k)})})}(amplify,jQuery)
+/*!
+ * Amplify Core 1.1.0
+ * 
+ * Copyright 2011 appendTo LLC. (http://appendto.com/team)
+ * Dual licensed under the MIT or GPL licenses.
+ * http://appendto.com/open-source-licenses
+ * 
+ * http://amplifyjs.com
+ */
+(function( global, undefined ) {
+
+var slice = [].slice,
+	subscriptions = {};
+
+var amplify = global.amplify = {
+	publish: function( topic ) {
+		var args = slice.call( arguments, 1 ),
+			topicSubscriptions,
+			subscription,
+			length,
+			i = 0,
+			ret;
+
+		if ( !subscriptions[ topic ] ) {
+			return true;
+		}
+
+		topicSubscriptions = subscriptions[ topic ].slice();
+		for ( length = topicSubscriptions.length; i < length; i++ ) {
+			subscription = topicSubscriptions[ i ];
+			ret = subscription.callback.apply( subscription.context, args );
+			if ( ret === false ) {
+				break;
+			}
+		}
+		return ret !== false;
+	},
+
+	subscribe: function( topic, context, callback, priority ) {
+		if ( arguments.length === 3 && typeof callback === "number" ) {
+			priority = callback;
+			callback = context;
+			context = null;
+		}
+		if ( arguments.length === 2 ) {
+			callback = context;
+			context = null;
+		}
+		priority = priority || 10;
+
+		var topicIndex = 0,
+			topics = topic.split( /\s/ ),
+			topicLength = topics.length,
+			added;
+		for ( ; topicIndex < topicLength; topicIndex++ ) {
+			topic = topics[ topicIndex ];
+			added = false;
+			if ( !subscriptions[ topic ] ) {
+				subscriptions[ topic ] = [];
+			}
+	
+			var i = subscriptions[ topic ].length - 1,
+				subscriptionInfo = {
+					callback: callback,
+					context: context,
+					priority: priority
+				};
+	
+			for ( ; i >= 0; i-- ) {
+				if ( subscriptions[ topic ][ i ].priority <= priority ) {
+					subscriptions[ topic ].splice( i + 1, 0, subscriptionInfo );
+					added = true;
+					break;
+				}
+			}
+
+			if ( !added ) {
+				subscriptions[ topic ].unshift( subscriptionInfo );
+			}
+		}
+
+		return callback;
+	},
+
+	unsubscribe: function( topic, callback ) {
+		if ( !subscriptions[ topic ] ) {
+			return;
+		}
+
+		var length = subscriptions[ topic ].length,
+			i = 0;
+
+		for ( ; i < length; i++ ) {
+			if ( subscriptions[ topic ][ i ].callback === callback ) {
+				subscriptions[ topic ].splice( i, 1 );
+				break;
+			}
+		}
+	}
+};
+
+}( this ) );
+/*!
+ * Amplify Store - Persistent Client-Side Storage 1.1.0
+ * 
+ * Copyright 2011 appendTo LLC. (http://appendto.com/team)
+ * Dual licensed under the MIT or GPL licenses.
+ * http://appendto.com/open-source-licenses
+ * 
+ * http://amplifyjs.com
+ */
+(function( amplify, undefined ) {
+
+var store = amplify.store = function( key, value, options, type ) {
+	var type = store.type;
+	if ( options && options.type && options.type in store.types ) {
+		type = options.type;
+	}
+	return store.types[ type ]( key, value, options || {} );
+};
+
+store.types = {};
+store.type = null;
+store.addType = function( type, storage ) {
+	if ( !store.type ) {
+		store.type = type;
+	}
+
+	store.types[ type ] = storage;
+	store[ type ] = function( key, value, options ) {
+		options = options || {};
+		options.type = type;
+		return store( key, value, options );
+	};
+}
+store.error = function() {
+	return "amplify.store quota exceeded"; 
+};
+
+var rprefix = /^__amplify__/;
+function createFromStorageInterface( storageType, storage ) {
+	store.addType( storageType, function( key, value, options ) {
+		var storedValue, parsed, i, remove,
+			ret = value,
+			now = (new Date()).getTime();
+
+		if ( !key ) {
+			ret = {};
+			remove = [];
+			i = 0;
+			try {
+				// accessing the length property works around a localStorage bug
+				// in Firefox 4.0 where the keys don't update cross-page
+				// we assign to key just to avoid Closure Compiler from removing
+				// the access as "useless code"
+				// https://bugzilla.mozilla.org/show_bug.cgi?id=662511
+				key = storage.length;
+
+				while ( key = storage.key( i++ ) ) {
+					if ( rprefix.test( key ) ) {
+						parsed = JSON.parse( storage.getItem( key ) );
+						if ( parsed.expires && parsed.expires <= now ) {
+							remove.push( key );
+						} else {
+							ret[ key.replace( rprefix, "" ) ] = parsed.data;
+						}
+					}
+				}
+				while ( key = remove.pop() ) {
+					storage.removeItem( key );
+				}
+			} catch ( error ) {}
+			return ret;
+		}
+
+		// protect against name collisions with direct storage
+		key = "__amplify__" + key;
+
+		if ( value === undefined ) {
+			storedValue = storage.getItem( key );
+			parsed = storedValue ? JSON.parse( storedValue ) : { expires: -1 };
+			if ( parsed.expires && parsed.expires <= now ) {
+				storage.removeItem( key );
+			} else {
+				return parsed.data;
+			}
+		} else {
+			if ( value === null ) {
+				storage.removeItem( key );
+			} else {
+				parsed = JSON.stringify({
+					data: value,
+					expires: options.expires ? now + options.expires : null
+				});
+				try {
+					storage.setItem( key, parsed );
+				// quota exceeded
+				} catch( error ) {
+					// expire old data and try again
+					store[ storageType ]();
+					try {
+						storage.setItem( key, parsed );
+					} catch( error ) {
+						throw store.error();
+					}
+				}
+			}
+		}
+
+		return ret;
+	});
+}
+
+// localStorage + sessionStorage
+// IE 8+, Firefox 3.5+, Safari 4+, Chrome 4+, Opera 10.5+, iPhone 2+, Android 2+
+for ( var webStorageType in { localStorage: 1, sessionStorage: 1 } ) {
+	// try/catch for file protocol in Firefox
+	try {
+		if ( window[ webStorageType ].getItem ) {
+			createFromStorageInterface( webStorageType, window[ webStorageType ] );
+		}
+	} catch( e ) {}
+}
+
+// globalStorage
+// non-standard: Firefox 2+
+// https://developer.mozilla.org/en/dom/storage#globalStorage
+if ( window.globalStorage ) {
+	// try/catch for file protocol in Firefox
+	try {
+		createFromStorageInterface( "globalStorage",
+			window.globalStorage[ window.location.hostname ] );
+		// Firefox 2.0 and 3.0 have sessionStorage and globalStorage
+		// make sure we default to globalStorage
+		// but don't default to globalStorage in 3.5+ which also has localStorage
+		if ( store.type === "sessionStorage" ) {
+			store.type = "globalStorage";
+		}
+	} catch( e ) {}
+}
+
+// userData
+// non-standard: IE 5+
+// http://msdn.microsoft.com/en-us/library/ms531424(v=vs.85).aspx
+(function() {
+	// IE 9 has quirks in userData that are a huge pain
+	// rather than finding a way to detect these quirks
+	// we just don't register userData if we have localStorage
+	if ( store.types.localStorage ) {
+		return;
+	}
+
+	// append to html instead of body so we can do this from the head
+	var div = document.createElement( "div" ),
+		attrKey = "amplify";
+	div.style.display = "none";
+	document.getElementsByTagName( "head" )[ 0 ].appendChild( div );
+
+	// we can't feature detect userData support
+	// so just try and see if it fails
+	// surprisingly, even just adding the behavior isn't enough for a failure
+	// so we need to load the data as well
+	try {
+		div.addBehavior( "#default#userdata" );
+		div.load( attrKey );
+	} catch( e ) {
+		div.parentNode.removeChild( div );
+		return;
+	}
+
+	store.addType( "userData", function( key, value, options ) {
+		div.load( attrKey );
+		var attr, parsed, prevValue, i, remove,
+			ret = value,
+			now = (new Date()).getTime();
+
+		if ( !key ) {
+			ret = {};
+			remove = [];
+			i = 0;
+			while ( attr = div.XMLDocument.documentElement.attributes[ i++ ] ) {
+				parsed = JSON.parse( attr.value );
+				if ( parsed.expires && parsed.expires <= now ) {
+					remove.push( attr.name );
+				} else {
+					ret[ attr.name ] = parsed.data;
+				}
+			}
+			while ( key = remove.pop() ) {
+				div.removeAttribute( key );
+			}
+			div.save( attrKey );
+			return ret;
+		}
+
+		// convert invalid characters to dashes
+		// http://www.w3.org/TR/REC-xml/#NT-Name
+		// simplified to assume the starting character is valid
+		// also removed colon as it is invalid in HTML attribute names
+		key = key.replace( /[^-._0-9A-Za-z\xb7\xc0-\xd6\xd8-\xf6\xf8-\u037d\u37f-\u1fff\u200c-\u200d\u203f\u2040\u2070-\u218f]/g, "-" );
+
+		if ( value === undefined ) {
+			attr = div.getAttribute( key );
+			parsed = attr ? JSON.parse( attr ) : { expires: -1 };
+			if ( parsed.expires && parsed.expires <= now ) {
+				div.removeAttribute( key );
+			} else {
+				return parsed.data;
+			}
+		} else {
+			if ( value === null ) {
+				div.removeAttribute( key );
+			} else {
+				// we need to get the previous value in case we need to rollback
+				prevValue = div.getAttribute( key );
+				parsed = JSON.stringify({
+					data: value,
+					expires: (options.expires ? (now + options.expires) : null)
+				});
+				div.setAttribute( key, parsed );
+			}
+		}
+
+		try {
+			div.save( attrKey );
+		// quota exceeded
+		} catch ( error ) {
+			// roll the value back to the previous value
+			if ( prevValue === null ) {
+				div.removeAttribute( key );
+			} else {
+				div.setAttribute( key, prevValue );
+			}
+
+			// expire old data and try again
+			store.userData();
+			try {
+				div.setAttribute( key, parsed );
+				div.save( attrKey );
+			} catch ( error ) {
+				// roll the value back to the previous value
+				if ( prevValue === null ) {
+					div.removeAttribute( key );
+				} else {
+					div.setAttribute( key, prevValue );
+				}
+				throw store.error();
+			}
+		}
+		return ret;
+	});
+}() );
+
+// in-memory storage
+// fallback for all browsers to enable the API even if we can't persist data
+(function() {
+	var memory = {},
+		timeout = {};
+
+	function copy( obj ) {
+		return obj === undefined ? undefined : JSON.parse( JSON.stringify( obj ) );
+	}
+
+	store.addType( "memory", function( key, value, options ) {
+		if ( !key ) {
+			return copy( memory );
+		}
+
+		if ( value === undefined ) {
+			return copy( memory[ key ] );
+		}
+
+		if ( timeout[ key ] ) {
+			clearTimeout( timeout[ key ] );
+			delete timeout[ key ];
+		}
+
+		if ( value === null ) {
+			delete memory[ key ];
+			return null;
+		}
+
+		memory[ key ] = value;
+		if ( options.expires ) {
+			timeout[ key ] = setTimeout(function() {
+				delete memory[ key ];
+				delete timeout[ key ];
+			}, options.expires );
+		}
+
+		return value;
+	});
+}() );
+
+}( this.amplify = this.amplify || {} ) );
+/*!
+ * Amplify Request 1.1.0
+ * 
+ * Copyright 2011 appendTo LLC. (http://appendto.com/team)
+ * Dual licensed under the MIT or GPL licenses.
+ * http://appendto.com/open-source-licenses
+ * 
+ * http://amplifyjs.com
+ */
+(function( amplify, undefined ) {
+
+function noop() {}
+function isFunction( obj ) {
+	return ({}).toString.call( obj ) === "[object Function]";
+}
+
+function async( fn ) {
+	var isAsync = false;
+	setTimeout(function() {
+		isAsync = true;
+	}, 1 );
+	return function() {
+		var that = this,
+			args = arguments;
+		if ( isAsync ) {
+			fn.apply( that, args );
+		} else {
+			setTimeout(function() {
+				fn.apply( that, args );
+			}, 1 );
+		}
+	};
+}
+
+amplify.request = function( resourceId, data, callback ) {
+	// default to an empty hash just so we can handle a missing resourceId
+	// in one place
+	var settings = resourceId || {};
+
+	if ( typeof settings === "string" ) {
+		if ( isFunction( data ) ) {
+			callback = data;
+			data = {};
+		}
+		settings = {
+			resourceId: resourceId,
+			data: data || {},
+			success: callback
+		};
+	}
+
+	var request = { abort: noop },
+		resource = amplify.request.resources[ settings.resourceId ],
+		success = settings.success || noop,
+		error = settings.error || noop;
+	settings.success = async( function( data, status ) {
+		status = status || "success";
+		amplify.publish( "request.success", settings, data, status );
+		amplify.publish( "request.complete", settings, data, status );
+		success( data, status );
+	});
+	settings.error = async( function( data, status ) {
+		status = status || "error";
+		amplify.publish( "request.error", settings, data, status );
+		amplify.publish( "request.complete", settings, data, status );
+		error( data, status );
+	});
+
+	if ( !resource ) {
+		if ( !settings.resourceId ) {
+			throw "amplify.request: no resourceId provided";
+		}
+		throw "amplify.request: unknown resourceId: " + settings.resourceId;
+	}
+
+	if ( !amplify.publish( "request.before", settings ) ) {
+		settings.error( null, "abort" );
+		return;
+	}
+
+	amplify.request.resources[ settings.resourceId ]( settings, request );
+	return request;
+};
+
+amplify.request.types = {};
+amplify.request.resources = {};
+amplify.request.define = function( resourceId, type, settings ) {
+	if ( typeof type === "string" ) {
+		if ( !( type in amplify.request.types ) ) {
+			throw "amplify.request.define: unknown type: " + type;
+		}
+
+		settings.resourceId = resourceId;
+		amplify.request.resources[ resourceId ] =
+			amplify.request.types[ type ]( settings );
+	} else {
+		// no pre-processor or settings for one-off types (don't invoke)
+		amplify.request.resources[ resourceId ] = type;
+	}
+};
+
+}( amplify ) );
+
+
+
+
+
+(function( amplify, $, undefined ) {
+
+var xhrProps = [ "status", "statusText", "responseText", "responseXML", "readyState" ],
+    rurlData = /\{([^\}]+)\}/g;
+
+amplify.request.types.ajax = function( defnSettings ) {
+	defnSettings = $.extend({
+		type: "GET"
+	}, defnSettings );
+
+	return function( settings, request ) {
+		var xhr,
+			url = defnSettings.url,
+			abort = request.abort,
+			ajaxSettings = $.extend( true, {}, defnSettings, { data: settings.data } ),
+			aborted = false,
+			ampXHR = {
+				readyState: 0,
+				setRequestHeader: function( name, value ) {
+					return xhr.setRequestHeader( name, value );
+				},
+				getAllResponseHeaders: function() {
+					return xhr.getAllResponseHeaders();
+				},
+				getResponseHeader: function( key ) {
+					return xhr.getResponseHeader( key );
+				},
+				overrideMimeType: function( type ) {
+					return xhr.overrideMideType( type );
+				},
+				abort: function() {
+					aborted = true;
+					try {
+						xhr.abort();
+					// IE 7 throws an error when trying to abort
+					} catch( e ) {}
+					handleResponse( null, "abort" );
+				},
+				success: function( data, status ) {
+					settings.success( data, status );
+				},
+				error: function( data, status ) {
+					settings.error( data, status );
+				}
+			};
+
+		amplify.publish( "request.ajax.preprocess",
+			defnSettings, settings, ajaxSettings, ampXHR );
+
+		$.extend( ajaxSettings, {
+			success: function( data, status ) {
+				handleResponse( data, status );
+			},
+			error: function( _xhr, status ) {
+				handleResponse( null, status );
+			},
+			beforeSend: function( _xhr, _ajaxSettings ) {
+				xhr = _xhr;
+				ajaxSettings = _ajaxSettings;
+				var ret = defnSettings.beforeSend ?
+					defnSettings.beforeSend.call( this, ampXHR, ajaxSettings ) : true;
+				return ret && amplify.publish( "request.before.ajax",
+					defnSettings, settings, ajaxSettings, ampXHR );
+			}
+		});
+		$.ajax( ajaxSettings );
+
+		function handleResponse( data, status ) {
+			$.each( xhrProps, function( i, key ) {
+				try {
+					ampXHR[ key ] = xhr[ key ];
+				} catch( e ) {}
+			});
+			// Playbook returns "HTTP/1.1 200 OK"
+			// TODO: something also returns "OK", what?
+			if ( /OK$/.test( ampXHR.statusText ) ) {
+				ampXHR.statusText = "success";
+			}
+			if ( data === undefined ) {
+				// TODO: add support for ajax errors with data
+				data = null;
+			}
+			if ( aborted ) {
+				status = "abort";
+			}
+			if ( /timeout|error|abort/.test( status ) ) {
+				ampXHR.error( data, status );
+			} else {
+				ampXHR.success( data, status );
+			}
+			// avoid handling a response multiple times
+			// this can happen if a request is aborted
+			// TODO: figure out if this breaks polling or multi-part responses
+			handleResponse = $.noop;
+		}
+
+		request.abort = function() {
+			ampXHR.abort();
+			abort.call( this );
+		};
+	};
+};
+
+
+
+amplify.subscribe( "request.ajax.preprocess", function( defnSettings, settings, ajaxSettings ) {
+	var mappedKeys = [],
+		data = ajaxSettings.data;
+
+	if ( typeof data === "string" ) {
+		return;
+	}
+
+	data = $.extend( true, {}, defnSettings.data, data );
+
+	ajaxSettings.url = ajaxSettings.url.replace( rurlData, function ( m, key ) {
+		if ( key in data ) {
+		    mappedKeys.push( key );
+		    return data[ key ];
+		}
+	});
+
+	// We delete the keys later so duplicates are still replaced
+	$.each( mappedKeys, function ( i, key ) {
+		delete data[ key ];
+	});
+
+	ajaxSettings.data = data;
+});
+
+
+
+amplify.subscribe( "request.ajax.preprocess", function( defnSettings, settings, ajaxSettings ) {
+	var data = ajaxSettings.data,
+		dataMap = defnSettings.dataMap;
+
+	if ( !dataMap || typeof data === "string" ) {
+		return;
+	}
+
+	if ( $.isFunction( dataMap ) ) {
+		ajaxSettings.data = dataMap( data );
+	} else {
+		$.each( defnSettings.dataMap, function( orig, replace ) {
+			if ( orig in data ) {
+				data[ replace ] = data[ orig ];
+				delete data[ orig ];
+			}
+		});
+		ajaxSettings.data = data;
+	}
+});
+
+
+
+var cache = amplify.request.cache = {
+	_key: function( resourceId, url, data ) {
+		data = url + data;
+		var length = data.length,
+			i = 0,
+			checksum = chunk();
+
+		while ( i < length ) {
+			checksum ^= chunk();
+		}
+
+		function chunk() {
+			return data.charCodeAt( i++ ) << 24 |
+				data.charCodeAt( i++ ) << 16 |
+				data.charCodeAt( i++ ) << 8 |
+				data.charCodeAt( i++ ) << 0;
+		}
+
+		return "request-" + resourceId + "-" + checksum;
+	},
+
+	_default: (function() {
+		var memoryStore = {};
+		return function( resource, settings, ajaxSettings, ampXHR ) {
+			// data is already converted to a string by the time we get here
+			var cacheKey = cache._key( settings.resourceId,
+					ajaxSettings.url, ajaxSettings.data ),
+				duration = resource.cache;
+
+			if ( cacheKey in memoryStore ) {
+				ampXHR.success( memoryStore[ cacheKey ] );
+				return false;
+			}
+			var success = ampXHR.success;
+			ampXHR.success = function( data ) {
+				memoryStore[ cacheKey ] = data;
+				if ( typeof duration === "number" ) {
+					setTimeout(function() {
+						delete memoryStore[ cacheKey ];
+					}, duration );
+				}
+				success.apply( this, arguments );
+			};
+		};
+	}())
+};
+
+if ( amplify.store ) {
+	$.each( amplify.store.types, function( type ) {
+		cache[ type ] = function( resource, settings, ajaxSettings, ampXHR ) {
+			var cacheKey = cache._key( settings.resourceId,
+					ajaxSettings.url, ajaxSettings.data ),
+				cached = amplify.store[ type ]( cacheKey );
+
+			if ( cached ) {
+				ajaxSettings.success( cached );
+				return false;
+			}
+			var success = ampXHR.success;
+			ampXHR.success = function( data ) {	
+				amplify.store[ type ]( cacheKey, data, { expires: resource.cache.expires } );
+				success.apply( this, arguments );
+			};
+		};
+	});
+	cache.persist = cache[ amplify.store.type ];
+}
+
+amplify.subscribe( "request.before.ajax", function( resource ) {
+	var cacheType = resource.cache;
+	if ( cacheType ) {
+		// normalize between objects and strings/booleans/numbers
+		cacheType = cacheType.type || cacheType;
+		return cache[ cacheType in cache ? cacheType : "_default" ]
+			.apply( this, arguments );
+	}
+});
+
+
+
+amplify.request.decoders = {
+	// http://labs.omniti.com/labs/jsend
+	jsend: function( data, status, ampXHR, success, error ) {
+		if ( data.status === "success" ) {
+			success( data.data );
+		} else if ( data.status === "fail" ) {
+			error( data.data, "fail" );
+		} else if ( data.status === "error" ) {
+			delete data.status;
+			error( data, "error" );
+		}
+	}
+};
+
+amplify.subscribe( "request.before.ajax", function( resource, settings, ajaxSettings, ampXHR ) {
+	var _success = ampXHR.success,
+		_error = ampXHR.error,
+		decoder = $.isFunction( resource.decoder )
+			? resource.decoder
+			: resource.decoder in amplify.request.decoders
+				? amplify.request.decoders[ resource.decoder ]
+				: amplify.request.decoders._default;
+
+	if ( !decoder ) {
+		return;
+	}
+
+	function success( data, status ) {
+		_success( data, status );
+	}
+	function error( data, status ) {
+		_error( data, status );
+	}
+	ampXHR.success = function( data, status ) {
+		decoder( data, status, ampXHR, success, error );
+	};
+	ampXHR.error = function( data, status ) {
+		decoder( data, status, ampXHR, success, error );
+	};
+});
+
+}( amplify, jQuery ) );
