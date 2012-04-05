@@ -138,12 +138,16 @@
           }, function(data, modelModule, ck) {
             var model, viewModel;
             model = _this._mapToItems(data, modelModule);
-            viewModel = new indexVM.IndexVM(model, modelModule.mappingRules);
+            viewModel = _this.onCreateIndexViewModel(model, modelModule);
             return _this.view(viewModel, "index", null, function(err) {
               return ck(err, viewModel);
             });
           }
         ], onDone);
+      };
+
+      ControllerBase.prototype.onCreateIndexViewModel = function(model, modelModule) {
+        return new indexVM.IndexVM(model, modelModule.mappingRules);
       };
 
       ControllerBase.prototype.item = function(id, onDone) {
@@ -205,7 +209,11 @@
       };
 
       ControllerBase._renderPartialViews = function(controllerName, html, callback) {
-        var partialViews, paths;
+        var hasRoot, partialViews, paths;
+        hasRoot = $(html).children().length;
+        if (!hasRoot) {
+          html = "<div class='partial_view_root_wrapper'>" + html + "</div>";
+        }
         partialViews = $("[data-partial-view]", html);
         paths = partialViews.map(function(i, p) {
           return "Ural/text!" + (ControllerBase._prepareViewPath(controllerName, $(p).attr("data-partial-view")));

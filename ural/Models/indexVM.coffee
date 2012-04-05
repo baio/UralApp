@@ -4,6 +4,7 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
     constructor: (model, mappingRules) ->
       @list = model.map (m) -> new itemVM.ItemVM m, mappingRules
       @active = ko.observable()
+      @zones = {}
 
     _checkEventHandler:(event, name) ->
       eventHandler = $(event.target).attr "data-event-handler"

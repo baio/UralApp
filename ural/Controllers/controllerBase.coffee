@@ -98,9 +98,12 @@ define ["Ural/Modules/ODataProvider"
           @_getModelModule (err, modelModule) -> ck err, data, modelModule
         ,(data, modelModule, ck) =>
           model = @_mapToItems data, modelModule
-          viewModel = new indexVM.IndexVM model, modelModule.mappingRules
+          viewModel = @onCreateIndexViewModel model, modelModule
           @view viewModel, "index", null, (err) -> ck err, viewModel
       ], onDone
+
+    onCreateIndexViewModel: (model, modelModule) ->
+      new indexVM.IndexVM model, modelModule.mappingRules
 
     item: (id, onDone)->
       async.waterfall [
@@ -143,6 +146,8 @@ define ["Ural/Modules/ODataProvider"
       ], (err) -> if onDone then onDone err
 
     @_renderPartialViews: (controllerName, html, callback) ->
+      hasRoot = $(html).children().length
+      if !hasRoot then html = "<div class='partial_view_root_wrapper'>#{html}</div>"
       partialViews = $("[data-partial-view]", html)
       paths = partialViews.map (i, p) ->
         "Ural/text!#{ControllerBase._prepareViewPath controllerName, $(p).attr "data-partial-view"}"

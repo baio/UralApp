@@ -1,7 +1,9 @@
 define ["Ural/Controllers/controllerBase"
   , "Ural/Models/indexVM"
-  , "Models/product"],
-(controllerBase, indexVM, productModel) ->
+  , "Models/product"
+  , "Models/Zones/indexToolbox"
+],
+(controllerBase, indexVM, productModel, indexToolbox) ->
   class ProductController extends controllerBase.ControllerBase
     constructor: (opts) ->
       super "Product", opts
@@ -17,5 +19,9 @@ define ["Ural/Controllers/controllerBase"
         @view new indexVM.IndexVM(model), "index"
         if onDone then onDone err
 
+    onCreateIndexViewModel: (model, modelModule) ->
+      vm = super model, modelModule
+      vm.zones.toolbox = indexToolbox.indexToolbox
+      vm
 
   ProductController : ProductController

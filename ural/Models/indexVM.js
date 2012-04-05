@@ -11,6 +11,7 @@
           return new itemVM.ItemVM(m, mappingRules);
         });
         this.active = ko.observable();
+        this.zones = {};
       }
 
       IndexVM.prototype._checkEventHandler = function(event, name) {

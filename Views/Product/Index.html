@@ -1,5 +1,7 @@
 <table id="model_container" class="table table-striped" data-bind="template: {name:'productTemplate', foreach: list}">
 </table>
+<div data-partial-view="Views/Shared/_ProductForm" data-bind="with: active">
+</div>
 <script type="text/x-jquery-tmpl" id="productTemplate">
     <tr data-bind="click: $root.edit">
             <td data-bind="click: $root.detail" ><i class="icon-pencil" data-event-handler="detail"></i></td>
@@ -19,33 +21,4 @@
     <span data-bind="text: shortName"></span>
 </script>
 
-<!-- edit form -->
-<form class="form-horizontal" data-form-model-type="Product" data-form-type="edit" style="display: none;" data-bind="with: active">
-    <fieldset>
-        <legend>Edit product</legend>
-        <!-- ko with: item -->
-        <div class="control-group">
-            <label class="control-label" for="product_name">Name</label>
-            <div class="controls">
-                <input id="product_name" data-bind="value: name">
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label" for="product_tags">Tags</label>
-            <div class="controls">
-                <input id="product_tags" data-bind="tags: Tags">
-            </div>
-        </div>
-        <div class="control-group">
-            <label class="control-label" for="product_producer">Producer</label>
-            <div class="controls">
-                <input id="product_producer" data-bind="autocomplete: Producer, autocompleteOpts : {modelType : 'Producer'}">
-            </div>
-        </div>
-        <!-- /ko -->
-        <div class="form-actions">
-            <button id="product_save" type="submit" class="btn btn-primary" data-bind="click: save">Save changes</button>
-            <button class="btn" data-bind="click: cancel">Cancel</button>
-        </div>
-    </fieldset>
-</form>
+
