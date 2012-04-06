@@ -34,7 +34,6 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
     edit: (@onDone) ->
       if @originItem then throw "item already in edit state"
       @_createOrigin()
-      pubSub.pub "model", "edit", @item
 
     endEdit: ->
       if !@originItem then throw "item not in edit state"

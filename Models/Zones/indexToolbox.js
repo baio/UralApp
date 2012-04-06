@@ -1,6 +1,6 @@
 (function() {
 
-  define(["Models/product", "Ural/Models/itemVM"], function(product, itemVM) {
+  define(["Models/product", "Ural/Models/itemVM", "Ural/Modules/PubSub"], function(product, itemVM, pubSub) {
     var IndexToolbox, indexToolbox;
     IndexToolbox = (function() {
 
@@ -16,7 +16,8 @@
         ivm.edit(function() {
           return this.newProduct(null);
         });
-        return this.newProduct(ivm);
+        this.newProduct(ivm);
+        return pubSub.pub("model", "create", vm);
       };
 
       return IndexToolbox;

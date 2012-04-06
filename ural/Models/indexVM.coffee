@@ -19,6 +19,7 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
       viewModel.edit =>
         viewModel.endEdit()
         @active null
+      pubSub.pub "model", "edit", viewModel.item
 
     detail: (viewModel, event) =>
       if !@_checkEventHandler event, "detail" then return

@@ -1,4 +1,4 @@
-define ["Models/product", "Ural/Models/itemVM"],  (product, itemVM) ->
+define ["Models/product", "Ural/Models/itemVM", "Ural/Modules/PubSub"],  (product, itemVM, pubSub) ->
 
   class IndexToolbox
 
@@ -12,6 +12,7 @@ define ["Models/product", "Ural/Models/itemVM"],  (product, itemVM) ->
       ivm.edit ->
         @newProduct null
       @newProduct ivm
+      pubSub.pub "model", "create", vm
 
   indexToolbox = new IndexToolbox()
 
