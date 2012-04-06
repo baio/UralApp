@@ -13,7 +13,10 @@
         this._dataProviders = _u.toHashTable(this.onCreateDataProviders());
         this.defaultDataProviderName = _u.firstKey(this._dataProviders);
         pubSub.subOnce("model", "edit", this.modelName, function(model, name) {
-          if (_this._isOwnModel(model)) return _this.onShowForm("edit");
+          if (_this._isOwnModel(model)) return _this.onShowForm(name);
+        });
+        pubSub.subOnce("model", "create", this.modelName, function(model, name) {
+          if (_this._isOwnModel(model)) return _this.onShowForm(name);
         });
         pubSub.subOnce("model", "detail", this.modelName, function(model, name) {
           if (_this._isOwnModel(model)) return _this.onShowDetails(model);
@@ -209,11 +212,15 @@
       };
 
       ControllerBase._renderPartialViews = function(controllerName, html, callback) {
-        var hasRoot, partialViews, paths;
-        hasRoot = $(html).children().length;
-        if (!hasRoot) {
-          html = "<div class='partial_view_root_wrapper'>" + html + "</div>";
-        }
+        html = _u.wrapHtml(html);
+        return ControllerBase.__renderPartialViews(controllerName, html, function(err, renderedHtml) {
+          if (renderedHtml) renderedHtml = $(renderedHtml).html();
+          return callback(err, renderedHtml);
+        });
+      };
+
+      ControllerBase.__renderPartialViews = function(controllerName, html, callback) {
+        var partialViews, paths;
         partialViews = $("[data-partial-view]", html);
         paths = partialViews.map(function(i, p) {
           return "Ural/text!" + (ControllerBase._prepareViewPath(controllerName, $(p).attr("data-partial-view")));
@@ -226,19 +233,24 @@
               partialHtml = partialHtmls[i];
               $h = $(html);
               $pratialViewTag = $h.find("[data-partial-view]:eq(" + i + ")");
-              $pratialViewTag.html(partialHtml);
-              html = $h.html();
               viewBag = $pratialViewTag.attr("data-partial-view-bag");
+              $pratialViewTag.removeAttr("data-partial-view");
+              $pratialViewTag.removeAttr("data-partial-view-bag");
               if (viewBag) {
                 jViewBag = eval("(" + viewBag + ")");
                 $.templates({
-                  pvt: html
+                  pvt: partialHtml
                 });
-                html = $.render.pvt(jViewBag);
+                partialHtml = $.render.pvt(jViewBag);
               }
+              $pratialViewTag.html(partialHtml);
+              html = _u.wrapHtml($h.html());
             }
-            return async.forEach(partialHtmls, function(partialHtml, ck) {
-              return ControllerBase._renderPartialViews(controllerName, html, ck);
+            return async.forEachSeries(partialHtmls, function(ph, ck) {
+              return ControllerBase.__renderPartialViews(controllerName, html, function(err, renderedHtml) {
+                html = renderedHtml;
+                return ck(err);
+              });
             }, function(err) {
               return callback(err, html);
             });

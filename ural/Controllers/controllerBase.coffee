@@ -13,7 +13,11 @@ define ["Ural/Modules/ODataProvider"
 
       pubSub.subOnce "model", "edit", @modelName, (model, name) =>
         if @_isOwnModel model
-          @onShowForm "edit"
+          @onShowForm name
+
+      pubSub.subOnce "model", "create", @modelName, (model, name) =>
+        if @_isOwnModel model
+          @onShowForm name
 
       pubSub.subOnce "model", "detail", @modelName, (model, name) =>
         if @_isOwnModel model
@@ -145,9 +149,14 @@ define ["Ural/Modules/ODataProvider"
           ck()
       ], (err) -> if onDone then onDone err
 
+
     @_renderPartialViews: (controllerName, html, callback) ->
-      hasRoot = $(html).children().length
-      if !hasRoot then html = "<div class='partial_view_root_wrapper'>#{html}</div>"
+      html = _u.wrapHtml html
+      ControllerBase.__renderPartialViews controllerName, html, (err, renderedHtml) ->
+        if renderedHtml then renderedHtml = $(renderedHtml).html()
+        callback err, renderedHtml
+
+    @__renderPartialViews: (controllerName, html, callback) ->
       partialViews = $("[data-partial-view]", html)
       paths = partialViews.map (i, p) ->
         "Ural/text!#{ControllerBase._prepareViewPath controllerName, $(p).attr "data-partial-view"}"
@@ -157,16 +166,20 @@ define ["Ural/Modules/ODataProvider"
           for partialHtml, i in partialHtmls
             $h = $(html)
             $pratialViewTag = $h.find "[data-partial-view]:eq(#{i})"
-            $pratialViewTag.html partialHtml
-            html = $h.html()
             viewBag = $pratialViewTag.attr "data-partial-view-bag"
+            $pratialViewTag.removeAttr "data-partial-view"
+            $pratialViewTag.removeAttr "data-partial-view-bag"
             if viewBag
               jViewBag = eval "(#{viewBag})"
-              $.templates pvt : html
-              html = $.render.pvt jViewBag
-          async.forEach partialHtmls
-            ,(partialHtml, ck) ->
-              ControllerBase._renderPartialViews controllerName, html, ck
+              $.templates pvt : partialHtml
+              partialHtml = $.render.pvt jViewBag
+            $pratialViewTag.html partialHtml
+            html = _u.wrapHtml $h.html()
+          async.forEachSeries partialHtmls
+            ,(ph, ck) ->
+              ControllerBase.__renderPartialViews controllerName, html, (err, renderedHtml) ->
+                html = renderedHtml
+                ck err
             ,(err) -> callback err, html
       else
         callback null, html

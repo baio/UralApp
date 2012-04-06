@@ -46,4 +46,6 @@ class Utils
   trim: (str) ->
     str.replace(/^\s\s*/, '').replace(/\s\s*$/, '')
 
+  wrapHtml: (html) -> "<div>#{html}</div>"
+
 @_u = new Utils()

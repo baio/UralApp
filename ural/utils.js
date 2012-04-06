@@ -81,6 +81,10 @@
       return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
     };
 
+    Utils.prototype.wrapHtml = function(html) {
+      return "<div>" + html + "</div>";
+    };
+
     return Utils;
 
   })();
