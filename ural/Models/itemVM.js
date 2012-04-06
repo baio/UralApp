@@ -56,7 +56,8 @@
       ItemVM.prototype.edit = function(onDone) {
         this.onDone = onDone;
         if (this.originItem) throw "item already in edit state";
-        return this._createOrigin();
+        this._createOrigin();
+        return pubSub.pub("model", "edit", this.item);
       };
 
       ItemVM.prototype.endEdit = function() {

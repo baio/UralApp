@@ -1,7 +1,7 @@
 (function() {
   var libs;
 
-  libs = ["order!Libs/jquery", "order!Libs/jquery.ui", "order!Libs/knockout", "order!Libs/knockout.mapping", "Libs/async", "utils", "Libs/underscore.string"];
+  libs = ["order!Libs/jquery", "order!Libs/jquery.ui", "order!Libs/knockout", "order!Libs/knockout.mapping", "order!Libs/jsrender", "Libs/async", "utils", "Libs/underscore.string"];
 
   require(libs, function() {
     require.config({

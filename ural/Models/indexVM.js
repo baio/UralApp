@@ -26,11 +26,10 @@
         event.preventDefault();
         if (this.active()) this.active().cancel();
         this.active(viewModel);
-        viewModel.edit(function() {
+        return viewModel.edit(function() {
           viewModel.endEdit();
           return _this.active(null);
         });
-        return pubSub.pub("model", "edit", viewModel.item);
       };
 
       IndexVM.prototype.detail = function(viewModel, event) {

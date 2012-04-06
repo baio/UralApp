@@ -8,7 +8,7 @@
         this.newProduct = ko.observable();
       }
 
-      IndexToolbox.prototype.createProduct = function(event) {
+      IndexToolbox.prototype.createProduct = function(data, event) {
         var ivm, vm;
         event.preventDefault();
         vm = new product.ModelConstructor();

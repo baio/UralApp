@@ -156,8 +156,14 @@ define ["Ural/Modules/ODataProvider"
           partialHtmls = _u.argsToArray arguments
           for partialHtml, i in partialHtmls
             $h = $(html)
-            $h.find("[data-partial-view]:eq(#{i})").html partialHtml
+            $pratialViewTag = $h.find "[data-partial-view]:eq(#{i})"
+            $pratialViewTag.html partialHtml
             html = $h.html()
+            viewBag = $pratialViewTag.attr "data-partial-view-bag"
+            if viewBag
+              jViewBag = eval "(#{viewBag})"
+              $.templates pvt : html
+              html = $.render.pvt jViewBag
           async.forEach partialHtmls
             ,(partialHtml, ck) ->
               ControllerBase._renderPartialViews controllerName, html, ck

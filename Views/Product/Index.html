@@ -1,6 +1,7 @@
 <table id="model_container" class="table table-striped" data-bind="template: {name:'productTemplate', foreach: list}">
 </table>
-<div data-partial-view="Views/Shared/_ProductForm" data-bind="with: active">
+<div data-partial-view="Shared/_ProductForm" data-bind="with: active"
+        data-partial-view-bag="{caption: 'Edit product', type : 'edit'}">
 </div>
 <script type="text/x-jquery-tmpl" id="productTemplate">
     <tr data-bind="click: $root.edit">

@@ -220,13 +220,22 @@
         });
         if (paths.length) {
           return require($.makeArray(paths), function() {
-            var $h, i, partialHtml, partialHtmls, _len;
+            var $h, $pratialViewTag, i, jViewBag, partialHtml, partialHtmls, viewBag, _len;
             partialHtmls = _u.argsToArray(arguments);
             for (i = 0, _len = partialHtmls.length; i < _len; i++) {
               partialHtml = partialHtmls[i];
               $h = $(html);
-              $h.find("[data-partial-view]:eq(" + i + ")").html(partialHtml);
+              $pratialViewTag = $h.find("[data-partial-view]:eq(" + i + ")");
+              $pratialViewTag.html(partialHtml);
               html = $h.html();
+              viewBag = $pratialViewTag.attr("data-partial-view-bag");
+              if (viewBag) {
+                jViewBag = eval("(" + viewBag + ")");
+                $.templates({
+                  pvt: html
+                });
+                html = $.render.pvt(jViewBag);
+              }
             }
             return async.forEach(partialHtmls, function(partialHtml, ck) {
               return ControllerBase._renderPartialViews(controllerName, html, ck);

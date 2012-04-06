@@ -5,7 +5,7 @@ define ["Models/product", "Ural/Models/itemVM"],  (product, itemVM) ->
     constructor: ->
       @newProduct = ko.observable()
 
-    createProduct: (event) ->
+    createProduct: (data, event) ->
       event.preventDefault()
       vm = new product.ModelConstructor()
       ivm = new itemVM.ItemVM vm, product.mappingRules
