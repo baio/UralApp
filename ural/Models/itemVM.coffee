@@ -14,21 +14,31 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
     ###
     Append removed referrences (via comparison with original item)
     ###
-    getRemoved: -> ItemVM._getRemoved @originItem, @item
+    getRemovedRefs: -> ItemVM._getRemovedRefs @originItem, @item
 
-    @_getRemoved: (origItem, curObservableItem) ->
+    @_getRemovedRefs: (origItem, curObservableItem) ->
+      _setProp = (obj, prop, val) ->
+        obj ?= {}
+        obj[prop] = val
+        obj
+
       res = null
       for own prop of origItem
         val = origItem[prop]
+        if val == null or val == undefined then continue
         if Array.isArray val
           removed = val.filter((v) -> ko.utils.arrayFirst(curObservableItem[prop](), (i) -> i.id() == v.id) == null)
             .map (v) -> v.id
           if removed.length
-            res ?= {}
-            res[prop] = removed
+            res = _setProp res, prop, removed
         else if typeof val == "object"
-           subRes = ItemVM._getRemoved val, curObservableItem[prop]()
-           if subRes then res[prop] = subRes
+          obj = curObservableItem[prop]()
+          curId = obj.id()
+          if curId != val.id and curId == __g.nullRefVal()
+            res = _setProp res, prop, val.id
+          else
+            subRes = ItemVM._getRemovedRefs val, obj
+            if subRes then res = _setProp res, prop, subRes
       res
 
     edit: (@onDone) ->
@@ -53,7 +63,7 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
         @_copyFromOrigin()
         if @onDone then @onDone null, isCancel
       else
-        remove = @getRemoved()
+        remove = @getRemovedRefs()
         remove ?= {}
         data = item : @item, remove : remove
         pubSub.pub "model", "save", data, (err, item) =>

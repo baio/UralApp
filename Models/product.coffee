@@ -8,7 +8,7 @@ define ["Models/tag"], (tag) ->
       @Producer = ko.observable()
       @comp = ko.computed (-> @id() + " " + @name() + "foo"), @
 
-      ko.mapping.fromJS def(), mappingRules(), @
+      ko.mapping.fromJS def(), mappingRules(), @  #move to ItemVM
 
   mappingRules = ->
     name :

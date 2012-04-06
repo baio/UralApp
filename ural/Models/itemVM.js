@@ -23,16 +23,22 @@
           Append removed referrences (via comparison with original item)
       */
 
-      ItemVM.prototype.getRemoved = function() {
-        return ItemVM._getRemoved(this.originItem, this.item);
+      ItemVM.prototype.getRemovedRefs = function() {
+        return ItemVM._getRemovedRefs(this.originItem, this.item);
       };
 
-      ItemVM._getRemoved = function(origItem, curObservableItem) {
-        var prop, removed, res, subRes, val;
+      ItemVM._getRemovedRefs = function(origItem, curObservableItem) {
+        var curId, obj, prop, removed, res, subRes, val, _setProp;
+        _setProp = function(obj, prop, val) {
+          if (obj == null) obj = {};
+          obj[prop] = val;
+          return obj;
+        };
         res = null;
         for (prop in origItem) {
           if (!__hasProp.call(origItem, prop)) continue;
           val = origItem[prop];
+          if (val === null || val === void 0) continue;
           if (Array.isArray(val)) {
             removed = val.filter(function(v) {
               return ko.utils.arrayFirst(curObservableItem[prop](), function(i) {
@@ -41,13 +47,16 @@
             }).map(function(v) {
               return v.id;
             });
-            if (removed.length) {
-              if (res == null) res = {};
-              res[prop] = removed;
-            }
+            if (removed.length) res = _setProp(res, prop, removed);
           } else if (typeof val === "object") {
-            subRes = ItemVM._getRemoved(val, curObservableItem[prop]());
-            if (subRes) res[prop] = subRes;
+            obj = curObservableItem[prop]();
+            curId = obj.id();
+            if (curId !== val.id && curId === __g.nullRefVal()) {
+              res = _setProp(res, prop, val.id);
+            } else {
+              subRes = ItemVM._getRemovedRefs(val, obj);
+              if (subRes) res = _setProp(res, prop, subRes);
+            }
           }
         }
         return res;
@@ -82,7 +91,7 @@
           this._copyFromOrigin();
           if (this.onDone) return this.onDone(null, isCancel);
         } else {
-          remove = this.getRemoved();
+          remove = this.getRemovedRefs();
           if (remove == null) remove = {};
           data = {
             item: this.item,

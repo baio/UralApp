@@ -18,7 +18,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
           obj[prop] = ODataProvider._parse item[prop]
       obj
 
-    @_isDelete: (item) -> (item.__action  and item.__action == "delete") or frOpts.filterOpts.isNullRef item
+    @_isDelete: (item) -> item and item.__action == "delete" #or frOpts.filterOpts.isNullRef item
 
     @_formatRequest: (name, item, metadata, parentName, parentId, parentContentId, totalCount) ->
       #only root item could be deleted
@@ -26,32 +26,30 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       #nested item - either new link (id!=-1) or new item + new link (id==-1)
       res = []
       expnads = []
-
       totalCount ?= 1
       cid = totalCount
       isDelete = ODataProvider._isDelete item
 
       if !isDelete
-
         flattered = {}
-
         for own prop of item
           val = item[prop]
-          #typeName = prop.replace /^(.*)s$/, "$1"
-
           if Array.isArray val
             for i in val
               nested = ODataProvider._formatRequest prop, i, metadata, name, item.id, cid, totalCount + 1
               totalCount += nested.length
               res = res.concat nested
             val = null
-          else if typeof val == "object"
-            nested = ODataProvider._formatRequest prop, val, metadata, name, item.id, cid, totalCount + 1
-            totalCount += nested.length
-            res = res.concat nested
+          else if val != null and typeof val == "object"
+            if val.id != __g.nullRefVal()
+              nested = ODataProvider._formatRequest prop, val, metadata, name, item.id, cid, totalCount + 1
+              totalCount += nested.length
+              res = res.concat nested
             val = null
-
           if val != null then flattered[prop] = val
+
+      typeName = name.replace /^(.*)s$/, "$1"
+      isArrayProp = typeName != name
 
       if !parentName
         #root item
@@ -62,17 +60,13 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
             when -1 then method: "POST", uri: "#{name}s"
             else method: "PUT", uri: "#{name}s(#{item.id})"
       else
-        typeName = name.replace /^(.*)s$/, "$1"
         #nested item
         if isDelete
-          ref = if frOpts.filterOpts.isNullRef item then name else "#{typeName}s(#{item.id})"
+          ref = if !isArrayProp then name else "#{typeName}s(#{item.id})"
           data = method: "DELETE", uri: "#{parentName}s(#{parentId})/$links/#{ref}"
         else
-          #data = method: "POST", uri: if parentId == -1 then "$#{parentContentId}/#{name}s" else "#{parentName}s(#{parentId})/#{name}s"
-          #data = method: "PUT", uri: if parentId == -1 then "$#{parentContentId}/#{name}" else "#{parentName}s(#{parentId})/#{name}"
           ref = if parentId == -1 then "$#{parentContentId}" else "#{parentName}s(#{parentId})"
           if item.id != -1
-            isArrayProp = typeName != name
             data = method: (if isArrayProp then "POST" else "PUT"), uri: "#{ref}/$links/#{name}"
             flattered = uri : "#{typeName}s(#{item.id})"
           else
@@ -84,7 +78,6 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         requestUri: data.uri
         method: data.method
         data: flattered
-
       res.reverse()
 
     ###

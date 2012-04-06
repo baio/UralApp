@@ -92,6 +92,9 @@ define ["Ural/Modules/ODataProvider"
           res[prop].push id : id, __action : "delete" for id in val
         else if typeof val == "object"
           ControllerBase._prepareDataForSave item[prop], val
+        else if val
+          res[prop].id = val
+          res[prop].__action = "delete"
       res
 
     onSave: (item, remove, onDone) ->

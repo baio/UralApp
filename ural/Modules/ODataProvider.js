@@ -34,7 +34,7 @@
       };
 
       ODataProvider._isDelete = function(item) {
-        return (item.__action && item.__action === "delete") || frOpts.filterOpts.isNullRef(item);
+        return item && item.__action === "delete";
       };
 
       ODataProvider._formatRequest = function(name, item, metadata, parentName, parentId, parentContentId, totalCount) {
@@ -57,15 +57,19 @@
                 res = res.concat(nested);
               }
               val = null;
-            } else if (typeof val === "object") {
-              nested = ODataProvider._formatRequest(prop, val, metadata, name, item.id, cid, totalCount + 1);
-              totalCount += nested.length;
-              res = res.concat(nested);
+            } else if (val !== null && typeof val === "object") {
+              if (val.id !== __g.nullRefVal()) {
+                nested = ODataProvider._formatRequest(prop, val, metadata, name, item.id, cid, totalCount + 1);
+                totalCount += nested.length;
+                res = res.concat(nested);
+              }
               val = null;
             }
             if (val !== null) flattered[prop] = val;
           }
         }
+        typeName = name.replace(/^(.*)s$/, "$1");
+        isArrayProp = typeName !== name;
         if (!parentName) {
           if (isDelete) {
             data = {
@@ -89,9 +93,8 @@
             })();
           }
         } else {
-          typeName = name.replace(/^(.*)s$/, "$1");
           if (isDelete) {
-            ref = frOpts.filterOpts.isNullRef(item) ? name : "" + typeName + "s(" + item.id + ")";
+            ref = !isArrayProp ? name : "" + typeName + "s(" + item.id + ")";
             data = {
               method: "DELETE",
               uri: "" + parentName + "s(" + parentId + ")/$links/" + ref
@@ -99,7 +102,6 @@
           } else {
             ref = parentId === -1 ? "$" + parentContentId : "" + parentName + "s(" + parentId + ")";
             if (item.id !== -1) {
-              isArrayProp = typeName !== name;
               data = {
                 method: (isArrayProp ? "POST" : "PUT"),
                 uri: "" + ref + "/$links/" + name
