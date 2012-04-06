@@ -5,6 +5,7 @@ define ["Ural/Controllers/controllerBase"
 ],
 (controllerBase, indexVM, productModel, indexToolbox) ->
   class ProductController extends controllerBase.ControllerBase
+
     constructor: (opts) ->
       super "Product", opts
 
@@ -23,5 +24,11 @@ define ["Ural/Controllers/controllerBase"
       vm = super model, modelModule
       vm.zones.toolbox = indexToolbox.indexToolbox
       vm
+
+    onShowForm: ($form) ->
+      $form.modal 'show'
+
+    onHideForm: ($form) ->
+      $form.modal 'hide'
 
   ProductController : ProductController

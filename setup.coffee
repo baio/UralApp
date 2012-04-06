@@ -16,6 +16,9 @@ define ["Ural/Modules/DataFilterOpts"
     frOpt.orderBy.def "id"
     frOpt.filterOpts.nullRefVal -100500
 
+    window.__g =
+      nullRefVal: ->  frOpt.filterOpts.nullRefVal()
+
     #widgets
     #tags
     tagsBindingOpts =

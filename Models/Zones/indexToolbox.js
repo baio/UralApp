@@ -9,12 +9,14 @@
       }
 
       IndexToolbox.prototype.createProduct = function(data, event) {
-        var ivm, vm;
+        var ivm, vm,
+          _this = this;
         event.preventDefault();
         vm = new product.ModelConstructor();
         ivm = new itemVM.ItemVM(vm, product.mappingRules);
         ivm.edit(function() {
-          return this.newProduct(null);
+          pubSub.pub("model", "end_create", ivm.item);
+          return _this.newProduct(ivm);
         });
         this.newProduct(ivm);
         return pubSub.pub("model", "create", vm);

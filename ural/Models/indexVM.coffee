@@ -17,6 +17,7 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
         @active().cancel()
       @active viewModel
       viewModel.edit =>
+        pubSub.pub "model", "end_edit", viewModel.item
         viewModel.endEdit()
         @active null
       pubSub.pub "model", "edit", viewModel.item

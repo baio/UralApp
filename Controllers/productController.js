@@ -43,6 +43,14 @@
         return vm;
       };
 
+      ProductController.prototype.onShowForm = function($form) {
+        return $form.modal('show');
+      };
+
+      ProductController.prototype.onHideForm = function($form) {
+        return $form.modal('hide');
+      };
+
       return ProductController;
 
     })(controllerBase.ControllerBase);

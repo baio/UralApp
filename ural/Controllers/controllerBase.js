@@ -13,10 +13,16 @@
         this._dataProviders = _u.toHashTable(this.onCreateDataProviders());
         this.defaultDataProviderName = _u.firstKey(this._dataProviders);
         pubSub.subOnce("model", "edit", this.modelName, function(model, name) {
-          if (_this._isOwnModel(model)) return _this.onShowForm(name);
+          if (_this._isOwnModel(model)) return _this._showForm(name);
         });
         pubSub.subOnce("model", "create", this.modelName, function(model, name) {
-          if (_this._isOwnModel(model)) return _this.onShowForm(name);
+          if (_this._isOwnModel(model)) return _this._showForm(name);
+        });
+        pubSub.subOnce("model", "end_edit", this.modelName, function(model, name) {
+          if (_this._isOwnModel(model)) return _this._hideForm("edit");
+        });
+        pubSub.subOnce("model", "end_create", this.modelName, function(model, name) {
+          if (_this._isOwnModel(model)) return _this._hideForm("create");
         });
         pubSub.subOnce("model", "detail", this.modelName, function(model, name) {
           if (_this._isOwnModel(model)) return _this.onShowDetails(model);
@@ -70,8 +76,20 @@
         return ko.mapping.toJS(item);
       };
 
-      ControllerBase.prototype.onShowForm = function(type) {
-        return $("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']").show();
+      ControllerBase.prototype._showForm = function(type) {
+        return this.onShowForm($("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']"));
+      };
+
+      ControllerBase.prototype.onShowForm = function($form) {
+        return $form.show();
+      };
+
+      ControllerBase.prototype._hideForm = function(type) {
+        return this.onHideForm($("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']"));
+      };
+
+      ControllerBase.prototype.onHideForm = function($form) {
+        return $form.hide();
       };
 
       ControllerBase.prototype.onShowDetails = function(model) {

@@ -13,11 +13,19 @@ define ["Ural/Modules/ODataProvider"
 
       pubSub.subOnce "model", "edit", @modelName, (model, name) =>
         if @_isOwnModel model
-          @onShowForm name
+          @_showForm name
 
       pubSub.subOnce "model", "create", @modelName, (model, name) =>
         if @_isOwnModel model
-          @onShowForm name
+          @_showForm name
+
+      pubSub.subOnce "model", "end_edit", @modelName, (model, name) =>
+        if @_isOwnModel model
+          @_hideForm "edit"
+
+      pubSub.subOnce "model", "end_create", @modelName, (model, name) =>
+        if @_isOwnModel model
+          @_hideForm "create"
 
       pubSub.subOnce "model", "detail", @modelName, (model, name) =>
         if @_isOwnModel model
@@ -57,8 +65,17 @@ define ["Ural/Modules/ODataProvider"
     _mapToData: (item, modelModule) ->
       ko.mapping.toJS item
 
-    onShowForm: (type) ->
-      $("[data-form-model-type='#{@modelName}'][data-form-type='#{type}']").show()
+    _showForm: (type) ->
+      @onShowForm $("[data-form-model-type='#{@modelName}'][data-form-type='#{type}']")
+
+    onShowForm: ($form) ->
+      $form.show()
+
+    _hideForm: (type) ->
+      @onHideForm $("[data-form-model-type='#{@modelName}'][data-form-type='#{type}']")
+
+    onHideForm: ($form) ->
+      $form.hide()
 
     onShowDetails: (model) ->
       window.location.hash = "#{@modelName}/item/#{model.id()}"

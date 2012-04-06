@@ -27,6 +27,7 @@
         if (this.active()) this.active().cancel();
         this.active(viewModel);
         viewModel.edit(function() {
+          pubSub.pub("model", "end_edit", viewModel.item);
           viewModel.endEdit();
           return _this.active(null);
         });

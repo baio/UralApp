@@ -10,6 +10,11 @@
     frOpt.expandOpts.add("Producer", "$item", "Products/Tags");
     frOpt.orderBy.def("id");
     frOpt.filterOpts.nullRefVal(-100500);
+    window.__g = {
+      nullRefVal: function() {
+        return frOpt.filterOpts.nullRefVal();
+      }
+    };
     tagsBindingOpts = {
       tagSource: function(req, resp) {
         return odataProvider.dataProvider.load("Tag", {

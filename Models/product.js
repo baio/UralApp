@@ -1,17 +1,18 @@
 (function() {
 
   define(["Models/tag"], function(tag) {
-    var Product, mappingRules;
+    var Product, def, mappingRules;
     Product = (function() {
 
       function Product() {
         this.id = ko.observable();
         this.name = ko.observable();
+        this.Tags = ko.observableArray();
+        this.Producer = ko.observable();
         this.comp = ko.computed((function() {
           return this.id() + " " + this.name() + "foo";
         }), this);
-        this.Tags = ko.observableArray();
-        this.Producer = ko.observable();
+        ko.mapping.fromJS(def(), mappingRules(), this);
       }
 
       return Product;
@@ -33,6 +34,17 @@
           update: function(opts) {
             return ko.mapping.fromJS(opts.data, tag.mappingRules, new tag.ModelConstructor());
           }
+        }
+      };
+    };
+    def = function() {
+      return {
+        id: -1,
+        name: null,
+        Tags: [],
+        Producer: {
+          id: __g.nullRefVal(),
+          name: null
         }
       };
     };
