@@ -1,0 +1,17 @@
+<table id="model_container" class="table table-striped" data-bind="template: {name:'producerTemplate', foreach: list}">
+</table>
+<div data-partial-view="Shared/_ProducerForm" data-bind="with: active"
+        data-partial-view-bag="{caption: 'Edit producer', type : 'edit'}">
+</div>
+<script type="text/x-jquery-tmpl" id="producerTemplate">
+    <tr data-bind="click: $root.edit">
+            <td data-bind="click: $root.detail" ><i class="icon-pencil" data-event-handler="detail"></i></td>
+            <td data-bind="click: $root.remove" ><i class="icon-remove" data-event-handler="remove"></i></td>
+        <!-- ko with: item -->
+            <td data-bind="text: id"></td>
+            <td data-bind="text: name"></td>
+        <!-- /ko -->
+    </tr>
+</script>
+
+

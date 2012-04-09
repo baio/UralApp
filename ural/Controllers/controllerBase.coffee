@@ -10,6 +10,8 @@ define ["Ural/Modules/ODataProvider"
       @modelName ?= @_getControllerName()
       @_dataProviders = _u.toHashTable @onCreateDataProviders()
       @defaultDataProviderName = _u.firstKey @_dataProviders
+      @defaultIndexLayout = "Shared/_layout"
+      @defaultItemLayout = "Shared/_layout"
 
       pubSub.subOnce "model", "edit", @modelName, (model, name) =>
         if @_isOwnModel model
@@ -134,7 +136,7 @@ define ["Ural/Modules/ODataProvider"
         ,(data, modelModule, ck) =>
           model = @_mapToItems data, modelModule
           viewModel = @onCreateIndexViewModel model, modelModule
-          @view viewModel, "index", null, (err) -> ck err, viewModel
+          @view viewModel, "index", @defaultIndexLayout, (err) -> ck err, viewModel
       ], onDone
 
     onCreateIndexViewModel: (model, modelModule) ->
@@ -149,7 +151,7 @@ define ["Ural/Modules/ODataProvider"
         ,(data, modelModule, ck) =>
           model = @_mapToItems data, modelModule
           viewModel = @onCreateItemViewModel model[0], modelModule.mappingRules
-          @view viewModel, "item", null, (err) ->
+          @view viewModel, "item", @defaultItemLayout, (err) ->
             viewModel.edit()
             ck err, viewModel
       ], onDone
@@ -159,7 +161,7 @@ define ["Ural/Modules/ODataProvider"
 
     view: (viewModel, viewPath, layoutViewPath, onDone) ->
       crName = @_getControllerName()
-      lvp = ControllerBase._prepareViewPath crName, layoutViewPath, "Shared/_layout"
+      lvp = ControllerBase._prepareViewPath crName, layoutViewPath, @defaultItemLayout
       bvp = ControllerBase._prepareViewPath crName, viewPath
 
       async.waterfall [

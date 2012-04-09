@@ -12,6 +12,8 @@
         if (this.modelName == null) this.modelName = this._getControllerName();
         this._dataProviders = _u.toHashTable(this.onCreateDataProviders());
         this.defaultDataProviderName = _u.firstKey(this._dataProviders);
+        this.defaultIndexLayout = "Shared/_layout";
+        this.defaultItemLayout = "Shared/_layout";
         pubSub.subOnce("model", "edit", this.modelName, function(model, name) {
           if (_this._isOwnModel(model)) return _this._showForm(name);
         });
@@ -177,7 +179,7 @@
             var model, viewModel;
             model = _this._mapToItems(data, modelModule);
             viewModel = _this.onCreateIndexViewModel(model, modelModule);
-            return _this.view(viewModel, "index", null, function(err) {
+            return _this.view(viewModel, "index", _this.defaultIndexLayout, function(err) {
               return ck(err, viewModel);
             });
           }
@@ -206,7 +208,7 @@
             var model, viewModel;
             model = _this._mapToItems(data, modelModule);
             viewModel = _this.onCreateItemViewModel(model[0], modelModule.mappingRules);
-            return _this.view(viewModel, "item", null, function(err) {
+            return _this.view(viewModel, "item", _this.defaultItemLayout, function(err) {
               viewModel.edit();
               return ck(err, viewModel);
             });
@@ -221,7 +223,7 @@
       ControllerBase.prototype.view = function(viewModel, viewPath, layoutViewPath, onDone) {
         var bvp, crName, lvp;
         crName = this._getControllerName();
-        lvp = ControllerBase._prepareViewPath(crName, layoutViewPath, "Shared/_layout");
+        lvp = ControllerBase._prepareViewPath(crName, layoutViewPath, this.defaultItemLayout);
         bvp = ControllerBase._prepareViewPath(crName, viewPath);
         return async.waterfall([
           function(ck) {
