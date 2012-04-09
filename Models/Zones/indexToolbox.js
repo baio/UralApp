@@ -13,7 +13,7 @@
           _this = this;
         event.preventDefault();
         vm = new product.ModelConstructor();
-        ivm = new itemVM.ItemVM(vm, product.mappingRules);
+        ivm = new itemVM.ItemVM("Product", vm, product.mappingRules);
         ivm.edit(function() {
           pubSub.pub("model", "end_create", ivm.item);
           return _this.newProduct(ivm);

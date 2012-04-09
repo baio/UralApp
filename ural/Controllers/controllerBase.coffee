@@ -35,6 +35,11 @@ define ["Ural/Modules/ODataProvider"
         if @_isOwnModel data.item
           @onSave data.item, data.remove, callback
 
+      pubSub.subOnce "model", "remove", @modelName, (data, name, callback) =>
+        if @_isOwnModel data.item
+          @onDelete data.item, callback
+
+
     onCreateDataProviders: ->
       [
         { name : "odata", provider : odataProvider.dataProvider }
@@ -59,6 +64,7 @@ define ["Ural/Modules/ODataProvider"
 
     #update item from raw (json data)
     _updateItem: (data, item, modelModule)->
+      item.id data.id
       ko.mapping.fromJS data, modelModule.mappingRules, item
 
     #convert app model to raw data (json)
@@ -106,7 +112,12 @@ define ["Ural/Modules/ODataProvider"
         ,(data, ck) =>
           @_getModelModule (err, modelModule) -> ck err, data, modelModule
       ],(err, data, modelModule) =>
-          onDone err, if !err then @_updateItem data, modelModule, item
+          if !err then @_updateItem data, item, modelModule
+          onDone err, item
+
+    onDelete: (item, onDone) ->
+      if Array.isArray item then throw "delete of multiple items is not supported!"
+      @getDataProvider().delete @modelName, item.id(), onDone
 
     getDataProvider: (name) ->
       name ?= @defaultDataProviderName
@@ -127,7 +138,7 @@ define ["Ural/Modules/ODataProvider"
       ], onDone
 
     onCreateIndexViewModel: (model, modelModule) ->
-      new indexVM.IndexVM model, modelModule.mappingRules
+      new indexVM.IndexVM @modelName, model, modelModule.mappingRules
 
     item: (id, onDone)->
       async.waterfall [
@@ -137,7 +148,7 @@ define ["Ural/Modules/ODataProvider"
           @_getModelModule (err, modelModule) -> ck err, data, modelModule
         ,(data, modelModule, ck) =>
           model = @_mapToItems data, modelModule
-          viewModel = new itemVM.ItemVM model[0], modelModule.mappingRules
+          viewModel = new itemVM.ItemVM @modelName, model[0], modelModule.mappingRules
           @view viewModel, "item", null, (err) ->
             viewModel.edit()
             ck err, viewModel

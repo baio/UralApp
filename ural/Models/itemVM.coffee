@@ -2,7 +2,7 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
 
   class ItemVM
 
-    constructor: (@item, @mappingRules) ->
+    constructor: (@typeName, @item, @mappingRules) ->
       @originItem = null
 
     _createOrigin: ->
@@ -66,9 +66,11 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
         remove = @getRemovedRefs()
         remove ?= {}
         data = item : @item, remove : remove
+        isAdded = data.item.id() == -1
         pubSub.pub "model", "save", data, (err, item) =>
           if !err
             @_createOrigin()
+            if isAdded then pubSub.pub "model", "list_changed", item : item, changeType : "added", isExternal : false
           if @onDone then @onDone err, isCancel
 
   ItemVM : ItemVM

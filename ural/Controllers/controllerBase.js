@@ -32,6 +32,11 @@
             return _this.onSave(data.item, data.remove, callback);
           }
         });
+        pubSub.subOnce("model", "remove", this.modelName, function(data, name, callback) {
+          if (_this._isOwnModel(data.item)) {
+            return _this.onDelete(data.item, callback);
+          }
+        });
       }
 
       ControllerBase.prototype.onCreateDataProviders = function() {
@@ -69,6 +74,7 @@
       };
 
       ControllerBase.prototype._updateItem = function(data, item, modelModule) {
+        item.id(data.id);
         return ko.mapping.fromJS(data, modelModule.mappingRules, item);
       };
 
@@ -139,8 +145,16 @@
             });
           }
         ], function(err, data, modelModule) {
-          return onDone(err, !err ? _this._updateItem(data, modelModule, item) : void 0);
+          if (!err) _this._updateItem(data, item, modelModule);
+          return onDone(err, item);
         });
+      };
+
+      ControllerBase.prototype.onDelete = function(item, onDone) {
+        if (Array.isArray(item)) {
+          throw "delete of multiple items is not supported!";
+        }
+        return this.getDataProvider()["delete"](this.modelName, item.id(), onDone);
       };
 
       ControllerBase.prototype.getDataProvider = function(name) {
@@ -171,7 +185,7 @@
       };
 
       ControllerBase.prototype.onCreateIndexViewModel = function(model, modelModule) {
-        return new indexVM.IndexVM(model, modelModule.mappingRules);
+        return new indexVM.IndexVM(this.modelName, model, modelModule.mappingRules);
       };
 
       ControllerBase.prototype.item = function(id, onDone) {
@@ -191,7 +205,7 @@
           }, function(data, modelModule, ck) {
             var model, viewModel;
             model = _this._mapToItems(data, modelModule);
-            viewModel = new itemVM.ItemVM(model[0], modelModule.mappingRules);
+            viewModel = new itemVM.ItemVM(_this.modelName, model[0], modelModule.mappingRules);
             return _this.view(viewModel, "item", null, function(err) {
               viewModel.edit();
               return ck(err, viewModel);

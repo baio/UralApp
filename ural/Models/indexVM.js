@@ -5,14 +5,33 @@
     var IndexVM;
     IndexVM = (function() {
 
-      function IndexVM(model, mappingRules) {
+      function IndexVM(typeName, model, mappingRules) {
+        var _this = this;
+        this.typeName = typeName;
+        this.remove = __bind(this.remove, this);
         this.detail = __bind(this.detail, this);
-        this.edit = __bind(this.edit, this);        this.list = model.map(function(m) {
-          return new itemVM.ItemVM(m, mappingRules);
-        });
+        this.edit = __bind(this.edit, this);
+        this.list = ko.observableArray(model.map(function(m) {
+          return new itemVM.ItemVM(this.tyepName, m, mappingRules);
+        }));
         this.active = ko.observable();
         this.zones = {};
+        pubSub.subOnce("model", "list_changed", this.modelName, function(data) {
+          console.log("list_changed");
+          console.log(model);
+          if (data.changeType === "added") {
+            return _this.list.push(new itemVM.ItemVM(_this.tyepName, data.item, mappingRules));
+          }
+        });
       }
+
+      /*
+          console.log model
+          console.log name
+          if @typeName == name
+            item = ko.utils.arrayFirst @list(), (item) -> item.id() == model.id()
+            if !item then @list.push new itemVM.ItemVM @tyepName, m, mappingRules
+      */
 
       IndexVM.prototype._checkEventHandler = function(event, name) {
         var eventHandler;
@@ -40,6 +59,16 @@
         if (this.active()) this.active().cancel();
         this.active(viewModel);
         return pubSub.pub("model", "detail", viewModel.item);
+      };
+
+      IndexVM.prototype.remove = function(viewModel, event) {
+        var _this = this;
+        if (!this._checkEventHandler(event, "remove")) return;
+        event.preventDefault();
+        if (this.active()) this.active().cancel();
+        return pubSub.pub("model", "remove", viewModel, function(err) {
+          if (!err) return _this.list.remove(viewModel);
+        });
       };
 
       return IndexVM;

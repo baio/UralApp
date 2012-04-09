@@ -130,86 +130,24 @@
       };
 
       /*
-          @x_formatRequest: ->
-            #product exists, tags exist
-            [
-              {
-                requestUri: "Products(0)/Tags"
-                method: "POST"
-                data : { id : 1, name : "Sport" }
-              }
-            ]
-            #product not extists, tags exist
-            [
-              {
-              headers: {"Content-ID": 1}
-              requestUri: "Products"
-              method: "POST"
-              data : { id : -1, name : "chicken" }
-              },
-              {
-              requestUri: "$1/Tags"
-              method: "POST"
-              data : { id : 1, name : "Sport" }
-              }
-            ]
-            #product extists, tags not exist
-            [
-              {
-              requestUri: "Products(0)/Tags"
-              method: "POST"
-              data : { id : -1, name : "chicken-tag" }
-              }
-            ]
-            #product not extists, tags not exist
-            [
-              {
-              headers: {"Content-ID": 1}
-              requestUri: "Products"
-              method: "POST"
-              data : { id : -1, name : "chicken" }
-              },
-              {
-              requestUri: "$1/Tags"
-              method: "POST"
-              data : { id : -1, name : "chicken-tag" }
-              }
-            ]
-            #delete link
-            [
-              {
-              requestUri: "/Products(91)/$links/Tags(17)"
-              method: "DELETE"
-              }
-            ]
+          @_getExpandsFromItem: (name, item) ->
+            res = []
+            nested = []
+            for own prop of item
+              val = item[prop]
+              if Array.isArray val
+                if val.length > 0
+                  nested = ODataProvider._getExpandsFromItem prop, val[0]
+              else if typeof val == "object"
+                nested = ODataProvider._getExpandsFromItem prop, val
+            if nested.length
+              for n in nested
+                name = name + "/" if name
+                res.push name + n
+            else if name
+              res.push name
+            res
       */
-
-      ODataProvider._getExpandsFromItem = function(name, item) {
-        var n, nested, prop, res, val, _i, _len;
-        res = [];
-        nested = [];
-        for (prop in item) {
-          if (!__hasProp.call(item, prop)) continue;
-          val = item[prop];
-          if (Array.isArray(val)) {
-            if (val.length > 0) {
-              nested = ODataProvider._getExpandsFromItem(prop, val[0]);
-            }
-          } else if (typeof val === "object") {
-            nested = ODataProvider._getExpandsFromItem(prop, val);
-          }
-        }
-        if (nested.length) {
-          for (_i = 0, _len = nested.length; _i < _len; _i++) {
-            n = nested[_i];
-            if (name) name = name + "/";
-            res.push(name + n);
-          }
-        } else if (name) {
-          res.push(name);
-        }
-        return res;
-      };
 
       ODataProvider.prototype.load = function(srcName, filter, callback) {
         var stt;
@@ -290,35 +228,42 @@
         };
         return OData.request(request, function(data) {
           var expand, id, resp, rootResp;
-          resp = ODataProvider._parseSaveResponseData(data);
-          expand = ODataProvider._getExpandsFromItem(name, item).toString();
-          rootResp = resp.filter(function(x) {
-            return x.contentId === "1";
-          })[0];
-          id = rootResp && rootResp.data ? rootResp.data.id : item.id;
-          return _this.load(srcName, {
-            id: {
-              $eq: id
-            },
-            $expand: expand
-          }, function(err, data) {
-            if (!err) data = data[0];
-            return callback(err, data);
-          });
+          if (item.__action !== "delete") {
+            resp = ODataProvider._parseSaveResponseData(data);
+            expand = _this._getExpand(srcName, "$item");
+            rootResp = resp.filter(function(x) {
+              return x.contentId === "1";
+            })[0];
+            id = rootResp && rootResp.data ? rootResp.data.id : item.id;
+            return _this.load(srcName, {
+              id: {
+                $eq: id
+              },
+              $expand: expand
+            }, function(err, data) {
+              if (!err) data = data[0];
+              return callback(err, data);
+            });
+          } else {
+            return callback(null, data);
+          }
         }, function(err) {
           return callback(err);
         }, OData.batchHandler);
       };
 
       ODataProvider.prototype["delete"] = function(srcName, id, callback) {
-        var _this = this;
-        return OData.request({
-          headers: {
-            "Content-Type": "application/json"
-          },
-          requestUri: "" + (ODataProvider.serviceHost()) + srcName + "s(" + id + ")",
-          method: "DELETE"
-        }, function(data, response) {});
+        return this.save(srcName, {
+          id: id,
+          __action: "delete"
+        }, callback);
+        /*
+              OData.request
+                headers: {"Content-Type": "application/json"}
+                requestUri: "#{ODataProvider.serviceHost()}#{srcName}s(#{id})",
+                method: "DELETE",(data, response) =>
+                  callback null
+        */
       };
 
       return ODataProvider;

@@ -81,60 +81,6 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       res.reverse()
 
     ###
-    @x_formatRequest: ->
-      #product exists, tags exist
-      [
-        {
-          requestUri: "Products(0)/Tags"
-          method: "POST"
-          data : { id : 1, name : "Sport" }
-        }
-      ]
-      #product not extists, tags exist
-      [
-        {
-        headers: {"Content-ID": 1}
-        requestUri: "Products"
-        method: "POST"
-        data : { id : -1, name : "chicken" }
-        },
-        {
-        requestUri: "$1/Tags"
-        method: "POST"
-        data : { id : 1, name : "Sport" }
-        }
-      ]
-      #product extists, tags not exist
-      [
-        {
-        requestUri: "Products(0)/Tags"
-        method: "POST"
-        data : { id : -1, name : "chicken-tag" }
-        }
-      ]
-      #product not extists, tags not exist
-      [
-        {
-        headers: {"Content-ID": 1}
-        requestUri: "Products"
-        method: "POST"
-        data : { id : -1, name : "chicken" }
-        },
-        {
-        requestUri: "$1/Tags"
-        method: "POST"
-        data : { id : -1, name : "chicken-tag" }
-        }
-      ]
-      #delete link
-      [
-        {
-        requestUri: "/Products(91)/$links/Tags(17)"
-        method: "DELETE"
-        }
-      ]
-    ###
-
     @_getExpandsFromItem: (name, item) ->
       res = []
       nested = []
@@ -152,6 +98,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       else if name
         res.push name
       res
+    ###
 
     load: (srcName, filter, callback) ->
       stt = @_getStatement srcName, filter
@@ -208,22 +155,29 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
 
       OData.request request
         , (data) =>
-          resp = ODataProvider._parseSaveResponseData data
-          expand = ODataProvider._getExpandsFromItem(name, item).toString()
-          rootResp = resp.filter((x) -> x.contentId == "1")[0]
-          id = if rootResp and rootResp.data then rootResp.data.id else item.id
-          @load srcName, id: {$eq: id}, $expand: expand, (err, data) ->
-            if !err then data = data[0]
-            callback err, data
+          if item.__action != "delete"
+            resp = ODataProvider._parseSaveResponseData data
+            expand = @_getExpand srcName, "$item" #ODataProvider._getExpandsFromItem(srcName, item).toString()
+            rootResp = resp.filter((x) -> x.contentId == "1")[0]
+            id = if rootResp and rootResp.data then rootResp.data.id else item.id
+            @load srcName, id: {$eq: id}, $expand: expand, (err, data) ->
+              if !err then data = data[0]
+              callback err, data
+          else
+            callback null, data
         , (err) ->
           callback err
         , OData.batchHandler
 
     delete: (srcName, id, callback) ->
+      @save srcName, {id : id, __action : "delete"}, callback
+      ###
       OData.request
         headers: {"Content-Type": "application/json"}
         requestUri: "#{ODataProvider.serviceHost()}#{srcName}s(#{id})",
         method: "DELETE",(data, response) =>
+          callback null
+      ###
 
   dataProvider: new ODataProvider()
 

@@ -5,7 +5,8 @@
     var ItemVM;
     ItemVM = (function() {
 
-      function ItemVM(item, mappingRules) {
+      function ItemVM(typeName, item, mappingRules) {
+        this.typeName = typeName;
         this.item = item;
         this.mappingRules = mappingRules;
         this.originItem = null;
@@ -84,7 +85,7 @@
       };
 
       ItemVM.prototype._done = function(isCancel) {
-        var data, remove,
+        var data, isAdded, remove,
           _this = this;
         if (!this.originItem) throw "item not in edit state";
         if (isCancel) {
@@ -97,8 +98,18 @@
             item: this.item,
             remove: remove
           };
+          isAdded = data.item.id() === -1;
           return pubSub.pub("model", "save", data, function(err, item) {
-            if (!err) _this._createOrigin();
+            if (!err) {
+              _this._createOrigin();
+              if (isAdded) {
+                pubSub.pub("model", "list_changed", {
+                  item: item,
+                  changeType: "added",
+                  isExternal: false
+                });
+              }
+            }
             if (_this.onDone) return _this.onDone(err, isCancel);
           });
         }
