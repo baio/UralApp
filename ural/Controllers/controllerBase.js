@@ -14,32 +14,52 @@
         this.defaultDataProviderName = _u.firstKey(this._dataProviders);
         this.defaultIndexLayout = "Shared/_layout";
         this.defaultItemLayout = "Shared/_layout";
-        pubSub.subOnce("model", "edit", this.modelName, function(model, name) {
-          if (_this._isOwnModel(model)) return _this._showForm(name);
+        pubSub.subOnce("model", "edit", "controller", function(model, name) {
+          return _this._showForm(name, _u.getClassName(model));
         });
-        pubSub.subOnce("model", "create", this.modelName, function(model, name) {
-          if (_this._isOwnModel(model)) return _this._showForm(name);
+        pubSub.subOnce("model", "create", "controller", function(model, name) {
+          return _this._showForm(name, _u.getClassName(model));
         });
-        pubSub.subOnce("model", "end_edit", this.modelName, function(model, name) {
-          if (_this._isOwnModel(model)) return _this._hideForm("edit");
+        pubSub.subOnce("model", "end_edit", "controller", function(model, name) {
+          return _this._hideForm("edit", _u.getClassName(model));
         });
-        pubSub.subOnce("model", "end_create", this.modelName, function(model, name) {
-          if (_this._isOwnModel(model)) return _this._hideForm("create");
+        pubSub.subOnce("model", "end_create", "controller", function(model, name) {
+          return _this._hideForm("create", _u.getClassName(model));
         });
-        pubSub.subOnce("model", "detail", this.modelName, function(model, name) {
-          if (_this._isOwnModel(model)) return _this.onShowDetails(model);
+        pubSub.subOnce("model", "detail", "controller", function(model, name) {
+          return _this._showDetails(model, _u.getClassName(model));
         });
-        pubSub.subOnce("model", "save", this.modelName, function(data, name, callback) {
-          if (_this._isOwnModel(data.item)) {
-            return _this.onSave(data.item, data.remove, callback);
-          }
+        pubSub.subOnce("model", "save", "controller", function(data, name, callback) {
+          return _this.onSave(data.item, data.remove, callback);
         });
-        pubSub.subOnce("model", "remove", this.modelName, function(data, name, callback) {
-          if (_this._isOwnModel(data.item)) {
-            return _this.onDelete(data.item, callback);
-          }
+        pubSub.subOnce("model", "remove", "controller", function(data, name, callback) {
+          return _this.onDelete(data.item, callback);
         });
       }
+
+      ControllerBase.prototype._showForm = function(type, typeName) {
+        return this.onShowForm($("[data-form-model-type='" + typeName + "'][data-form-type='" + type + "']"));
+      };
+
+      ControllerBase.prototype.onShowForm = function($form) {
+        return $form.show();
+      };
+
+      ControllerBase.prototype._hideForm = function(type, typeName) {
+        return this.onHideForm($("[data-form-model-type='" + typeName + "'][data-form-type='" + type + "']"));
+      };
+
+      ControllerBase.prototype.onHideForm = function($form) {
+        return $form.hide();
+      };
+
+      ControllerBase.prototype._showDetails = function(model, typeName) {
+        return this.onShowDetails(model.id(), typeName);
+      };
+
+      ControllerBase.prototype.onShowDetails = function(id, typeName) {
+        return window.location.hash = "" + typeName + "/item/" + id;
+      };
 
       ControllerBase.prototype.onCreateDataProviders = function() {
         return [
@@ -53,25 +73,15 @@
         ];
       };
 
-      ControllerBase.prototype._getModelModule = function(callback) {
-        var customModelPath, useCustomModel;
-        if (this.opts && this.opts.model) {
-          useCustomModel = this.opts.model.useCustomModel;
-          customModelPath = this.opts.model.customModelPath;
-        }
-        if (customModelPath == null) customModelPath = "Models/" + this.modelName;
-        return require([customModelPath], function(module) {
-          return callback(null, module);
-        });
-      };
-
-      ControllerBase.prototype._isOwnModel = function(model) {
-        return _u.getClassName(model) === this.modelName;
-      };
-
       ControllerBase.prototype._mapToItems = function(data, modelModule) {
         return data.map(function(d) {
           return ko.mapping.fromJS(d, modelModule.mappingRules, new modelModule.ModelConstructor());
+        });
+      };
+
+      ControllerBase.prototype._getModelModule = function(typeName, callback) {
+        return require(["Models/" + typeName], function(module) {
+          return callback(null, module);
         });
       };
 
@@ -82,26 +92,6 @@
 
       ControllerBase.prototype._mapToData = function(item, modelModule) {
         return ko.mapping.toJS(item);
-      };
-
-      ControllerBase.prototype._showForm = function(type) {
-        return this.onShowForm($("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']"));
-      };
-
-      ControllerBase.prototype.onShowForm = function($form) {
-        return $form.show();
-      };
-
-      ControllerBase.prototype._hideForm = function(type) {
-        return this.onHideForm($("[data-form-model-type='" + this.modelName + "'][data-form-type='" + type + "']"));
-      };
-
-      ControllerBase.prototype.onHideForm = function($form) {
-        return $form.hide();
-      };
-
-      ControllerBase.prototype.onShowDetails = function(model) {
-        return window.location.hash = "" + this.modelName + "/item/" + (model.id());
       };
 
       /*
@@ -134,15 +124,16 @@
       };
 
       ControllerBase.prototype.onSave = function(item, remove, onDone) {
-        var dataForSave,
+        var dataForSave, typeName,
           _this = this;
         if (Array.isArray(item)) throw "upade of multiple items is not supported!";
+        typeName = _u.getClassName(item);
         dataForSave = ControllerBase._prepareDataForSave(this._mapToData(item), remove);
         return async.waterfall([
           function(ck) {
-            return _this.getDataProvider().save(_this.modelName, dataForSave, ck);
+            return _this.getDataProvider().save(typeName, dataForSave, ck);
           }, function(data, ck) {
-            return _this._getModelModule(function(err, modelModule) {
+            return _this._getModelModule(typeName, function(err, modelModule) {
               return ck(err, data, modelModule);
             });
           }
@@ -153,10 +144,12 @@
       };
 
       ControllerBase.prototype.onDelete = function(item, onDone) {
+        var typeName;
         if (Array.isArray(item)) {
           throw "delete of multiple items is not supported!";
         }
-        return this.getDataProvider()["delete"](this.modelName, item.id(), onDone);
+        typeName = _u.getClassName(item);
+        return this.getDataProvider()["delete"](typeName, item.id(), onDone);
       };
 
       ControllerBase.prototype.getDataProvider = function(name) {
@@ -172,7 +165,7 @@
           function(ck) {
             return _this.getDataProvider().load(_this.modelName, filter, ck);
           }, function(data, ck) {
-            return _this._getModelModule(function(err, modelModule) {
+            return _this._getModelModule(_this.modelName, function(err, modelModule) {
               return ck(err, data, modelModule);
             });
           }, function(data, modelModule, ck) {
@@ -201,7 +194,7 @@
               $expand: "$item"
             }, ck);
           }, function(data, ck) {
-            return _this._getModelModule(function(err, modelModule) {
+            return _this._getModelModule(_this.modelName, function(err, modelModule) {
               return ck(err, data, modelModule);
             });
           }, function(data, modelModule, ck) {

@@ -3,10 +3,13 @@
     <li>
     <div class="btn-group">
     <button class="btn" data-bind="click: createProduct">Product</button>
-    <button class="btn">Producer</button>
+    <button class="btn" data-bind="click: createProducer">Producer</button>
     </div>
     </li>
 </ul>
 <div data-partial-view="Shared/_ProductForm" data-bind="with: newProduct"
      data-partial-view-bag="{caption: 'Create product', type : 'create'}">
+</div>
+<div data-partial-view="Shared/_ProducerForm" data-bind="with: newProducer"
+     data-partial-view-bag="{caption: 'Create producer', type : 'create'}">
 </div>

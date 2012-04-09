@@ -15,22 +15,12 @@
           return new itemVM.ItemVM(this.tyepName, m, mappingRules);
         }));
         this.active = ko.observable();
-        pubSub.subOnce("model", "list_changed", this.modelName, function(data) {
-          console.log("list_changed");
-          console.log(model);
-          if (data.changeType === "added") {
-            return _this.list.push(new itemVM.ItemVM(_this.tyepName, data.item, mappingRules));
+        pubSub.subOnce("model", "list_changed", this.typeName, function(data) {
+          if (data.changeType === "added" && _u.getClassName(data.item) === _this.typeName) {
+            return _this.list.push(new itemVM.ItemVM(_this.typeName, data.item, mappingRules));
           }
         });
       }
-
-      /*
-          console.log model
-          console.log name
-          if @typeName == name
-            item = ko.utils.arrayFirst @list(), (item) -> item.id() == model.id()
-            if !item then @list.push new itemVM.ItemVM @tyepName, m, mappingRules
-      */
 
       IndexVM.prototype._checkEventHandler = function(event, name) {
         var eventHandler;

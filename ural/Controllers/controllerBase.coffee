@@ -13,34 +13,44 @@ define ["Ural/Modules/ODataProvider"
       @defaultIndexLayout = "Shared/_layout"
       @defaultItemLayout = "Shared/_layout"
 
-      pubSub.subOnce "model", "edit", @modelName, (model, name) =>
-        if @_isOwnModel model
-          @_showForm name
+      pubSub.subOnce "model", "edit", "controller", (model, name) =>
+          @_showForm name, _u.getClassName model
 
-      pubSub.subOnce "model", "create", @modelName, (model, name) =>
-        if @_isOwnModel model
-          @_showForm name
+      pubSub.subOnce "model", "create", "controller", (model, name) =>
+          @_showForm name, _u.getClassName model
 
-      pubSub.subOnce "model", "end_edit", @modelName, (model, name) =>
-        if @_isOwnModel model
-          @_hideForm "edit"
+      pubSub.subOnce "model", "end_edit", "controller", (model, name) =>
+          @_hideForm "edit", _u.getClassName model
 
-      pubSub.subOnce "model", "end_create", @modelName, (model, name) =>
-        if @_isOwnModel model
-          @_hideForm "create"
+      pubSub.subOnce "model", "end_create", "controller", (model, name) =>
+          @_hideForm "create", _u.getClassName model
 
-      pubSub.subOnce "model", "detail", @modelName, (model, name) =>
-        if @_isOwnModel model
-          @onShowDetails model
+      pubSub.subOnce "model", "detail", "controller", (model, name) =>
+          @_showDetails model, _u.getClassName model
 
-      pubSub.subOnce "model", "save", @modelName, (data, name, callback) =>
-        if @_isOwnModel data.item
-          @onSave data.item, data.remove, callback
+      pubSub.subOnce "model", "save", "controller", (data, name, callback) =>
+        @onSave data.item, data.remove, callback
 
-      pubSub.subOnce "model", "remove", @modelName, (data, name, callback) =>
-        if @_isOwnModel data.item
-          @onDelete data.item, callback
+      pubSub.subOnce "model", "remove", "controller", (data, name, callback) =>
+        @onDelete data.item, callback
 
+    _showForm: (type, typeName) ->
+      @onShowForm $("[data-form-model-type='#{typeName}'][data-form-type='#{type}']")
+
+    onShowForm: ($form) ->
+      $form.show()
+
+    _hideForm: (type, typeName) ->
+      @onHideForm $("[data-form-model-type='#{typeName}'][data-form-type='#{type}']")
+
+    onHideForm: ($form) ->
+      $form.hide()
+
+    _showDetails: (model, typeName) ->
+      @onShowDetails model.id(), typeName
+
+    onShowDetails: (id, typeName) ->
+      window.location.hash = "#{typeName}/item/#{id}"
 
     onCreateDataProviders: ->
       [
@@ -48,21 +58,16 @@ define ["Ural/Modules/ODataProvider"
         { name : "websql", provider :  webSqlProvider.dataProvider }
       ]
 
-    _getModelModule: (callback) ->
-      if @opts and @opts.model
-        useCustomModel = @opts.model.useCustomModel
-        customModelPath = @opts.model.customModelPath
-      customModelPath ?= "Models/#{@modelName}"
-      require [customModelPath], (module) ->
-        callback null, module
-
-    _isOwnModel: (model) ->
-      _u.getClassName(model) == @modelName
-
     #convert raw data (json array) to app model array
     _mapToItems: (data, modelModule)->
       data.map (d) ->
         ko.mapping.fromJS d, modelModule.mappingRules, new modelModule.ModelConstructor()
+
+    #------this region must be moved to ItemVM-----
+
+    _getModelModule: (typeName, callback) ->
+      require ["Models/#{typeName}"], (module) ->
+        callback null, module
 
     #update item from raw (json data)
     _updateItem: (data, item, modelModule)->
@@ -72,21 +77,6 @@ define ["Ural/Modules/ODataProvider"
     #convert app model to raw data (json)
     _mapToData: (item, modelModule) ->
       ko.mapping.toJS item
-
-    _showForm: (type) ->
-      @onShowForm $("[data-form-model-type='#{@modelName}'][data-form-type='#{type}']")
-
-    onShowForm: ($form) ->
-      $form.show()
-
-    _hideForm: (type) ->
-      @onHideForm $("[data-form-model-type='#{@modelName}'][data-form-type='#{type}']")
-
-    onHideForm: ($form) ->
-      $form.hide()
-
-    onShowDetails: (model) ->
-      window.location.hash = "#{@modelName}/item/#{model.id()}"
 
     ###
     converge item, remove pair to a single object complyed to dataProvider.save
@@ -107,19 +97,23 @@ define ["Ural/Modules/ODataProvider"
 
     onSave: (item, remove, onDone) ->
       if Array.isArray item then throw "upade of multiple items is not supported!"
+      typeName = _u.getClassName item
       dataForSave = ControllerBase._prepareDataForSave @_mapToData(item), remove
       async.waterfall [
         (ck) =>
-          @getDataProvider().save @modelName, dataForSave, ck
+          @getDataProvider().save typeName, dataForSave, ck
         ,(data, ck) =>
-          @_getModelModule (err, modelModule) -> ck err, data, modelModule
+          @_getModelModule typeName, (err, modelModule) -> ck err, data, modelModule
       ],(err, data, modelModule) =>
           if !err then @_updateItem data, item, modelModule
           onDone err, item
 
     onDelete: (item, onDone) ->
       if Array.isArray item then throw "delete of multiple items is not supported!"
-      @getDataProvider().delete @modelName, item.id(), onDone
+      typeName = _u.getClassName item
+      @getDataProvider().delete typeName, item.id(), onDone
+
+    #------this region must be moved to ItemVM-----^
 
     getDataProvider: (name) ->
       name ?= @defaultDataProviderName
@@ -132,7 +126,7 @@ define ["Ural/Modules/ODataProvider"
         (ck) =>
           @getDataProvider().load @modelName, filter, ck
         ,(data, ck) =>
-          @_getModelModule (err, modelModule) -> ck err, data, modelModule
+          @_getModelModule @modelName, (err, modelModule) -> ck err, data, modelModule
         ,(data, modelModule, ck) =>
           model = @_mapToItems data, modelModule
           viewModel = @onCreateIndexViewModel model, modelModule
@@ -147,7 +141,7 @@ define ["Ural/Modules/ODataProvider"
         (ck) =>
           @getDataProvider().load @modelName, {id : { $eq : id}, $expand : "$item"}, ck
         ,(data, ck) =>
-          @_getModelModule (err, modelModule) -> ck err, data, modelModule
+          @_getModelModule @modelName, (err, modelModule) -> ck err, data, modelModule
         ,(data, modelModule, ck) =>
           model = @_mapToItems data, modelModule
           viewModel = @onCreateItemViewModel model[0], modelModule.mappingRules

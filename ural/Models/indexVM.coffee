@@ -6,20 +6,9 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
       @list = ko.observableArray model.map (m) -> new itemVM.ItemVM @tyepName, m, mappingRules
       @active = ko.observable()
 
-      pubSub.subOnce "model", "list_changed", @modelName, (data) =>
-        console.log "list_changed"
-        console.log model
-        if data.changeType == "added"
-          @list.push new itemVM.ItemVM @tyepName, data.item, mappingRules
-
-    ###
-    console.log model
-    console.log name
-    if @typeName == name
-      item = ko.utils.arrayFirst @list(), (item) -> item.id() == model.id()
-      if !item then @list.push new itemVM.ItemVM @tyepName, m, mappingRules
-    ###
-
+      pubSub.subOnce "model", "list_changed", @typeName, (data) =>
+        if data.changeType == "added" and _u.getClassName(data.item) == @typeName
+          @list.push new itemVM.ItemVM @typeName, data.item, mappingRules
 
     _checkEventHandler:(event, name) ->
       eventHandler = $(event.target).attr "data-event-handler"
