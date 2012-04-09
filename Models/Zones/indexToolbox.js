@@ -1,7 +1,7 @@
 (function() {
 
   define(["Models/product", "Ural/Models/itemVM", "Ural/Modules/PubSub"], function(product, itemVM, pubSub) {
-    var IndexToolbox, indexToolbox;
+    var IndexToolbox;
     IndexToolbox = (function() {
 
       function IndexToolbox() {
@@ -25,9 +25,8 @@
       return IndexToolbox;
 
     })();
-    indexToolbox = new IndexToolbox();
     return {
-      indexToolbox: indexToolbox
+      indexToolbox: new IndexToolbox()
     };
   });
 

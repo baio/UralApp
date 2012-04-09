@@ -205,13 +205,17 @@
           }, function(data, modelModule, ck) {
             var model, viewModel;
             model = _this._mapToItems(data, modelModule);
-            viewModel = new itemVM.ItemVM(_this.modelName, model[0], modelModule.mappingRules);
+            viewModel = _this.onCreateItemViewModel(model[0], modelModule.mappingRules);
             return _this.view(viewModel, "item", null, function(err) {
               viewModel.edit();
               return ck(err, viewModel);
             });
           }
         ], onDone);
+      };
+
+      ControllerBase.prototype.onCreateItemViewModel = function(model, modelModule) {
+        return new itemVM.ItemVM(this.modelName, model, modelModule.mappingRules);
       };
 
       ControllerBase.prototype.view = function(viewModel, viewPath, layoutViewPath, onDone) {

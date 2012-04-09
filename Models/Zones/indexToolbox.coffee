@@ -15,6 +15,4 @@ define ["Models/product", "Ural/Models/itemVM", "Ural/Modules/PubSub"],  (produc
       @newProduct ivm
       pubSub.pub "model", "create", vm
 
-  indexToolbox = new IndexToolbox()
-
-  indexToolbox : indexToolbox
+  indexToolbox : new IndexToolbox()

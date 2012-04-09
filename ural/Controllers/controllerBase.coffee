@@ -148,12 +148,14 @@ define ["Ural/Modules/ODataProvider"
           @_getModelModule (err, modelModule) -> ck err, data, modelModule
         ,(data, modelModule, ck) =>
           model = @_mapToItems data, modelModule
-          viewModel = new itemVM.ItemVM @modelName, model[0], modelModule.mappingRules
+          viewModel = @onCreateItemViewModel model[0], modelModule.mappingRules
           @view viewModel, "item", null, (err) ->
             viewModel.edit()
             ck err, viewModel
       ], onDone
 
+    onCreateItemViewModel: (model, modelModule) ->
+      new itemVM.ItemVM @modelName, model, modelModule.mappingRules
 
     view: (viewModel, viewPath, layoutViewPath, onDone) ->
       crName = @_getControllerName()

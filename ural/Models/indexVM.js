@@ -15,7 +15,6 @@
           return new itemVM.ItemVM(this.tyepName, m, mappingRules);
         }));
         this.active = ko.observable();
-        this.zones = {};
         pubSub.subOnce("model", "list_changed", this.modelName, function(data) {
           console.log("list_changed");
           console.log(model);

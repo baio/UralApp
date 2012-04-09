@@ -5,7 +5,6 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
     constructor: (@typeName, model, mappingRules) ->
       @list = ko.observableArray model.map (m) -> new itemVM.ItemVM @tyepName, m, mappingRules
       @active = ko.observable()
-      @zones = {}
 
       pubSub.subOnce "model", "list_changed", @modelName, (data) =>
         console.log "list_changed"
