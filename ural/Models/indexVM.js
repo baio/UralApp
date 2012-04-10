@@ -52,9 +52,13 @@
       };
 
       IndexVM.prototype.remove = function(viewModel, event) {
-        var _this = this;
         if (!this._checkEventHandler(event, "remove")) return;
         event.preventDefault();
+        return this.onRemove(viewModel);
+      };
+
+      IndexVM.prototype.onRemove = function(viewModel) {
+        var _this = this;
         if (this.active()) this.active().cancel();
         return pubSub.pub("model", "remove", viewModel, function(err) {
           if (!err) return _this.list.remove(viewModel);
@@ -83,6 +87,17 @@
         for (_i = 0, _len = items.length; _i < _len; _i++) {
           item = items[_i];
           _results.push(this.push(item));
+        }
+        return _results;
+      };
+
+      IndexVM.prototype.replaceAll = function(items) {
+        var item, _i, _len, _results;
+        this.list.removeAll();
+        _results = [];
+        for (_i = 0, _len = items.length; _i < _len; _i++) {
+          item = items[_i];
+          _results.push(this.list.push(new itemVM.ItemVM(this.typeName, item, this.mappingRules)));
         }
         return _results;
       };

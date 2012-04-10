@@ -101,6 +101,7 @@
             })();
           }
         } else {
+          parentName = parentName.replace(/^(.*)s$/, "$1");
           if (isDelete) {
             ref = !isArrayProp ? name : "" + typeName + "s(" + item.id + ")";
             data = {

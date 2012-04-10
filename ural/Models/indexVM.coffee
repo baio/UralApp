@@ -37,6 +37,9 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
     remove: (viewModel, event) =>
       if !@_checkEventHandler event, "remove" then return
       event.preventDefault()
+      @onRemove viewModel
+
+    onRemove: (viewModel) ->
       if @active()
         @active().cancel()
       pubSub.pub "model", "remove", viewModel, (err) =>
@@ -54,5 +57,11 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
 
     pushArray: (items) ->
       @push item for item in items
+
+    replaceAll: (items) ->
+      @list.removeAll()
+      for item in items
+        @list.push new itemVM.ItemVM @typeName, item, @mappingRules
+
 
   IndexVM : IndexVM

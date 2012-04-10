@@ -1,0 +1,11 @@
+<ul class="nav nav-list">
+    <li class="nav-header">Add ref</li>
+    <li>
+        <div class="btn-group">
+            <button class="btn" data-bind="click: addProduct">Add product</button>
+        </div>
+    </li>
+</ul>
+<div data-partial-view="Shared/_ProductForm" data-bind="with: newProduct"
+     data-partial-view-bag="{caption: 'Create product', type : 'create', context : 'reference'}">
+</div>

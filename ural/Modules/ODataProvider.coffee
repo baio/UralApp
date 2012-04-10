@@ -61,6 +61,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
             when -1 then method: "POST", uri: "#{name}s"
             else method: "PUT", uri: "#{name}s(#{item.id})"
       else
+        parentName = parentName.replace /^(.*)s$/, "$1"
         #nested item
         if isDelete
           ref = if !isArrayProp then name else "#{typeName}s(#{item.id})"
