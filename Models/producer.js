@@ -1,6 +1,6 @@
 (function() {
 
-  define(["Models/product"], function(product) {
+  define(["Models/product", "Ural/Models/itemVM"], function(product, itemVM) {
     var Producer, def, mappingRules;
     Producer = (function() {
 

@@ -3,24 +3,5 @@
 <div data-partial-view="Shared/_ProductForm" data-bind="with: active"
         data-partial-view-bag="{caption: 'Edit product', type : 'edit'}">
 </div>
-<script type="text/x-jquery-tmpl" id="productTemplate">
-    <tr data-bind="click: $root.edit">
-            <td data-bind="click: $root.detail" ><i class="icon-pencil" data-event-handler="detail"></i></td>
-            <td data-bind="click: $root.remove" ><i class="icon-remove" data-event-handler="remove"></i></td>
-        <!-- ko with: item -->
-            <td data-bind="text: id"></td>
-            <td data-bind="text: name"></td>
-            <td data-bind="template: {name: 'tagTemplate', foreach: Tags}"></td>
-            <td data-bind="text: comp"></td>
-            <!-- ko with : Producer -->
-            <td data-bind="text: name"></td>
-            <!-- /ko -->
-        <!-- /ko -->
-    </tr>
-</script>
-<script type="text/x-jquery-tmpl" id="tagTemplate">
-    <span data-bind="text: name"></span>
-    <span data-bind="text: shortName"></span>
-</script>
-
+<div data-partial-view="_ProductTemplate"/>
 

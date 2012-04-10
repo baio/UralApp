@@ -16,3 +16,10 @@
         </div>
     </fieldset>
 </form>
+<!-- ko with: item -->
+<!--
+<table id="model_container" class="table table-striped" data-bind="template: {name:'productTemplate', foreach: Products}">
+</table>
+-->
+<!-- /ko -->
+<div data-partial-view="Product/_productTemplate"/>

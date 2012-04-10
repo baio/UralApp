@@ -1,4 +1,4 @@
-define ["Models/product"], (product) ->
+define ["Models/product", "Ural/Models/itemVM"], (product, itemVM) ->
 
   class Producer
     constructor: ->
