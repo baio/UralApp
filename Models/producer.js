@@ -1,13 +1,14 @@
 (function() {
 
-  define(["Models/product", "Ural/Models/itemVM"], function(product, itemVM) {
+  define(["Models/product", "Ural/Models/IndexRefVM"], function(product, indexRefVM) {
     var Producer, def, mappingRules;
     Producer = (function() {
 
       function Producer() {
         this.id = ko.observable();
         this.name = ko.observable();
-        this.Products = ko.observable();
+        this.Products = ko.observableArray();
+        this.ProductsVM = new indexRefVM.IndexRefVM("Product", this.Products, product.mappingRules);
         ko.mapping.fromJS(def(), mappingRules(), this);
       }
 

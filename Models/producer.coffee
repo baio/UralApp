@@ -1,10 +1,11 @@
-define ["Models/product", "Ural/Models/itemVM"], (product, itemVM) ->
+define ["Models/product", "Ural/Models/IndexRefVM"], (product, indexRefVM) ->
 
   class Producer
     constructor: ->
       @id = ko.observable()
       @name = ko.observable()
-      @Products = ko.observable()
+      @Products = ko.observableArray()
+      @ProductsVM = new indexRefVM.IndexRefVM "Product", @Products, product.mappingRules
 
       ko.mapping.fromJS def(), mappingRules(), @
 

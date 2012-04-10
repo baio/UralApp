@@ -2,13 +2,13 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
 
   class IndexVM
 
-    constructor: (@typeName, model, mappingRules) ->
-      @list = ko.observableArray model.map (m) -> new itemVM.ItemVM @tyepName, m, mappingRules
+    constructor: (@typeName, model, @mappingRules) ->
+      @list = ko.observableArray model.map (m) -> new itemVM.ItemVM @tyepName, m, @mappingRules
       @active = ko.observable()
 
       pubSub.subOnce "model", "list_changed", @typeName, (data) =>
         if data.changeType == "added" and _u.getClassName(data.item) == @typeName
-          @list.push new itemVM.ItemVM @typeName, data.item, mappingRules
+          @list.push new itemVM.ItemVM @typeName, data.item, @mappingRules
 
     _checkEventHandler:(event, name) ->
       eventHandler = $(event.target).attr "data-event-handler"
@@ -41,5 +41,18 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
         @active().cancel()
       pubSub.pub "model", "remove", viewModel, (err) =>
         if !err then @list.remove viewModel
+
+    find: (item) ->
+      ko.utils.arrayFirst @list(), (listItem) -> item == listItem.item
+
+    push: (item) ->
+      ivm = @find item
+      if !ivm
+        ivm = new itemVM.ItemVM @typeName, item, @mappingRules
+        @list.push ivm
+      ivm
+
+    pushArray: (items) ->
+      @push item for item in items
 
   IndexVM : IndexVM
