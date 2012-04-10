@@ -16,8 +16,13 @@
         </div>
     </fieldset>
 </form>
-<!-- ko with: item -->
-<table id="model_container" class="table table-striped" data-bind="template: {name:'productTemplate', foreach: ProductsVM.list}">
+<!-- ko with: item.ProductsVM -->
+<table id="model_container" class="table table-striped" data-bind="template: {name:'productTemplate', foreach: list}">
 </table>
+<div data-partial-view="Shared/_ProductForm" data-bind="with: active"
+     data-partial-view-bag="{caption: 'Edit product', type : 'edit', context : 'reference'}">
+</div>
 <!-- /ko -->
-<div data-partial-view="Product/_productTemplate"/>
+<div data-partial-view="Product/_ProductTemplate" data-partial-view-bag="{context: 'reference'}">
+</div>
+

@@ -5,7 +5,7 @@ define ["Models/product", "Ural/Models/IndexRefVM"], (product, indexRefVM) ->
       @id = ko.observable()
       @name = ko.observable()
       @Products = ko.observableArray()
-      @ProductsVM = new indexRefVM.IndexRefVM "Product", @Products, product.mappingRules
+      @ProductsVM = new indexRefVM.IndexRefVM @, "Product", @Products, product.mappingRules
 
       ko.mapping.fromJS def(), mappingRules(), @
 

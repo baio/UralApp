@@ -27,7 +27,15 @@
         obj = {};
         for (prop in item) {
           if (!__hasProp.call(item, prop)) continue;
-          if (prop === "__deferred") return [];
+          if (prop === "__deferred") {
+            if (_.str.endsWith(prop, "s")) {
+              return [];
+            } else {
+              return {
+                id: __g.nullRefVal()
+              };
+            }
+          }
           if (prop !== "__metadata") obj[prop] = ODataProvider._parse(item[prop]);
         }
         return obj;
@@ -128,26 +136,6 @@
         });
         return res.reverse();
       };
-
-      /*
-          @_getExpandsFromItem: (name, item) ->
-            res = []
-            nested = []
-            for own prop of item
-              val = item[prop]
-              if Array.isArray val
-                if val.length > 0
-                  nested = ODataProvider._getExpandsFromItem prop, val[0]
-              else if typeof val == "object"
-                nested = ODataProvider._getExpandsFromItem prop, val
-            if nested.length
-              for n in nested
-                name = name + "/" if name
-                res.push name + n
-            else if name
-              res.push name
-            res
-      */
 
       ODataProvider.prototype.load = function(srcName, filter, callback) {
         var stt;
@@ -257,13 +245,6 @@
           id: id,
           __action: "delete"
         }, callback);
-        /*
-              OData.request
-                headers: {"Content-Type": "application/json"}
-                requestUri: "#{ODataProvider.serviceHost()}#{srcName}s(#{id})",
-                method: "DELETE",(data, response) =>
-                  callback null
-        */
       };
 
       return ODataProvider;

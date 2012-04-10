@@ -13,12 +13,13 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       if (arr) then return arr.map (i) -> ODataProvider._parse i
       obj = {}
       for own prop of item
-        if prop == "__deferred" then return []
+        if prop == "__deferred"
+          return if _.str.endsWith prop, "s" then [] else id : __g.nullRefVal()
         if prop != "__metadata"
           obj[prop] = ODataProvider._parse item[prop]
       obj
 
-    @_isDelete: (item) -> item and item.__action == "delete" #or frOpts.filterOpts.isNullRef item
+    @_isDelete: (item) -> item and item.__action == "delete"
 
     @_formatRequest: (name, item, metadata, parentName, parentId, parentContentId, totalCount) ->
       #only root item could be deleted
@@ -80,26 +81,6 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         data: flattered
       res.reverse()
 
-    ###
-    @_getExpandsFromItem: (name, item) ->
-      res = []
-      nested = []
-      for own prop of item
-        val = item[prop]
-        if Array.isArray val
-          if val.length > 0
-            nested = ODataProvider._getExpandsFromItem prop, val[0]
-        else if typeof val == "object"
-          nested = ODataProvider._getExpandsFromItem prop, val
-      if nested.length
-        for n in nested
-          name = name + "/" if name
-          res.push name + n
-      else if name
-        res.push name
-      res
-    ###
-
     load: (srcName, filter, callback) ->
       stt = @_getStatement srcName, filter
       OData.read stt, (data) -> callback null, ODataProvider._parse(data)
@@ -157,7 +138,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         , (data) =>
           if item.__action != "delete"
             resp = ODataProvider._parseSaveResponseData data
-            expand = @_getExpand srcName, "$item" #ODataProvider._getExpandsFromItem(srcName, item).toString()
+            expand = @_getExpand srcName, "$item"
             rootResp = resp.filter((x) -> x.contentId == "1")[0]
             id = if rootResp and rootResp.data then rootResp.data.id else item.id
             @load srcName, id: {$eq: id}, $expand: expand, (err, data) ->
@@ -171,13 +152,6 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
 
     delete: (srcName, id, callback) ->
       @save srcName, {id : id, __action : "delete"}, callback
-      ###
-      OData.request
-        headers: {"Content-Type": "application/json"}
-        requestUri: "#{ODataProvider.serviceHost()}#{srcName}s(#{id})",
-        method: "DELETE",(data, response) =>
-          callback null
-      ###
 
   dataProvider: new ODataProvider()
 
