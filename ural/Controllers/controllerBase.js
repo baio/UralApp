@@ -1,7 +1,6 @@
 (function() {
-  var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(["Ural/Modules/ODataProvider", "Ural/Modules/WebSqlProvider", "Ural/Models/indexVM", "Ural/Models/itemVM", "Ural/Modules/pubSub"], function(odataProvider, webSqlProvider, indexVM, itemVM, pubSub) {
+  define(["Ural/Modules/DataProvider", "Ural/Models/indexVM", "Ural/Models/itemVM", "Ural/Modules/pubSub"], function(dataProvider, indexVM, itemVM, pubSub) {
     var ControllerBase;
     ControllerBase = (function() {
 
@@ -10,8 +9,6 @@
         this.modelName = modelName;
         this.opts = opts;
         if (this.modelName == null) this.modelName = this._getControllerName();
-        this._dataProviders = _u.toHashTable(this.onCreateDataProviders());
-        this.defaultDataProviderName = _u.firstKey(this._dataProviders);
         this.defaultIndexLayout = "Shared/_layout";
         this.defaultItemLayout = "Shared/_layout";
         pubSub.subOnce("model", "edit", "controller", function(model, name) {
@@ -28,12 +25,6 @@
         });
         pubSub.subOnce("model", "detail", "controller", function(model, name) {
           return _this._showDetails(model, _u.getClassName(model));
-        });
-        pubSub.subOnce("model", "save", "controller", function(data, name, callback) {
-          return _this.onSave(data.item, data.remove, callback);
-        });
-        pubSub.subOnce("model", "remove", "controller", function(data, name, callback) {
-          return _this.onDelete(data.item, callback);
         });
       }
 
@@ -61,16 +52,10 @@
         return window.location.hash = "" + typeName + "/item/" + id;
       };
 
-      ControllerBase.prototype.onCreateDataProviders = function() {
-        return [
-          {
-            name: "odata",
-            provider: odataProvider.dataProvider
-          }, {
-            name: "websql",
-            provider: webSqlProvider.dataProvider
-          }
-        ];
+      ControllerBase.prototype._getModelModule = function(typeName, callback) {
+        return require(["Models/" + typeName], function(module) {
+          return callback(null, module);
+        });
       };
 
       ControllerBase.prototype._mapToItems = function(data, modelModule) {
@@ -79,91 +64,13 @@
         });
       };
 
-      ControllerBase.prototype._getModelModule = function(typeName, callback) {
-        return require(["Models/" + typeName], function(module) {
-          return callback(null, module);
-        });
-      };
-
-      ControllerBase.prototype._updateItem = function(data, item, modelModule) {
-        item.id(data.id);
-        return ko.mapping.fromJS(data, modelModule.mappingRules, item);
-      };
-
-      ControllerBase.prototype._mapToData = function(item, modelModule) {
-        return ko.mapping.toJS(item);
-      };
-
-      /*
-          converge item, remove pair to a single object complyed to dataProvider.save
-          i.e. removed item should be included in the updated object with {id : id, __action = "delete"}
-      */
-
-      ControllerBase._prepareDataForSave = function(item, remove) {
-        var id, prop, res, val, _i, _len;
-        res = item;
-        for (prop in item) {
-          if (!__hasProp.call(item, prop)) continue;
-          val = remove[prop];
-          if (Array.isArray(val)) {
-            for (_i = 0, _len = val.length; _i < _len; _i++) {
-              id = val[_i];
-              res[prop].push({
-                id: id,
-                __action: "delete"
-              });
-            }
-          } else if (typeof val === "object") {
-            ControllerBase._prepareDataForSave(item[prop], val);
-          } else if (val) {
-            res[prop].id = val;
-            res[prop].__action = "delete";
-          }
-        }
-        return res;
-      };
-
-      ControllerBase.prototype.onSave = function(item, remove, onDone) {
-        var dataForSave, typeName,
-          _this = this;
-        if (Array.isArray(item)) throw "upade of multiple items is not supported!";
-        typeName = _u.getClassName(item);
-        dataForSave = ControllerBase._prepareDataForSave(this._mapToData(item), remove);
-        return async.waterfall([
-          function(ck) {
-            return _this.getDataProvider().save(typeName, dataForSave, ck);
-          }, function(data, ck) {
-            return _this._getModelModule(typeName, function(err, modelModule) {
-              return ck(err, data, modelModule);
-            });
-          }
-        ], function(err, data, modelModule) {
-          if (!err) _this._updateItem(data, item, modelModule);
-          return onDone(err, item);
-        });
-      };
-
-      ControllerBase.prototype.onDelete = function(item, onDone) {
-        var typeName;
-        if (Array.isArray(item)) {
-          throw "delete of multiple items is not supported!";
-        }
-        typeName = _u.getClassName(item);
-        return this.getDataProvider()["delete"](typeName, item.id(), onDone);
-      };
-
-      ControllerBase.prototype.getDataProvider = function(name) {
-        if (name == null) name = this.defaultDataProviderName;
-        return this._dataProviders[name];
-      };
-
       ControllerBase.prototype.index = function(filter, onDone) {
         var _this = this;
         if (filter == null) filter = {};
         if (filter.$expand == null) filter.$expand = "$index";
         return async.waterfall([
           function(ck) {
-            return _this.getDataProvider().load(_this.modelName, filter, ck);
+            return dataProvider.get().load(_this.modelName, filter, ck);
           }, function(data, ck) {
             return _this._getModelModule(_this.modelName, function(err, modelModule) {
               return ck(err, data, modelModule);
@@ -187,7 +94,7 @@
         var _this = this;
         return async.waterfall([
           function(ck) {
-            return _this.getDataProvider().load(_this.modelName, {
+            return dataProvider.get().load(_this.modelName, {
               id: {
                 $eq: id
               },

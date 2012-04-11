@@ -1,4 +1,4 @@
-define ["Ural/Modules/PubSub"], (pubSub) ->
+define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubSub) ->
 
   class ItemVM
 
@@ -61,16 +61,71 @@ define ["Ural/Modules/PubSub"], (pubSub) ->
       if !@originItem then throw "item not in edit state"
       if isCancel
         @_copyFromOrigin()
-        if @onDone then @onDone null, isCancel
+        if @onDone then @onDone null, true
       else
-        remove = @getRemovedRefs()
-        remove ?= {}
-        data = item : @item, remove : remove
-        isAdded = data.item.id() == -1
-        pubSub.pub "model", "save", data, (err, item) =>
+        isAdded = @item.id() == -1
+        @update (err, item) =>
           if !err
             @_createOrigin()
             if isAdded then pubSub.pub "model", "list_changed", item : item, changeType : "added", isExternal : false
-          if @onDone then @onDone err, isCancel
+          if @onDone then @onDone err, false
+
+    update: (onDone) ->
+      remove = @getRemovedRefs()
+      remove ?= {}
+      @_update @item, remove, onDone
+
+    remove: (onDone) ->
+      @_remove @item, onDone
+
+  #--- update region
+
+    _getModelModule: (callback) ->
+      require ["Models/#{@typeName}"], (module) ->
+        callback null, module
+
+    #update item from raw (json data)
+    _updateItem: (data, item, modelModule)->
+      item.id data.id
+      ko.mapping.fromJS data, modelModule.mappingRules, item
+
+    #convert app model to raw data (json)
+    _mapToData: (item, modelModule) ->
+      ko.mapping.toJS item
+
+    ###
+    converge item, remove pair to a single object complyed to dataProvider.save
+    i.e. removed item should be included in the updated object with {id : id, __action = "delete"}
+    ###
+    @_prepareDataForSave: (item, remove) ->
+      res = item
+      for own prop of item
+        val = remove[prop]
+        if Array.isArray val
+          res[prop].push id : id, __action : "delete" for id in val
+        else if typeof val == "object"
+          ItemVM._prepareDataForSave item[prop], val
+        else if val
+          res[prop].id = val
+          res[prop].__action = "delete"
+      res
+
+    _update: (item, remove, onDone) ->
+      if Array.isArray item then throw "upade of multiple items is not supported!"
+      dataForSave = ItemVM._prepareDataForSave @_mapToData(item), remove
+      async.waterfall [
+        (ck) =>
+          dataProvider.get().save @typeName, dataForSave, ck
+        ,(data, ck) =>
+          @_getModelModule (err, modelModule) -> ck err, data, modelModule
+      ],(err, data, modelModule) =>
+        if !err then @_updateItem data, item, modelModule
+        onDone err, item
+
+    _remove: (item, onDone) ->
+      if Array.isArray item then throw "delete of multiple items is not supported!"
+      dataProvider.get().delete @typeName, item.id(), onDone
+
+  #--- update region ^
 
   ItemVM : ItemVM

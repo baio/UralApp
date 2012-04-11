@@ -13,7 +13,7 @@
         this.detail = __bind(this.detail, this);
         this.edit = __bind(this.edit, this);
         this.list = ko.observableArray(model.map(function(m) {
-          return new itemVM.ItemVM(this.tyepName, m, this.mappingRules);
+          return new itemVM.ItemVM(_this.typeName, m, _this.mappingRules);
         }));
         this.active = ko.observable();
         pubSub.subOnce("model", "list_changed", this.typeName, function(data) {
@@ -60,7 +60,7 @@
       IndexVM.prototype.onRemove = function(viewModel) {
         var _this = this;
         if (this.active()) this.active().cancel();
-        return pubSub.pub("model", "remove", viewModel, function(err) {
+        return viewModel.remove(function(err) {
           if (!err) return _this.list.remove(viewModel);
         });
       };
@@ -68,21 +68,6 @@
       IndexVM.prototype.onAdd = function(viewModel) {
         return this.list.push(viewModel);
       };
-
-      /*
-          find: (item) ->
-            ko.utils.arrayFirst @list(), (listItem) -> item == listItem.item
-      
-          push: (item) ->
-            ivm = @find item
-            if !ivm
-              ivm = new itemVM.ItemVM @typeName, item, @mappingRules
-              @list.push ivm
-            ivm
-      
-          pushArray: (items) ->
-            @push item for item in items
-      */
 
       IndexVM.prototype.replaceAll = function(items) {
         var item, _i, _len, _results;

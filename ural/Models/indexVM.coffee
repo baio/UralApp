@@ -3,7 +3,7 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
   class IndexVM
 
     constructor: (@typeName, model, @mappingRules) ->
-      @list = ko.observableArray model.map (m) -> new itemVM.ItemVM @tyepName, m, @mappingRules
+      @list = ko.observableArray model.map (m) => new itemVM.ItemVM @typeName, m, @mappingRules
       @active = ko.observable()
 
       pubSub.subOnce "model", "list_changed", @typeName, (data) =>
@@ -42,27 +42,11 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
     onRemove: (viewModel) ->
       if @active()
         @active().cancel()
-      pubSub.pub "model", "remove", viewModel, (err) =>
+      viewModel.remove (err) =>
         if !err then @list.remove viewModel
 
     onAdd: (viewModel) ->
       @list.push viewModel
-
-
-    ###
-    find: (item) ->
-      ko.utils.arrayFirst @list(), (listItem) -> item == listItem.item
-
-    push: (item) ->
-      ivm = @find item
-      if !ivm
-        ivm = new itemVM.ItemVM @typeName, item, @mappingRules
-        @list.push ivm
-      ivm
-
-    pushArray: (items) ->
-      @push item for item in items
-    ###
 
     replaceAll: (items) ->
       @list.removeAll()

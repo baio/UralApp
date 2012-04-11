@@ -15,17 +15,6 @@
         this.src.subscribe(function(newVal) {
           return _this.replaceAll(newVal);
         });
-        /*
-              @list.subscribe =>
-                for listItem in @list()
-                  #exists in list but not in src - append to src
-                  if ! ko.utils.arrayFirst(@src(), (item) -> item == listItem.item)
-                    @src.push listItem.item
-                for item in @src()
-                  #exists in src but not in list - remove to src
-                  if ! ko.utils.arrayFirst(@list(), (listItem) -> item == listItem.item)
-                    @src.remove listItem.item
-        */
       }
 
       IndexRefVM.prototype.onRemove = function(viewModel) {

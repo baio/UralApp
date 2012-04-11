@@ -1,7 +1,7 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(["Ural/Modules/PubSub"], function(pubSub) {
+  define(["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], function(dataProvider, pubSub) {
     var ItemVM;
     ItemVM = (function() {
 
@@ -85,21 +85,15 @@
       };
 
       ItemVM.prototype._done = function(isCancel) {
-        var data, isAdded, remove,
+        var isAdded,
           _this = this;
         if (!this.originItem) throw "item not in edit state";
         if (isCancel) {
           this._copyFromOrigin();
-          if (this.onDone) return this.onDone(null, isCancel);
+          if (this.onDone) return this.onDone(null, true);
         } else {
-          remove = this.getRemovedRefs();
-          if (remove == null) remove = {};
-          data = {
-            item: this.item,
-            remove: remove
-          };
-          isAdded = data.item.id() === -1;
-          return pubSub.pub("model", "save", data, function(err, item) {
+          isAdded = this.item.id() === -1;
+          return this.update(function(err, item) {
             if (!err) {
               _this._createOrigin();
               if (isAdded) {
@@ -110,9 +104,90 @@
                 });
               }
             }
-            if (_this.onDone) return _this.onDone(err, isCancel);
+            if (_this.onDone) return _this.onDone(err, false);
           });
         }
+      };
+
+      ItemVM.prototype.update = function(onDone) {
+        var remove;
+        remove = this.getRemovedRefs();
+        if (remove == null) remove = {};
+        return this._update(this.item, remove, onDone);
+      };
+
+      ItemVM.prototype.remove = function(onDone) {
+        return this._remove(this.item, onDone);
+      };
+
+      ItemVM.prototype._getModelModule = function(callback) {
+        return require(["Models/" + this.typeName], function(module) {
+          return callback(null, module);
+        });
+      };
+
+      ItemVM.prototype._updateItem = function(data, item, modelModule) {
+        item.id(data.id);
+        return ko.mapping.fromJS(data, modelModule.mappingRules, item);
+      };
+
+      ItemVM.prototype._mapToData = function(item, modelModule) {
+        return ko.mapping.toJS(item);
+      };
+
+      /*
+          converge item, remove pair to a single object complyed to dataProvider.save
+          i.e. removed item should be included in the updated object with {id : id, __action = "delete"}
+      */
+
+      ItemVM._prepareDataForSave = function(item, remove) {
+        var id, prop, res, val, _i, _len;
+        res = item;
+        for (prop in item) {
+          if (!__hasProp.call(item, prop)) continue;
+          val = remove[prop];
+          if (Array.isArray(val)) {
+            for (_i = 0, _len = val.length; _i < _len; _i++) {
+              id = val[_i];
+              res[prop].push({
+                id: id,
+                __action: "delete"
+              });
+            }
+          } else if (typeof val === "object") {
+            ItemVM._prepareDataForSave(item[prop], val);
+          } else if (val) {
+            res[prop].id = val;
+            res[prop].__action = "delete";
+          }
+        }
+        return res;
+      };
+
+      ItemVM.prototype._update = function(item, remove, onDone) {
+        var dataForSave,
+          _this = this;
+        if (Array.isArray(item)) throw "upade of multiple items is not supported!";
+        dataForSave = ItemVM._prepareDataForSave(this._mapToData(item), remove);
+        return async.waterfall([
+          function(ck) {
+            return dataProvider.get().save(_this.typeName, dataForSave, ck);
+          }, function(data, ck) {
+            return _this._getModelModule(function(err, modelModule) {
+              return ck(err, data, modelModule);
+            });
+          }
+        ], function(err, data, modelModule) {
+          if (!err) _this._updateItem(data, item, modelModule);
+          return onDone(err, item);
+        });
+      };
+
+      ItemVM.prototype._remove = function(item, onDone) {
+        if (Array.isArray(item)) {
+          throw "delete of multiple items is not supported!";
+        }
+        return dataProvider.get()["delete"](this.typeName, item.id(), onDone);
       };
 
       return ItemVM;
