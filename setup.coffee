@@ -2,10 +2,11 @@ define ["Ural/Modules/DataFilterOpts"
   , "Ural/Modules/DataProvider"
   , "Ural/Plugins/tags-binding"
   , "Ural/Plugins/autocomplete-binding"
+  , "Ural/Plugins/tooltip-binding"
   , "Models/tag"
   , "bootstrap/js/bootstrap.min.js"
   ]
-  , (frOpt, dataProvider, tagsBinding, autocompleteBinding, tagModel) ->
+  , (frOpt, dataProvider, tagsBinding, autocompleteBinding, tooltipBinding, tagModel) ->
 
     frOpt.expandOpts.add null, "$index", ""
     frOpt.expandOpts.add null, "$item", ""
@@ -58,3 +59,6 @@ define ["Ural/Modules/DataFilterOpts"
 
     autocompleteBinding.ini autocompleteOpts
 
+    #tooltip
+
+    tooltipBinding.ini()
