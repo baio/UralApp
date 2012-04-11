@@ -8,7 +8,7 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
 
       pubSub.subOnce "model", "list_changed", @typeName, (data) =>
         if data.changeType == "added" and _u.getClassName(data.item) == @typeName
-          @list.push new itemVM.ItemVM @typeName, data.item, @mappingRules
+          @onAdd new itemVM.ItemVM @typeName, data.item, @mappingRules
 
     _checkEventHandler:(event, name) ->
       eventHandler = $(event.target).attr "data-event-handler"
@@ -45,6 +45,11 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
       pubSub.pub "model", "remove", viewModel, (err) =>
         if !err then @list.remove viewModel
 
+    onAdd: (viewModel) ->
+      @list.push viewModel
+
+
+    ###
     find: (item) ->
       ko.utils.arrayFirst @list(), (listItem) -> item == listItem.item
 
@@ -57,6 +62,7 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
 
     pushArray: (items) ->
       @push item for item in items
+    ###
 
     replaceAll: (items) ->
       @list.removeAll()

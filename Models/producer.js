@@ -8,7 +8,7 @@
         this.id = ko.observable();
         this.name = ko.observable();
         this.Products = ko.observableArray();
-        this.ProductsVM = new indexRefVM.IndexRefVM(this, "Product", this.Products, product.mappingRules);
+        this.ProductsVM = new indexRefVM.IndexRefVM("Product", this.Products, product.mappingRules);
         ko.mapping.fromJS(def(), mappingRules(), this);
       }
 
