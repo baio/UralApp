@@ -1,11 +1,11 @@
 define ["Ural/Modules/DataFilterOpts"
-  , "Ural/Modules/ODataProvider"
+  , "Ural/Modules/DataProvider"
   , "Ural/Plugins/tags-binding"
   , "Ural/Plugins/autocomplete-binding"
   , "Models/Tag"
   , "bootstrap/js/bootstrap.min.js"
   ]
-  , (frOpt, odataProvider, tagsBinding, autocompleteBinding, tagModel) ->
+  , (frOpt, dataProvider, tagsBinding, autocompleteBinding, tagModel) ->
 
     frOpt.expandOpts.add null, "$index", ""
     frOpt.expandOpts.add null, "$item", ""
@@ -23,7 +23,7 @@ define ["Ural/Modules/DataFilterOpts"
     #tags
     tagsBindingOpts =
       tagSource: (req, resp) ->
-        odataProvider.dataProvider.load "Tag", name : {$like : req.term}, (err, data) ->
+        dataProvider.get().load "Tag", name : {$like : req.term}, (err, data) ->
           if !err
             resp data.map (d) ->
               key : d.id
@@ -41,7 +41,7 @@ define ["Ural/Modules/DataFilterOpts"
     #autocomplete
     autocompleteOpts =
       source: (req, resp) ->
-        odataProvider.dataProvider.load req.modelType, name : {$like : req.term}, (err, data) ->
+        dataProvider.get().load req.modelType, name : {$like : req.term}, (err, data) ->
           if !err
             resp data.map (d) ->
               key : d.id

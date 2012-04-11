@@ -73,10 +73,10 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
     update: (onDone) ->
       remove = @getRemovedRefs()
       remove ?= {}
-      @_update @item, remove, onDone
+      @onUpdate @item, remove, onDone
 
     remove: (onDone) ->
-      @_remove @item, onDone
+      @onRemove @item, onDone
 
   #--- update region
 
@@ -110,7 +110,7 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
           res[prop].__action = "delete"
       res
 
-    _update: (item, remove, onDone) ->
+    onUpdate: (item, remove, onDone) ->
       if Array.isArray item then throw "upade of multiple items is not supported!"
       dataForSave = ItemVM._prepareDataForSave @_mapToData(item), remove
       async.waterfall [
@@ -122,7 +122,7 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
         if !err then @_updateItem data, item, modelModule
         onDone err, item
 
-    _remove: (item, onDone) ->
+    onRemove: (item, onDone) ->
       if Array.isArray item then throw "delete of multiple items is not supported!"
       dataProvider.get().delete @typeName, item.id(), onDone
 

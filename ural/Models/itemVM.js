@@ -113,11 +113,11 @@
         var remove;
         remove = this.getRemovedRefs();
         if (remove == null) remove = {};
-        return this._update(this.item, remove, onDone);
+        return this.onUpdate(this.item, remove, onDone);
       };
 
       ItemVM.prototype.remove = function(onDone) {
-        return this._remove(this.item, onDone);
+        return this.onRemove(this.item, onDone);
       };
 
       ItemVM.prototype._getModelModule = function(callback) {
@@ -164,7 +164,7 @@
         return res;
       };
 
-      ItemVM.prototype._update = function(item, remove, onDone) {
+      ItemVM.prototype.onUpdate = function(item, remove, onDone) {
         var dataForSave,
           _this = this;
         if (Array.isArray(item)) throw "upade of multiple items is not supported!";
@@ -183,7 +183,7 @@
         });
       };
 
-      ItemVM.prototype._remove = function(item, onDone) {
+      ItemVM.prototype.onRemove = function(item, onDone) {
         if (Array.isArray(item)) {
           throw "delete of multiple items is not supported!";
         }

@@ -1,6 +1,6 @@
 (function() {
 
-  define(["Models/product", "Ural/Models/itemVM", "Ural/Modules/PubSub"], function(product, itemVM, pubSub) {
+  define(["Models/product", "Ural/Models/itemRefVM", "Ural/Modules/PubSub"], function(product, itemRefVM, pubSub) {
     var ItemToolbox;
     ItemToolbox = (function() {
 
@@ -13,7 +13,7 @@
           _this = this;
         event.preventDefault();
         vm = new product.ModelConstructor();
-        ivm = new itemVM.ItemVM("Product", vm, product.mappingRules);
+        ivm = new itemRefVM.ItemRefVM("Product", vm, product.mappingRules);
         ivm.edit(function() {
           pubSub.pub("model", "end_create", ivm.item);
           return _this.newProduct(ivm);

@@ -1,6 +1,6 @@
 (function() {
 
-  define(["Ural/Modules/DataFilterOpts", "Ural/Modules/ODataProvider", "Ural/Plugins/tags-binding", "Ural/Plugins/autocomplete-binding", "Models/Tag", "bootstrap/js/bootstrap.min.js"], function(frOpt, odataProvider, tagsBinding, autocompleteBinding, tagModel) {
+  define(["Ural/Modules/DataFilterOpts", "Ural/Modules/DataProvider", "Ural/Plugins/tags-binding", "Ural/Plugins/autocomplete-binding", "Models/Tag", "bootstrap/js/bootstrap.min.js"], function(frOpt, dataProvider, tagsBinding, autocompleteBinding, tagModel) {
     var autocompleteOpts, tagsBindingOpts;
     frOpt.expandOpts.add(null, "$index", "");
     frOpt.expandOpts.add(null, "$item", "");
@@ -17,7 +17,7 @@
     };
     tagsBindingOpts = {
       tagSource: function(req, resp) {
-        return odataProvider.dataProvider.load("Tag", {
+        return dataProvider.get().load("Tag", {
           name: {
             $like: req.term
           }
@@ -50,7 +50,7 @@
     tagsBinding.ini(tagsBindingOpts);
     autocompleteOpts = {
       source: function(req, resp) {
-        return odataProvider.dataProvider.load(req.modelType, {
+        return dataProvider.get().load(req.modelType, {
           name: {
             $like: req.term
           }

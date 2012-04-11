@@ -114,8 +114,10 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
 
     @_getSaveRequestData: (srcName, item) ->
       metadata = ODataProvider._getMetadata srcName, item
+      req = ODataProvider._formatRequest srcName, item, metadata
+      req.sort (a, b) -> a.headers["Content-ID"] - b.headers["Content-ID"]
       __batchRequests: [
-        __changeRequests: ODataProvider._formatRequest srcName, item, metadata
+        __changeRequests: req
       ]
 
     @_parseSaveResponseData: (data) ->

@@ -3,12 +3,15 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
   class IndexVM
 
     constructor: (@typeName, model, @mappingRules) ->
-      @list = ko.observableArray model.map (m) => new itemVM.ItemVM @typeName, m, @mappingRules
+      @list = ko.observableArray model.map (m) => @onCreateItemVM m
       @active = ko.observable()
 
       pubSub.subOnce "model", "list_changed", @typeName, (data) =>
         if data.changeType == "added" and _u.getClassName(data.item) == @typeName
-          @onAdd new itemVM.ItemVM @typeName, data.item, @mappingRules
+          @onAdd @onCreateItemVM data.item
+
+    onCreateItemVM: (item) ->
+      new itemVM.ItemVM @typeName, item, @mappingRules
 
     _checkEventHandler:(event, name) ->
       eventHandler = $(event.target).attr "data-event-handler"

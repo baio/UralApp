@@ -176,12 +176,16 @@
       };
 
       ODataProvider._getSaveRequestData = function(srcName, item) {
-        var metadata;
+        var metadata, req;
         metadata = ODataProvider._getMetadata(srcName, item);
+        req = ODataProvider._formatRequest(srcName, item, metadata);
+        req.sort(function(a, b) {
+          return a.headers["Content-ID"] - b.headers["Content-ID"];
+        });
         return {
           __batchRequests: [
             {
-              __changeRequests: ODataProvider._formatRequest(srcName, item, metadata)
+              __changeRequests: req
             }
           ]
         };

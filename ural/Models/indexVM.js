@@ -13,15 +13,19 @@
         this.detail = __bind(this.detail, this);
         this.edit = __bind(this.edit, this);
         this.list = ko.observableArray(model.map(function(m) {
-          return new itemVM.ItemVM(_this.typeName, m, _this.mappingRules);
+          return _this.onCreateItemVM(m);
         }));
         this.active = ko.observable();
         pubSub.subOnce("model", "list_changed", this.typeName, function(data) {
           if (data.changeType === "added" && _u.getClassName(data.item) === _this.typeName) {
-            return _this.onAdd(new itemVM.ItemVM(_this.typeName, data.item, _this.mappingRules));
+            return _this.onAdd(_this.onCreateItemVM(data.item));
           }
         });
       }
+
+      IndexVM.prototype.onCreateItemVM = function(item) {
+        return new itemVM.ItemVM(this.typeName, item, this.mappingRules);
+      };
 
       IndexVM.prototype._checkEventHandler = function(event, name) {
         var eventHandler;
