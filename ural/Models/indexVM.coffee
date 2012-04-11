@@ -7,8 +7,12 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
       @active = ko.observable()
 
       pubSub.subOnce "model", "list_changed", @typeName, (data) =>
-        if data.changeType == "added" and _u.getClassName(data.item) == @typeName
-          @onAdd @onCreateItemVM data.item
+        if data.changeType == "added"
+          if _u.getClassName(data.item) == @typeName
+            @onAdded @onCreateItemVM data.item
+        else if data.changeType == "removed"
+          if _u.getClassName(data.itemVM.item) == @typeName
+            @onRemoved data.itemVM
 
     onCreateItemVM: (item) ->
       new itemVM.ItemVM @typeName, item, @mappingRules
@@ -45,16 +49,18 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
     onRemove: (viewModel) ->
       if @active()
         @active().cancel()
-      viewModel.remove (err) =>
-        if !err then @list.remove viewModel
+      viewModel.remove()
 
-    onAdd: (viewModel) ->
+    onAdded: (viewModel) ->
       @list.push viewModel
+
+    onRemoved: (viewModel) ->
+      @list.remove viewModel
 
     replaceAll: (items) ->
       @list.removeAll()
       for item in items
-        @list.push new itemVM.ItemVM @typeName, item, @mappingRules
+        @list.push @onCreateItemVM item
 
 
   IndexVM : IndexVM

@@ -27,16 +27,17 @@
       };
 
       RouterBase.prototype.refresh = function() {
-        var action, controller, controllerName, index, match, regexp,
+        var action, capControllerName, controller, controllerName, index, match, regexp,
           _this = this;
         regexp = new RegExp("#/?(\\w+)/(\\w+)/?(\\w+)?");
         match = this.currentHash.match(regexp);
         controller = match[1];
         action = match[2];
         index = match[3];
-        controllerName = "" + (_.str.capitalize(controller)) + "Controller";
+        controllerName = "" + controller + "Controller";
+        capControllerName = "" + (_.str.capitalize(controller)) + "Controller";
         return require(["" + this.controllerDirectory + "/" + controllerName], function(controllerModule) {
-          eval("new controllerModule." + controllerName + "()." + action + "(" + index + ")");
+          eval("new controllerModule." + capControllerName + "()." + action + "(" + index + ")");
           return _this.onRouteChanged(controller, action);
         });
       };

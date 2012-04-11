@@ -49,11 +49,11 @@
       };
 
       ControllerBase.prototype.onShowDetails = function(id, typeName) {
-        return window.location.hash = "" + typeName + "/item/" + id;
+        return window.location.hash = "" + (typeName.toLowerCase()) + "/item/" + id;
       };
 
       ControllerBase.prototype._getModelModule = function(typeName, callback) {
-        return require(["Models/" + typeName], function(module) {
+        return require(["Models/" + (typeName.toLowerCase())], function(module) {
           return callback(null, module);
         });
       };

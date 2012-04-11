@@ -76,12 +76,14 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
       @onUpdate @item, remove, onDone
 
     remove: (onDone) ->
-      @onRemove @item, onDone
+      @onRemove @item, (err) =>
+        if !err then pubSub.pub "model", "list_changed", itemVM : @, changeType : "removed", isExternal : false
+        if onDone then onDone err, @item
 
   #--- update region
 
     _getModelModule: (callback) ->
-      require ["Models/#{@typeName}"], (module) ->
+      require ["Models/#{@typeName.toLowerCase()}"], (module) ->
         callback null, module
 
     #update item from raw (json data)

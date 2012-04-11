@@ -11,21 +11,22 @@
       function IndexRefVM(typeName, src, mappingRules) {
         var _this = this;
         this.src = src;
+        this._freezeListSubscribe = true;
         IndexRefVM.__super__.constructor.call(this, typeName, this.src(), mappingRules);
         this.src.subscribe(function(newVal) {
           return _this.replaceAll(newVal);
         });
       }
 
-      IndexRefVM.prototype.onCreateItem = function(item) {
-        return new itemRefVM.itemRefVM(this.typeName, item, this.mappingRules);
+      IndexRefVM.prototype.onCreateItemVM = function(item) {
+        return new itemRefVM.ItemRefVM(this.typeName, item, this.mappingRules);
       };
 
-      IndexRefVM.prototype.onAdd = function(viewModel) {
+      IndexRefVM.prototype.onAdded = function(viewModel) {
         return this.src.push(viewModel.item);
       };
 
-      IndexRefVM.prototype.onRemove = function(viewModel) {
+      IndexRefVM.prototype.onRemoved = function(viewModel) {
         return this.src.remove(viewModel.item);
       };
 

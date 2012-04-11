@@ -117,11 +117,21 @@
       };
 
       ItemVM.prototype.remove = function(onDone) {
-        return this.onRemove(this.item, onDone);
+        var _this = this;
+        return this.onRemove(this.item, function(err) {
+          if (!err) {
+            pubSub.pub("model", "list_changed", {
+              itemVM: _this,
+              changeType: "removed",
+              isExternal: false
+            });
+          }
+          if (onDone) return onDone(err, _this.item);
+        });
       };
 
       ItemVM.prototype._getModelModule = function(callback) {
-        return require(["Models/" + this.typeName], function(module) {
+        return require(["Models/" + (this.typeName.toLowerCase())], function(module) {
           return callback(null, module);
         });
       };

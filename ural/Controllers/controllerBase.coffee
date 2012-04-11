@@ -41,10 +41,10 @@ define ["Ural/Modules/DataProvider"
       @onShowDetails model.id(), typeName
 
     onShowDetails: (id, typeName) ->
-      window.location.hash = "#{typeName}/item/#{id}"
+      window.location.hash = "#{typeName.toLowerCase()}/item/#{id}"
 
     _getModelModule: (typeName, callback) ->
-      require ["Models/#{typeName}"], (module) ->
+      require ["Models/#{typeName.toLowerCase()}"], (module) ->
         callback null, module
 
     #convert raw data (json array) to app model array

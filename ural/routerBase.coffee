@@ -19,9 +19,10 @@ define ->
       controller = match[1]
       action = match[2]
       index = match[3]
-      controllerName = "#{_.str.capitalize controller}Controller"
+      controllerName = "#{controller}Controller"
+      capControllerName = "#{_.str.capitalize controller}Controller"
       require ["#{@controllerDirectory}/#{controllerName}"], (controllerModule) =>
-        eval "new controllerModule.#{controllerName}().#{action}(#{index})"
+        eval "new controllerModule.#{capControllerName}().#{action}(#{index})"
         @onRouteChanged controller, action
 
     onRouteChanged: (controller, action) ->

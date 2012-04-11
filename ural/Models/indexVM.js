@@ -17,8 +17,14 @@
         }));
         this.active = ko.observable();
         pubSub.subOnce("model", "list_changed", this.typeName, function(data) {
-          if (data.changeType === "added" && _u.getClassName(data.item) === _this.typeName) {
-            return _this.onAdd(_this.onCreateItemVM(data.item));
+          if (data.changeType === "added") {
+            if (_u.getClassName(data.item) === _this.typeName) {
+              return _this.onAdded(_this.onCreateItemVM(data.item));
+            }
+          } else if (data.changeType === "removed") {
+            if (_u.getClassName(data.itemVM.item) === _this.typeName) {
+              return _this.onRemoved(data.itemVM);
+            }
           }
         });
       }
@@ -62,15 +68,16 @@
       };
 
       IndexVM.prototype.onRemove = function(viewModel) {
-        var _this = this;
         if (this.active()) this.active().cancel();
-        return viewModel.remove(function(err) {
-          if (!err) return _this.list.remove(viewModel);
-        });
+        return viewModel.remove();
       };
 
-      IndexVM.prototype.onAdd = function(viewModel) {
+      IndexVM.prototype.onAdded = function(viewModel) {
         return this.list.push(viewModel);
+      };
+
+      IndexVM.prototype.onRemoved = function(viewModel) {
+        return this.list.remove(viewModel);
       };
 
       IndexVM.prototype.replaceAll = function(items) {
@@ -79,7 +86,7 @@
         _results = [];
         for (_i = 0, _len = items.length; _i < _len; _i++) {
           item = items[_i];
-          _results.push(this.list.push(new itemVM.ItemVM(this.typeName, item, this.mappingRules)));
+          _results.push(this.list.push(this.onCreateItemVM(item)));
         }
         return _results;
       };
