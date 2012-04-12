@@ -9,7 +9,9 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
       pubSub.subOnce "model", "list_changed", @typeName, (data) =>
         if data.changeType == "added"
           if _u.getClassName(data.item) == @typeName
-            @onAdded @onCreateItemVM data.item
+            fromList = @list().filter((i)->i.item == data.item)[0]
+            if !fromList
+              @onAdded @onCreateItemVM data.item
         else if data.changeType == "removed"
           if _u.getClassName(data.itemVM.item) == @typeName
             @onRemoved data.itemVM

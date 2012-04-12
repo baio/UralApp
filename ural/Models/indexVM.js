@@ -17,9 +17,13 @@
         }));
         this.active = ko.observable();
         pubSub.subOnce("model", "list_changed", this.typeName, function(data) {
+          var fromList;
           if (data.changeType === "added") {
             if (_u.getClassName(data.item) === _this.typeName) {
-              return _this.onAdded(_this.onCreateItemVM(data.item));
+              fromList = _this.list().filter(function(i) {
+                return i.item === data.item;
+              })[0];
+              if (!fromList) return _this.onAdded(_this.onCreateItemVM(data.item));
             }
           } else if (data.changeType === "removed") {
             if (_u.getClassName(data.itemVM.item) === _this.typeName) {

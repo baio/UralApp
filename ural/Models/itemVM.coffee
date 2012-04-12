@@ -14,6 +14,7 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
     ###
     Append removed referrences (via comparison with original item)
     ###
+    ###
     getRemovedRefs: -> ItemVM._getRemovedRefs @originItem, @item
 
     @_getRemovedRefs: (origItem, curObservableItem) ->
@@ -40,6 +41,7 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
             subRes = ItemVM._getRemovedRefs val, obj
             if subRes then res = _setProp res, prop, subRes
       res
+    ###
 
     getState: ->
       ItemVM._getState @originItem, @item
@@ -95,7 +97,8 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
         @update (err, item) =>
           if !err
             @_createOrigin()
-            if isAdded then pubSub.pub "model", "list_changed", item : item, changeType : "added", isExternal : false
+            if isAdded
+              pubSub.pub "model", "list_changed", item : item, changeType : "added", isExternal : false
           if @onDone then @onDone err, false
 
     update: (onDone) ->

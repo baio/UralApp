@@ -24,44 +24,34 @@
           Append removed referrences (via comparison with original item)
       */
 
-      ItemVM.prototype.getRemovedRefs = function() {
-        return ItemVM._getRemovedRefs(this.originItem, this.item);
-      };
-
-      ItemVM._getRemovedRefs = function(origItem, curObservableItem) {
-        var curId, obj, prop, removed, res, subRes, val, _setProp;
-        _setProp = function(obj, prop, val) {
-          if (obj == null) obj = {};
-          obj[prop] = val;
-          return obj;
-        };
-        res = null;
-        for (prop in origItem) {
-          if (!__hasProp.call(origItem, prop)) continue;
-          val = origItem[prop];
-          if (val === null || val === void 0) continue;
-          if (Array.isArray(val)) {
-            removed = val.filter(function(v) {
-              return ko.utils.arrayFirst(curObservableItem[prop](), function(i) {
-                return i.id() === v.id;
-              }) === null;
-            }).map(function(v) {
-              return v.id;
-            });
-            if (removed.length) res = _setProp(res, prop, removed);
-          } else if (typeof val === "object") {
-            obj = curObservableItem[prop]();
-            curId = obj.id();
-            if (curId !== val.id && curId === __g.nullRefVal()) {
-              res = _setProp(res, prop, val.id);
-            } else {
-              subRes = ItemVM._getRemovedRefs(val, obj);
-              if (subRes) res = _setProp(res, prop, subRes);
-            }
-          }
-        }
-        return res;
-      };
+      /*
+          getRemovedRefs: -> ItemVM._getRemovedRefs @originItem, @item
+      
+          @_getRemovedRefs: (origItem, curObservableItem) ->
+            _setProp = (obj, prop, val) ->
+              obj ?= {}
+              obj[prop] = val
+              obj
+      
+            res = null
+            for own prop of origItem
+              val = origItem[prop]
+              if val == null or val == undefined then continue
+              if Array.isArray val
+                removed = val.filter((v) -> ko.utils.arrayFirst(curObservableItem[prop](), (i) -> i.id() == v.id) == null)
+                  .map (v) -> v.id
+                if removed.length
+                  res = _setProp res, prop, removed
+              else if typeof val == "object"
+                obj = curObservableItem[prop]()
+                curId = obj.id()
+                if curId != val.id and curId == __g.nullRefVal()
+                  res = _setProp res, prop, val.id
+                else
+                  subRes = ItemVM._getRemovedRefs val, obj
+                  if subRes then res = _setProp res, prop, subRes
+            res
+      */
 
       ItemVM.prototype.getState = function() {
         return ItemVM._getState(this.originItem, this.item);
