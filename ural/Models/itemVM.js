@@ -76,6 +76,14 @@
           _val = observItem[prop]();
           if (prop === "id") {
             res.id = val;
+            if (val !== _val) {
+              if (_val === __g.nullRefVal()) {
+                res.__status = "removed";
+                return res;
+              } else {
+                res[prop] === "modifyed";
+              }
+            }
           } else if (Array.isArray(val)) {
             removed = val.filter(function(v) {
               return ko.utils.arrayFirst(_val, function(i) {

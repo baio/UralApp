@@ -95,6 +95,7 @@
               uri: "" + parentName + "s(" + parentId + ")/$links/" + ref
             };
           } else {
+            if (item.id === __g.nullRefVal()) return res;
             ref = parentId === -1 ? "$" + parentContentId : "" + parentName + "s(" + parentId + ")";
             if (item.id !== -1) {
               /*here actual update of referenced item
@@ -154,12 +155,10 @@
                 res = res.concat(nested);
               }
             } else if (val !== null && typeof val === "object") {
-              if (val.id !== __g.nullRefVal()) {
-                val.__state = item.__state[prop];
-                nested = ODataProvider._formatRequest(prop, val, metadata, name, item.id, cid, totalCount);
-                totalCount += nested.length;
-                res = res.concat(nested);
-              }
+              val.__state = item.__state[prop];
+              nested = ODataProvider._formatRequest(prop, val, metadata, name, item.id, cid, totalCount);
+              totalCount += nested.length;
+              res = res.concat(nested);
             }
           }
         }

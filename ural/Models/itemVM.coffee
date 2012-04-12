@@ -51,6 +51,12 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
         _val = observItem[prop]()
         if prop == "id"
           res.id = val
+          if val != _val
+            if _val == __g.nullRefVal()
+              res.__status = "removed"
+              return res
+            else
+              res[prop] == "modifyed"
         else if Array.isArray val
           removed = val.filter((v) -> ko.utils.arrayFirst(_val, (i) -> i.id() == v.id) == null)
             .map (v) -> v.id

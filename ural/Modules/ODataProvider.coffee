@@ -53,6 +53,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
           ref = if !isArrayProp then name else "#{typeName}s(#{item.id})"
           data = method: "DELETE", uri: "#{parentName}s(#{parentId})/$links/#{ref}"
         else
+          if item.id == __g.nullRefVal() then return res
           ref = if parentId == -1 then "$#{parentContentId}" else "#{parentName}s(#{parentId})"
           if item.id != -1
             ###here actual update of referenced item###
@@ -89,7 +90,6 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
               totalCount += nested.length
               res = res.concat nested
           else if val != null and typeof val == "object"
-            if val.id != __g.nullRefVal()
               val.__state = item.__state[prop]
               nested = ODataProvider._formatRequest prop, val, metadata, name, item.id, cid, totalCount
               totalCount += nested.length
