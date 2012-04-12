@@ -5,7 +5,7 @@ define ["Ural/Models/itemVM"], (itemVM) ->
     constructor: (typeName, item, mappingRules) ->
       super typeName, item, mappingRules
 
-    onUpdate: (item, remove, onDone) ->
+    onUpdate: (item, state, onDone) ->
       onDone null, item
 
     onRemove: (item, onDone) ->

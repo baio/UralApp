@@ -63,6 +63,48 @@
         return res;
       };
 
+      ItemVM.prototype.getState = function() {
+        return ItemVM._getState(this.originItem, this.item);
+      };
+
+      ItemVM._getState = function(item, observItem) {
+        var prop, r, removed, res, val, _i, _len, _val;
+        res = {};
+        for (prop in item) {
+          if (!__hasProp.call(item, prop)) continue;
+          val = item[prop];
+          _val = observItem[prop]();
+          if (prop === "id") {
+            res.id = val;
+          } else if (Array.isArray(val)) {
+            removed = val.filter(function(v) {
+              return ko.utils.arrayFirst(_val, function(i) {
+                return i.id() === v.id;
+              }) === null;
+            }).map(function(v) {
+              return v.id;
+            });
+            res[prop] = _val.map(function(v) {
+              return ItemVM._getState(val.filter(function(f) {
+                return f.id === v.id();
+              })[0], v);
+            });
+            for (_i = 0, _len = removed.length; _i < _len; _i++) {
+              r = removed[_i];
+              res[prop].push({
+                id: r,
+                __status: "removed"
+              });
+            }
+          } else if (typeof val === "object") {
+            res[prop] = ItemVM._getState(val, _val);
+          } else {
+            res[prop] = val !== _val ? "modifyed" : "unchanged";
+          }
+        }
+        return res;
+      };
+
       ItemVM.prototype.edit = function(onDone) {
         this.onDone = onDone;
         if (this.originItem) throw "item already in edit state";
@@ -110,10 +152,7 @@
       };
 
       ItemVM.prototype.update = function(onDone) {
-        var remove;
-        remove = this.getRemovedRefs();
-        if (remove == null) remove = {};
-        return this.onUpdate(this.item, remove, onDone);
+        return this.onUpdate(this.item, this.getState(), onDone);
       };
 
       ItemVM.prototype.remove = function(onDone) {
@@ -174,11 +213,12 @@
         return res;
       };
 
-      ItemVM.prototype.onUpdate = function(item, remove, onDone) {
+      ItemVM.prototype.onUpdate = function(item, state, onDone) {
         var dataForSave,
           _this = this;
         if (Array.isArray(item)) throw "upade of multiple items is not supported!";
-        dataForSave = ItemVM._prepareDataForSave(this._mapToData(item), remove);
+        dataForSave = this._mapToData(item);
+        dataForSave.__state = state;
         return async.waterfall([
           function(ck) {
             return dataProvider.get().save(_this.typeName, dataForSave, ck);

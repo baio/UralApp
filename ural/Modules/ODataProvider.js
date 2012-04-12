@@ -42,11 +42,11 @@
       };
 
       ODataProvider._isDelete = function(item) {
-        return item && item.__action === "delete";
+        return item && item.__state && item.__state.__status === "removed";
       };
 
       ODataProvider._formatRequest = function(name, item, metadata, parentName, parentId, parentContentId, totalCount) {
-        var cid, data, expnads, flattered, i, isArrayProp, isDelete, nested, prop, ref, res, typeName, val, _i, _len;
+        var cid, data, expnads, flattered, i, isArrayProp, isDelete, ix, nested, prop, ref, res, states, typeName, val, _len;
         res = [];
         expnads = [];
         if (totalCount == null) totalCount = 1;
@@ -103,7 +103,7 @@
                 headers: {
                   "Content-ID": cid
                 },
-                requestUri: "" + name + "(" + item.id + ")",
+                requestUri: "" + typeName + "s(" + item.id + ")",
                 method: "PUT",
                 data: flattered
               });
@@ -137,16 +137,25 @@
         if (!isDelete) {
           for (prop in item) {
             if (!__hasProp.call(item, prop)) continue;
+            if (prop === "__state") continue;
             val = item[prop];
             if (Array.isArray(val)) {
-              for (_i = 0, _len = val.length; _i < _len; _i++) {
-                i = val[_i];
+              states = item.__state[prop];
+              if (states) {
+                val = val.concat(states.filter(function(v) {
+                  return v.__status === "removed";
+                }));
+              }
+              for (ix = 0, _len = val.length; ix < _len; ix++) {
+                i = val[ix];
+                if (states) i.__state = states[ix];
                 nested = ODataProvider._formatRequest(prop, i, metadata, name, item.id, cid, totalCount);
                 totalCount += nested.length;
                 res = res.concat(nested);
               }
             } else if (val !== null && typeof val === "object") {
               if (val.id !== __g.nullRefVal()) {
+                val.__state = item.__state[prop];
                 nested = ODataProvider._formatRequest(prop, val, metadata, name, item.id, cid, totalCount);
                 totalCount += nested.length;
                 res = res.concat(nested);
@@ -195,9 +204,8 @@
       };
 
       ODataProvider._getSaveRequestData = function(srcName, item) {
-        var metadata, req;
-        metadata = ODataProvider._getMetadata(srcName, item);
-        req = ODataProvider._formatRequest(srcName, item, metadata);
+        var req;
+        req = ODataProvider._formatRequest(srcName, item);
         req.sort(function(a, b) {
           return a.headers["Content-ID"] - b.headers["Content-ID"];
         });
@@ -267,7 +275,9 @@
       ODataProvider.prototype["delete"] = function(srcName, id, callback) {
         return this.save(srcName, {
           id: id,
-          __action: "delete"
+          __state: {
+            __status: "removed"
+          }
         }, callback);
       };
 

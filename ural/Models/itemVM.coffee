@@ -41,6 +41,28 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
             if subRes then res = _setProp res, prop, subRes
       res
 
+    getState: ->
+      ItemVM._getState @originItem, @item
+
+    @_getState: (item, observItem)->
+      res = {}
+      for own prop of item
+        val = item[prop]
+        _val = observItem[prop]()
+        if prop == "id"
+          res.id = val
+        else if Array.isArray val
+          removed = val.filter((v) -> ko.utils.arrayFirst(_val, (i) -> i.id() == v.id) == null)
+            .map (v) -> v.id
+          res[prop] = _val.map (v) -> ItemVM._getState val.filter((f)-> f.id == v.id())[0], v
+          res[prop].push id : r , __status : "removed" for r in removed
+        else if typeof val == "object"
+          res[prop] = ItemVM._getState val, _val
+        else
+          res[prop] = if val != _val then "modifyed" else "unchanged"
+
+      res
+
     edit: (@onDone) ->
       if @originItem then throw "item already in edit state"
       @_createOrigin()
@@ -71,9 +93,10 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
           if @onDone then @onDone err, false
 
     update: (onDone) ->
-      remove = @getRemovedRefs()
-      remove ?= {}
-      @onUpdate @item, remove, onDone
+      #remove = @getRemovedRefs()
+      #remove ?= {}
+      #fieldStates = @getFieldsStates()
+      @onUpdate @item, @getState(), onDone
 
     remove: (onDone) ->
       @onRemove @item, (err) =>
@@ -112,9 +135,11 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
           res[prop].__action = "delete"
       res
 
-    onUpdate: (item, remove, onDone) ->
+    onUpdate: (item, state, onDone) ->
       if Array.isArray item then throw "upade of multiple items is not supported!"
-      dataForSave = ItemVM._prepareDataForSave @_mapToData(item), remove
+      #dataForSave = ItemVM._prepareDataForSave @_mapToData(item), remove
+      dataForSave = @_mapToData(item)
+      dataForSave.__state = state
       async.waterfall [
         (ck) =>
           dataProvider.get().save @typeName, dataForSave, ck

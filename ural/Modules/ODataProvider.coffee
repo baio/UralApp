@@ -19,12 +19,9 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
           obj[prop] = ODataProvider._parse item[prop]
       obj
 
-    @_isDelete: (item) -> item and item.__action == "delete"
+    @_isDelete: (item) -> item and item.__state and item.__state.__status == "removed"
 
     @_formatRequest: (name, item, metadata, parentName, parentId, parentContentId, totalCount) ->
-      #only root item could be deleted
-      #nested items, marked for delete (id!=-2) - just remove realtion
-      #nested item - either new link (id!=-1) or new item + new link (id==-1)
       res = []
       expnads = []
       totalCount ?= 1
@@ -61,7 +58,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
             ###here actual update of referenced item###
             res.push
               headers: {"Content-ID": cid}
-              requestUri: "#{name}(#{item.id})"
+              requestUri: "#{typeName}s(#{item.id})"
               method: "PUT"
               data: flattered
             cid++
@@ -81,14 +78,19 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
 
       if !isDelete
         for own prop of item
+          if prop == "__state" then continue
           val = item[prop]
           if Array.isArray val
-            for i in val
+            states = item.__state[prop]
+            val = val.concat states.filter((v) -> v.__status == "removed") if states
+            for i, ix in val
+              i.__state = states[ix] if states
               nested = ODataProvider._formatRequest prop, i, metadata, name, item.id, cid, totalCount
               totalCount += nested.length
               res = res.concat nested
           else if val != null and typeof val == "object"
             if val.id != __g.nullRefVal()
+              val.__state = item.__state[prop]
               nested = ODataProvider._formatRequest prop, val, metadata, name, item.id, cid, totalCount
               totalCount += nested.length
               res = res.concat nested
@@ -126,8 +128,8 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
       null
 
     @_getSaveRequestData: (srcName, item) ->
-      metadata = ODataProvider._getMetadata srcName, item
-      req = ODataProvider._formatRequest srcName, item, metadata
+      #metadata = ODataProvider._getMetadata srcName, item
+      req = ODataProvider._formatRequest srcName, item #, metadata
       req.sort (a, b) -> a.headers["Content-ID"] - b.headers["Content-ID"]
       __batchRequests: [
         __changeRequests: req
@@ -167,7 +169,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         , OData.batchHandler
 
     delete: (srcName, id, callback) ->
-      @save srcName, {id : id, __action : "delete"}, callback
+      @save srcName, {id : id, __state : {__status : "removed"} } , callback
 
   dataProvider: new ODataProvider()
 

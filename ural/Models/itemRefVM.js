@@ -12,7 +12,7 @@
         ItemRefVM.__super__.constructor.call(this, typeName, item, mappingRules);
       }
 
-      ItemRefVM.prototype.onUpdate = function(item, remove, onDone) {
+      ItemRefVM.prototype.onUpdate = function(item, state, onDone) {
         return onDone(null, item);
       };
 
