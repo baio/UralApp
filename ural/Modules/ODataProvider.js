@@ -46,7 +46,7 @@
       };
 
       ODataProvider._formatRequest = function(name, item, metadata, parentName, parentId, parentContentId, totalCount) {
-        var cid, data, expnads, flattered, i, isArrayProp, isDelete, links, nested, prop, ref, res, typeName, val, _i, _len;
+        var cid, data, expnads, flattered, i, isArrayProp, isDelete, nested, prop, ref, res, typeName, val, _i, _len;
         res = [];
         expnads = [];
         if (totalCount == null) totalCount = 1;
@@ -57,23 +57,9 @@
           for (prop in item) {
             if (!__hasProp.call(item, prop)) continue;
             val = item[prop];
-            if (Array.isArray(val)) {
-              for (_i = 0, _len = val.length; _i < _len; _i++) {
-                i = val[_i];
-                nested = ODataProvider._formatRequest(prop, i, metadata, name, item.id, cid, totalCount + 1);
-                totalCount += nested.length;
-                res = res.concat(nested);
-              }
-              val = null;
-            } else if (val !== null && typeof val === "object") {
-              if (val.id !== __g.nullRefVal()) {
-                nested = ODataProvider._formatRequest(prop, val, metadata, name, item.id, cid, totalCount + 1);
-                totalCount += nested.length;
-                res = res.concat(nested);
-              }
-              val = null;
+            if (val !== null && typeof val !== "object" && !Array.isArray(val)) {
+              flattered[prop] = val;
             }
-            if (val !== null) flattered[prop] = val;
           }
         }
         typeName = name.replace(/^(.*)s$/, "$1");
@@ -111,6 +97,19 @@
           } else {
             ref = parentId === -1 ? "$" + parentContentId : "" + parentName + "s(" + parentId + ")";
             if (item.id !== -1) {
+              /*here actual update of referenced item
+              */
+              res.push({
+                headers: {
+                  "Content-ID": cid
+                },
+                requestUri: "" + name + "(" + item.id + ")",
+                method: "PUT",
+                data: flattered
+              });
+              cid++;
+              /*here update link to referenced item
+              */
               data = {
                 method: (isArrayProp ? "POST" : "PUT"),
                 uri: "" + ref + "/$links/" + name
@@ -119,10 +118,9 @@
                 uri: "" + typeName + "s(" + item.id + ")"
               };
             } else {
-              links = item.id !== -1 ? "$links/" : "";
               data = {
                 method: "POST",
-                uri: "" + ref + "/" + links + name
+                uri: "" + ref + "/" + name
               };
             }
           }
@@ -135,7 +133,28 @@
           method: data.method,
           data: flattered
         });
-        return res.reverse();
+        totalCount += res.length;
+        if (!isDelete) {
+          for (prop in item) {
+            if (!__hasProp.call(item, prop)) continue;
+            val = item[prop];
+            if (Array.isArray(val)) {
+              for (_i = 0, _len = val.length; _i < _len; _i++) {
+                i = val[_i];
+                nested = ODataProvider._formatRequest(prop, i, metadata, name, item.id, cid, totalCount);
+                totalCount += nested.length;
+                res = res.concat(nested);
+              }
+            } else if (val !== null && typeof val === "object") {
+              if (val.id !== __g.nullRefVal()) {
+                nested = ODataProvider._formatRequest(prop, val, metadata, name, item.id, cid, totalCount);
+                totalCount += nested.length;
+                res = res.concat(nested);
+              }
+            }
+          }
+        }
+        return res;
       };
 
       ODataProvider.prototype.load = function(srcName, filter, callback) {

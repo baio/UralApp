@@ -35,19 +35,8 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         flattered = {}
         for own prop of item
           val = item[prop]
-          if Array.isArray val
-            for i in val
-              nested = ODataProvider._formatRequest prop, i, metadata, name, item.id, cid, totalCount + 1
-              totalCount += nested.length
-              res = res.concat nested
-            val = null
-          else if val != null and typeof val == "object"
-            if val.id != __g.nullRefVal()
-              nested = ODataProvider._formatRequest prop, val, metadata, name, item.id, cid, totalCount + 1
-              totalCount += nested.length
-              res = res.concat nested
-            val = null
-          if val != null then flattered[prop] = val
+          if val != null and typeof val != "object" and !Array.isArray val
+            flattered[prop] = val
 
       typeName = name.replace /^(.*)s$/, "$1"
       isArrayProp = typeName != name
@@ -69,18 +58,42 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
         else
           ref = if parentId == -1 then "$#{parentContentId}" else "#{parentName}s(#{parentId})"
           if item.id != -1
+            ###here actual update of referenced item###
+            res.push
+              headers: {"Content-ID": cid}
+              requestUri: "#{name}(#{item.id})"
+              method: "PUT"
+              data: flattered
+            cid++
+            ###here update link to referenced item###
             data = method: (if isArrayProp then "POST" else "PUT"), uri: "#{ref}/$links/#{name}"
             flattered = uri : "#{typeName}s(#{item.id})"
           else
-            links = if item.id != -1 then "$links/" else ""
-            data = method: "POST", uri: "#{ref}/#{links}#{name}"
+            data = method: "POST", uri: "#{ref}/#{name}"
 
       res.push
         headers: {"Content-ID": cid}
         requestUri: data.uri
         method: data.method
         data: flattered
-      res.reverse()
+
+      totalCount += res.length
+
+      if !isDelete
+        for own prop of item
+          val = item[prop]
+          if Array.isArray val
+            for i in val
+              nested = ODataProvider._formatRequest prop, i, metadata, name, item.id, cid, totalCount
+              totalCount += nested.length
+              res = res.concat nested
+          else if val != null and typeof val == "object"
+            if val.id != __g.nullRefVal()
+              nested = ODataProvider._formatRequest prop, val, metadata, name, item.id, cid, totalCount
+              totalCount += nested.length
+              res = res.concat nested
+
+      res
 
     load: (srcName, filter, callback) ->
       stt = @_getStatement srcName, filter
