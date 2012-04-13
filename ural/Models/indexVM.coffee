@@ -2,9 +2,9 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
 
   class IndexVM
 
-    constructor: (@typeName) ->
+    constructor: (@typeName, list) ->
       @active = ko.observable()
-      @list = ko.observableArray()
+      @list = if !list then ko.observableArray() else list
       pubSub.subOnce "model", "list_changed", @typeName, (data) =>
         if data.changeType == "added"
           if _u.getClassName(data.itemVM.item) == @typeName
@@ -21,13 +21,15 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
           item = @onCreateItemVM()
           item.map d, true, ck
         , (err, ivms) =>
-          if !err
-            @list.removeAll()
-            @list.push ivm for ivm in ivms
+          if !err then @_updateList ivms
           onDone err, @
 
-    onCreateItemVM: ->
-      new itemVM.ItemVM @typeName
+    _updateList: (items) ->
+      @list.removeAll()
+      @list.push ivm for ivm in items
+
+    onCreateItemVM: (item)->
+      new itemVM.ItemVM @typeName, item
 
     _checkEventHandler:(event, name) ->
       eventHandler = $(event.target).attr "data-event-handler"
@@ -73,9 +75,21 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
       @list.remove viewModel
 
     replaceAll: (items) ->
-      @list.removeAll()
-      for item in items
-        @list.push @onCreateItemVM item
+      @_updateList items.map (i) =>
+        vm = @onCreateItemVM()
+        vm.item = i
+        vm
 
+      ###
+      async.map items
+        ,(i, ck) =>
+          vm = @onCreateItemVM()
+          vm.item = i
+          vm.map d, true, ck
+          #----
+        ,(err, items) =>
+          if !err then @_updateList items
+          if onDone then onDone err, @
+      ###
 
   IndexVM : IndexVM

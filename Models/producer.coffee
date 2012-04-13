@@ -6,6 +6,8 @@ define ["Models/product", "Ural/Models/indexRefVM"], (product, indexRefVM) ->
       @name = ko.observable()
       @Products = ko.observableArray()
 
+      ko.mapping.fromJS __metadata.def, __metadata.mapping, @
+
   __metadata =
     mapping :
       name :

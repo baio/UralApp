@@ -2,8 +2,8 @@ define ["Ural/Models/itemVM"], (itemVM) ->
 
   class ItemRefVM extends itemVM.ItemVM
 
-    constructor: (@indexRefVM, typeName, item, mappingRules) ->
-      super typeName, item, mappingRules
+    constructor: (@indexRefVM, typeName) ->
+      super typeName
 
     ###
     save: (data, event, saveMode) ->
@@ -13,10 +13,10 @@ define ["Ural/Models/itemVM"], (itemVM) ->
         super data, event
     ###
 
-    onUpdate: (item, state, onDone) ->
-      onDone null, item
+    onUpdate: (state, onDone) ->
+      onDone null, @item
 
-    onRemove: (item, onDone) ->
-      onDone null, item
+    onRemove: (onDone) ->
+      onDone null, @item
 
   ItemRefVM : ItemRefVM

@@ -8,18 +8,19 @@
 
       __extends(IndexRefVM, _super);
 
-      function IndexRefVM(parentItemVM, typeName, src, mappingRules) {
+      function IndexRefVM(parentItemVM, typeName, src) {
         var _this = this;
         this.parentItemVM = parentItemVM;
         this.src = src;
-        IndexRefVM.__super__.constructor.call(this, typeName, this.src(), mappingRules);
+        IndexRefVM.__super__.constructor.call(this, typeName);
+        this.replaceAll(this.src());
         this.src.subscribe(function(newVal) {
           return _this.replaceAll(newVal);
         });
       }
 
       IndexRefVM.prototype.onCreateItemVM = function(item) {
-        return new itemRefVM.ItemRefVM(this, this.typeName, item, this.mappingRules);
+        return new itemRefVM.ItemRefVM(this, this.typeName, item);
       };
 
       IndexRefVM.prototype.onAdded = function(viewModel) {

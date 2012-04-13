@@ -5,14 +5,14 @@
     var IndexVM;
     IndexVM = (function() {
 
-      function IndexVM(typeName) {
+      function IndexVM(typeName, list) {
         var _this = this;
         this.typeName = typeName;
         this.remove = __bind(this.remove, this);
         this.detail = __bind(this.detail, this);
         this.edit = __bind(this.edit, this);
         this.active = ko.observable();
-        this.list = ko.observableArray();
+        this.list = !list ? ko.observableArray() : list;
         pubSub.subOnce("model", "list_changed", this.typeName, function(data) {
           var fromList;
           if (data.changeType === "added") {
@@ -37,20 +37,24 @@
           item = _this.onCreateItemVM();
           return item.map(d, true, ck);
         }, function(err, ivms) {
-          var ivm, _i, _len;
-          if (!err) {
-            _this.list.removeAll();
-            for (_i = 0, _len = ivms.length; _i < _len; _i++) {
-              ivm = ivms[_i];
-              _this.list.push(ivm);
-            }
-          }
+          if (!err) _this._updateList(ivms);
           return onDone(err, _this);
         });
       };
 
-      IndexVM.prototype.onCreateItemVM = function() {
-        return new itemVM.ItemVM(this.typeName);
+      IndexVM.prototype._updateList = function(items) {
+        var ivm, _i, _len, _results;
+        this.list.removeAll();
+        _results = [];
+        for (_i = 0, _len = items.length; _i < _len; _i++) {
+          ivm = items[_i];
+          _results.push(this.list.push(ivm));
+        }
+        return _results;
+      };
+
+      IndexVM.prototype.onCreateItemVM = function(item) {
+        return new itemVM.ItemVM(this.typeName, item);
       };
 
       IndexVM.prototype._checkEventHandler = function(event, name) {
@@ -104,14 +108,24 @@
       };
 
       IndexVM.prototype.replaceAll = function(items) {
-        var item, _i, _len, _results;
-        this.list.removeAll();
-        _results = [];
-        for (_i = 0, _len = items.length; _i < _len; _i++) {
-          item = items[_i];
-          _results.push(this.list.push(this.onCreateItemVM(item)));
-        }
-        return _results;
+        var _this = this;
+        return this._updateList(items.map(function(i) {
+          var vm;
+          vm = _this.onCreateItemVM();
+          vm.item = i;
+          return vm;
+        }));
+        /*
+              async.map items
+                ,(i, ck) =>
+                  vm = @onCreateItemVM()
+                  vm.item = i
+                  vm.map d, true, ck
+                  #----
+                ,(err, items) =>
+                  if !err then @_updateList items
+                  if onDone then onDone err, @
+        */
       };
 
       return IndexVM;

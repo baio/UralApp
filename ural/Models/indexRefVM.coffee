@@ -2,14 +2,14 @@ define ["Ural/Models/indexVM", "Ural/Models/itemRefVM"], (indexVM, itemRefVM) ->
 
   class IndexRefVM extends indexVM.IndexVM
 
-    constructor: (@parentItemVM, typeName, @src, mappingRules) ->
-      super typeName, @src(), mappingRules
-
+    constructor: (@parentItemVM, typeName, @src) ->
+      super typeName
+      @replaceAll @src()
       @src.subscribe (newVal) =>
         @replaceAll newVal
 
     onCreateItemVM: (item) ->
-      new itemRefVM.ItemRefVM @, @typeName, item, @mappingRules
+      new itemRefVM.ItemRefVM @, @typeName, item
 
     onAdded: (viewModel) ->
       @src.push viewModel.item

@@ -8,6 +8,7 @@
         this.id = ko.observable();
         this.name = ko.observable();
         this.Products = ko.observableArray();
+        ko.mapping.fromJS(__metadata.def, __metadata.mapping, this);
       }
 
       return Producer;

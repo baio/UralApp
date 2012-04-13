@@ -12,6 +12,7 @@
         this.comp = ko.computed((function() {
           return this.id() + " " + this.name() + "foo";
         }), this);
+        ko.mapping.fromJS(__metadata.def, __metadata.mapping, this);
       }
 
       return Product;

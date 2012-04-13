@@ -1,4 +1,4 @@
-define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub", "Ural/Models/indexVM"], (dataProvider, pubSub, indexVM) ->
+define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubSub) ->
 
   class ItemVM
 
@@ -18,11 +18,15 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub", "Ural/Models/indexVM
           @item = new module.ModelConstructor()
           ko.mapping.fromJS (if data then data else meta.def), meta.mapping, @item
           if meta.viewModels
-            for viewModel in meta.viewModels
-              @[viewModel.name] = new indexRefVM.IndexRefVM @, viewModel.typeName, viewModel.field
+            require ["Ural/Models/indexRefVM"], (indexRefVM) =>
+              for viewModel in meta.viewModels
+                @item[viewModel.name] = new indexRefVM.IndexRefVM @, viewModel.typeName, @item[viewModel.field]
+              onDone null, @
+          else
+            onDone null, @
         else
           ko.mapping.fromJS data, meta.mapping, @item
-        onDone null, @
+          onDone null, @
 
     _createOrigin: ->
       @originItem = ko.mapping.toJS @item

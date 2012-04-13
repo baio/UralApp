@@ -8,9 +8,9 @@
 
       __extends(ItemRefVM, _super);
 
-      function ItemRefVM(indexRefVM, typeName, item, mappingRules) {
+      function ItemRefVM(indexRefVM, typeName) {
         this.indexRefVM = indexRefVM;
-        ItemRefVM.__super__.constructor.call(this, typeName, item, mappingRules);
+        ItemRefVM.__super__.constructor.call(this, typeName);
       }
 
       /*
@@ -21,12 +21,12 @@
               super data, event
       */
 
-      ItemRefVM.prototype.onUpdate = function(item, state, onDone) {
-        return onDone(null, item);
+      ItemRefVM.prototype.onUpdate = function(state, onDone) {
+        return onDone(null, this.item);
       };
 
-      ItemRefVM.prototype.onRemove = function(item, onDone) {
-        return onDone(null, item);
+      ItemRefVM.prototype.onRemove = function(onDone) {
+        return onDone(null, this.item);
       };
 
       return ItemRefVM;

@@ -8,18 +8,25 @@
         this.newProduct = ko.observable();
       }
 
-      ItemToolbox.prototype.addProduct = function(data, event, indexRefVM) {
-        var ivm, vm,
+      ItemToolbox.prototype._add = function(data, event, indexRefVM, typeName, prop) {
+        var ivm,
           _this = this;
         event.preventDefault();
-        vm = new product.ModelConstructor();
-        ivm = new itemRefVM.ItemRefVM(indexRefVM, "Product", vm, product.mappingRules);
-        ivm.edit(function() {
-          pubSub.pub("model", "end_create", ivm.item);
-          return _this.newProduct(ivm);
+        ivm = new itemRefVM.ItemRefVM(indexRefVM, typeName);
+        return ivm.map(null, true, function(err) {
+          if (!err) {
+            ivm.edit(function() {
+              pubSub.pub("model", "end_create", ivm.item);
+              return prop(ivm);
+            });
+            prop(ivm);
+            return pubSub.pub("model", "create", ivm.item);
+          }
         });
-        this.newProduct(ivm);
-        return pubSub.pub("model", "create", vm);
+      };
+
+      ItemToolbox.prototype.addProduct = function(data, event, indexRefVM) {
+        return this._add(data, event, indexRefVM, "Product", this.newProduct);
       };
 
       return ItemToolbox;

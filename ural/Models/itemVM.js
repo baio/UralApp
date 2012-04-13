@@ -1,7 +1,7 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(["Ural/Modules/DataProvider", "Ural/Modules/PubSub", "Ural/Models/indexVM"], function(dataProvider, pubSub, indexVM) {
+  define(["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], function(dataProvider, pubSub) {
     var ItemVM;
     ItemVM = (function() {
 
@@ -14,7 +14,7 @@
       ItemVM.prototype.map = function(data, ini, onDone) {
         var _this = this;
         return require(["Models/" + (this.typeName.toLowerCase())], function(module) {
-          var meta, viewModel, _i, _len, _ref;
+          var meta;
           meta = module.metadata;
           if (!meta) throw "not impl: meta must be defined";
           if (!meta.mapping) throw "not impl: mapping must be defined";
@@ -24,16 +24,22 @@
             _this.item = new module.ModelConstructor();
             ko.mapping.fromJS((data ? data : meta.def), meta.mapping, _this.item);
             if (meta.viewModels) {
-              _ref = meta.viewModels;
-              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                viewModel = _ref[_i];
-                _this[viewModel.name] = new indexRefVM.IndexRefVM(_this, viewModel.typeName, viewModel.field);
-              }
+              return require(["Ural/Models/indexRefVM"], function(indexRefVM) {
+                var viewModel, _i, _len, _ref;
+                _ref = meta.viewModels;
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                  viewModel = _ref[_i];
+                  _this.item[viewModel.name] = new indexRefVM.IndexRefVM(_this, viewModel.typeName, _this.item[viewModel.field]);
+                }
+                return onDone(null, _this);
+              });
+            } else {
+              return onDone(null, _this);
             }
           } else {
             ko.mapping.fromJS(data, meta.mapping, _this.item);
+            return onDone(null, _this);
           }
-          return onDone(null, _this);
         });
       };
 

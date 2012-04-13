@@ -8,6 +8,8 @@ define ["Models/tag"], (tag) ->
       @Producer = ko.observable()
       @comp = ko.computed (-> @id() + " " + @name() + "foo"), @
 
+      ko.mapping.fromJS __metadata.def, __metadata.mapping, @
+
   __metadata =
     def:
       id : -1
