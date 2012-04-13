@@ -52,46 +52,33 @@
         return window.location.hash = "" + (typeName.toLowerCase()) + "/item/" + id;
       };
 
-      ControllerBase.prototype._getModelModule = function(typeName, callback) {
-        return require(["Models/" + (typeName.toLowerCase())], function(module) {
-          return callback(null, module);
-        });
-      };
-
-      ControllerBase.prototype._mapToItems = function(data, modelModule) {
-        return data.map(function(d) {
-          return ko.mapping.fromJS(d, modelModule.mappingRules, new modelModule.ModelConstructor());
-        });
-      };
-
       ControllerBase.prototype.index = function(filter, onDone) {
-        var _this = this;
+        var viewModel,
+          _this = this;
         if (filter == null) filter = {};
         if (filter.$expand == null) filter.$expand = "$index";
+        viewModel = this.onCreateIndexViewModel();
         return async.waterfall([
           function(ck) {
             return dataProvider.get().load(_this.modelName, filter, ck);
           }, function(data, ck) {
-            return _this._getModelModule(_this.modelName, function(err, modelModule) {
-              return ck(err, data, modelModule);
-            });
-          }, function(data, modelModule, ck) {
-            var model, viewModel;
-            model = _this._mapToItems(data, modelModule);
-            viewModel = _this.onCreateIndexViewModel(model, modelModule);
-            return _this.view(viewModel, "index", _this.defaultIndexLayout, function(err) {
-              return ck(err, viewModel);
-            });
+            return viewModel.map(data, ck);
+          }, function(list, ck) {
+            return _this.view(viewModel, "index", _this.defaultIndexLayout, ck);
           }
-        ], onDone);
+        ], function(err) {
+          if (onDone) return onDone(err, viewModel);
+        });
       };
 
-      ControllerBase.prototype.onCreateIndexViewModel = function(model, modelModule) {
-        return new indexVM.IndexVM(this.modelName, model, modelModule.mappingRules);
+      ControllerBase.prototype.onCreateIndexViewModel = function() {
+        return new indexVM.IndexVM(this.modelName);
       };
 
       ControllerBase.prototype.item = function(id, onDone) {
-        var _this = this;
+        var viewModel,
+          _this = this;
+        viewModel = this.onCreateItemViewModel();
         return async.waterfall([
           function(ck) {
             return dataProvider.get().load(_this.modelName, {
@@ -101,23 +88,18 @@
               $expand: "$item"
             }, ck);
           }, function(data, ck) {
-            return _this._getModelModule(_this.modelName, function(err, modelModule) {
-              return ck(err, data, modelModule);
-            });
-          }, function(data, modelModule, ck) {
-            var model, viewModel;
-            model = _this._mapToItems(data, modelModule);
-            viewModel = _this.onCreateItemViewModel(model[0], modelModule.mappingRules);
-            return _this.view(viewModel, "item", _this.defaultItemLayout, function(err) {
-              viewModel.edit();
-              return ck(err, viewModel);
-            });
+            return viewModel.map(data[0], true, ck);
+          }, function(item, ck) {
+            return _this.view(viewModel, "item", _this.defaultItemLayout, ck);
           }
-        ], onDone);
+        ], function(err) {
+          viewModel.edit();
+          if (onDone) return onDone(err, viewModel);
+        });
       };
 
-      ControllerBase.prototype.onCreateItemViewModel = function(model, modelModule) {
-        return new itemVM.ItemVM(this.modelName, model, modelModule.mappingRules);
+      ControllerBase.prototype.onCreateItemViewModel = function() {
+        return new itemVM.ItemVM(this.modelName);
       };
 
       ControllerBase.prototype.view = function(viewModel, viewPath, layoutViewPath, onDone) {

@@ -9,32 +9,30 @@
         this.newProducer = ko.observable();
       }
 
-      IndexToolbox.prototype.createProduct = function(data, event) {
-        var ivm, vm,
+      IndexToolbox.prototype._create = function(data, event, typeName, prop) {
+        var ivm,
           _this = this;
         event.preventDefault();
-        vm = new product.ModelConstructor();
-        ivm = new itemVM.ItemVM("Product", vm, product.mappingRules);
-        ivm.edit(function() {
-          pubSub.pub("model", "end_create", ivm.item);
-          return _this.newProduct(ivm);
+        ivm = new itemVM.ItemVM(typeName);
+        return ivm.map(null, true, function(err) {
+          if (!err) {
+            ivm.edit(function() {
+              ivm.endEdit();
+              pubSub.pub("model", "end_create", ivm.item);
+              return prop(ivm);
+            });
+            prop(ivm);
+            return pubSub.pub("model", "create", ivm.item);
+          }
         });
-        this.newProduct(ivm);
-        return pubSub.pub("model", "create", vm);
+      };
+
+      IndexToolbox.prototype.createProduct = function(data, event) {
+        return this._create(data, event, "Product", this.newProduct);
       };
 
       IndexToolbox.prototype.createProducer = function(data, event) {
-        var ivm, vm,
-          _this = this;
-        event.preventDefault();
-        vm = new producer.ModelConstructor();
-        ivm = new itemVM.ItemVM("Producer", vm, producer.mappingRules);
-        ivm.edit(function() {
-          pubSub.pub("model", "end_create", ivm.item);
-          return _this.newProducer(ivm);
-        });
-        this.newProducer(ivm);
-        return pubSub.pub("model", "create", vm);
+        return this._create(data, event, "Producer", this.newProducer);
       };
 
       return IndexToolbox;

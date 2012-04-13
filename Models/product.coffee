@@ -8,22 +8,20 @@ define ["Models/tag"], (tag) ->
       @Producer = ko.observable()
       @comp = ko.computed (-> @id() + " " + @name() + "foo"), @
 
-      ko.mapping.fromJS def(), mappingRules(), @  #move to ItemVM
-
-  mappingRules = ->
-    name :
-      update: (opts) -> opts.data
-    Tags :
-      update: (opts) -> ko.mapping.fromJS opts.data, tag.mappingRules, new tag.ModelConstructor()
-    Producer :
-      update: (opts) -> ko.mapping.fromJS opts.data, tag.mappingRules, new tag.ModelConstructor()
-
-  def = ->
-    id : -1
-    name : null
-    Tags : []
-    Producer : {id : __g.nullRefVal(), name : null}
+  __metadata =
+    def:
+      id : -1
+      name : null
+      Tags : []
+      Producer : {id : __g.nullRefVal(), name : null}
+    mapping:
+        name :
+          update: (opts) -> opts.data
+        Tags :
+          update: (opts) -> ko.mapping.fromJS opts.data, tag.mappingRules, new tag.ModelConstructor()
+        Producer :
+          update: (opts) -> ko.mapping.fromJS opts.data, tag.mappingRules, new tag.ModelConstructor()
 
   ModelConstructor : Product
-  mappingRules : mappingRules()
+  metadata : __metadata
 

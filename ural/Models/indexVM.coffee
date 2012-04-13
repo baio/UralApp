@@ -2,22 +2,32 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
 
   class IndexVM
 
-    constructor: (@typeName, model, @mappingRules) ->
-      @list = ko.observableArray model.map (m) => @onCreateItemVM m
+    constructor: (@typeName) ->
       @active = ko.observable()
-
+      @list = ko.observableArray()
       pubSub.subOnce "model", "list_changed", @typeName, (data) =>
         if data.changeType == "added"
-          if _u.getClassName(data.item) == @typeName
-            fromList = @list().filter((i)->i.item == data.item)[0]
+          if _u.getClassName(data.itemVM.item) == @typeName
+            fromList = @list().filter((i)->i.item == data.itemVM.item)[0]
             if !fromList
-              @onAdded @onCreateItemVM data.item
+              @onAdded data.itemVM
         else if data.changeType == "removed"
           if _u.getClassName(data.itemVM.item) == @typeName
             @onRemoved data.itemVM
 
-    onCreateItemVM: (item) ->
-      new itemVM.ItemVM @typeName, item, @mappingRules
+    map: (data, onDone) ->
+      async.mapSeries data
+        , (d, ck) =>
+          item = @onCreateItemVM()
+          item.map d, true, ck
+        , (err, ivms) =>
+          if !err
+            @list.removeAll()
+            @list.push ivm for ivm in ivms
+          onDone err, @
+
+    onCreateItemVM: ->
+      new itemVM.ItemVM @typeName
 
     _checkEventHandler:(event, name) ->
       eventHandler = $(event.target).attr "data-event-handler"
@@ -40,7 +50,10 @@ define ["Ural/Modules/pubSub", "Ural/Models/itemVM"], (pubSub, itemVM) ->
       event.preventDefault()
       if @active()
         @active().cancel()
+      ###
       @active viewModel
+      viewModel.edit()
+      ###
       pubSub.pub "model", "detail", viewModel.item
 
     remove: (viewModel, event) =>

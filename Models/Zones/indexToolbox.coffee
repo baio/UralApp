@@ -7,24 +7,22 @@ define ["Models/product", "Models/producer", "Ural/Models/itemVM", "Ural/Modules
       @newProduct = ko.observable()
       @newProducer = ko.observable()
 
-    createProduct: (data, event) ->
+    _create: (data, event, typeName, prop) ->
       event.preventDefault()
-      vm = new product.ModelConstructor()
-      ivm = new itemVM.ItemVM "Product", vm, product.mappingRules
-      ivm.edit =>
-        pubSub.pub "model", "end_create", ivm.item
-        @newProduct ivm
-      @newProduct ivm
-      pubSub.pub "model", "create", vm
+      ivm = new itemVM.ItemVM typeName
+      ivm.map null, true, (err) =>
+        if !err
+          ivm.edit =>
+            ivm.endEdit()
+            pubSub.pub "model", "end_create", ivm.item
+            prop ivm
+          prop ivm
+          pubSub.pub "model", "create", ivm.item
+
+    createProduct: (data, event) ->
+      @_create data, event, "Product", @newProduct
 
     createProducer: (data, event) ->
-      event.preventDefault()
-      vm = new producer.ModelConstructor()
-      ivm = new itemVM.ItemVM "Producer", vm, producer.mappingRules
-      ivm.edit =>
-        pubSub.pub "model", "end_create", ivm.item
-        @newProducer ivm
-      @newProducer ivm
-      pubSub.pub "model", "create", vm
+      @_create data, event, "Producer", @newProducer
 
   indexToolbox : new IndexToolbox()

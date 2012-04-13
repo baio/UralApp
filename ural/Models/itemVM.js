@@ -1,23 +1,41 @@
 (function() {
   var __hasProp = Object.prototype.hasOwnProperty;
 
-  define(["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], function(dataProvider, pubSub) {
+  define(["Ural/Modules/DataProvider", "Ural/Modules/PubSub", "Ural/Models/indexVM"], function(dataProvider, pubSub, indexVM) {
     var ItemVM;
     ItemVM = (function() {
 
-      function ItemVM(typeName, item, mappingRules) {
+      function ItemVM(typeName) {
         this.typeName = typeName;
-        this.item = item;
-        this.mappingRules = mappingRules;
         this.originItem = null;
+        this.modelModule = null;
       }
 
-      /*
-          _parseMetadata:(metadata) ->
-            if metadata.viewModels
-              for viewModel in metadata.viewModels
-                @[viewModel.name] = new indexRefVM.IndexRefVM @, viewModel.typeName, viewModel.field, viewModel.mapping
-      */
+      ItemVM.prototype.map = function(data, ini, onDone) {
+        var _this = this;
+        return require(["Models/" + (this.typeName.toLowerCase())], function(module) {
+          var meta, viewModel, _i, _len, _ref;
+          meta = module.metadata;
+          if (!meta) throw "not impl: meta must be defined";
+          if (!meta.mapping) throw "not impl: mapping must be defined";
+          if (!meta.def) throw "not impl: def must be defined";
+          if (!data && !ini) throw "data arg must be provided";
+          if (ini) {
+            _this.item = new module.ModelConstructor();
+            ko.mapping.fromJS((data ? data : meta.def), meta.mapping, _this.item);
+            if (meta.viewModels) {
+              _ref = meta.viewModels;
+              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                viewModel = _ref[_i];
+                _this[viewModel.name] = new indexRefVM.IndexRefVM(_this, viewModel.typeName, viewModel.field);
+              }
+            }
+          } else {
+            ko.mapping.fromJS(data, meta.mapping, _this.item);
+          }
+          return onDone(null, _this);
+        });
+      };
 
       ItemVM.prototype._createOrigin = function() {
         return this.originItem = ko.mapping.toJS(this.item);
@@ -107,12 +125,12 @@
           if (this.onDone) return this.onDone(null, true);
         } else {
           isAdded = this.item.id() === -1;
-          return this.update(function(err, item) {
+          return this.update(function(err) {
             if (!err) {
               _this._createOrigin();
               if (isAdded) {
                 pubSub.pub("model", "list_changed", {
-                  item: item,
+                  itemVM: _this,
                   changeType: "added",
                   isExternal: false
                 });
@@ -124,12 +142,12 @@
       };
 
       ItemVM.prototype.update = function(onDone) {
-        return this.onUpdate(this.item, this.getState(), onDone);
+        return this.onUpdate(this.getState(), onDone);
       };
 
       ItemVM.prototype.remove = function(onDone) {
         var _this = this;
-        return this.onRemove(this.item, function(err) {
+        return this.onRemove(function(err) {
           if (!err) {
             pubSub.pub("model", "list_changed", {
               itemVM: _this,
@@ -141,75 +159,26 @@
         });
       };
 
-      ItemVM.prototype._getModelModule = function(callback) {
-        return require(["Models/" + (this.typeName.toLowerCase())], function(module) {
-          return callback(null, module);
-        });
+      ItemVM.prototype._mapToData = function() {
+        return ko.mapping.toJS(this.item);
       };
 
-      ItemVM.prototype._updateItem = function(data, item, modelModule) {
-        item.id(data.id);
-        return ko.mapping.fromJS(data, modelModule.mappingRules, item);
-      };
-
-      ItemVM.prototype._mapToData = function(item, modelModule) {
-        return ko.mapping.toJS(item);
-      };
-
-      /*
-          converge item, remove pair to a single object complyed to dataProvider.save
-          i.e. removed item should be included in the updated object with {id : id, __action = "delete"}
-      */
-
-      ItemVM._prepareDataForSave = function(item, remove) {
-        var id, prop, res, val, _i, _len;
-        res = item;
-        for (prop in item) {
-          if (!__hasProp.call(item, prop)) continue;
-          val = remove[prop];
-          if (Array.isArray(val)) {
-            for (_i = 0, _len = val.length; _i < _len; _i++) {
-              id = val[_i];
-              res[prop].push({
-                id: id,
-                __action: "delete"
-              });
-            }
-          } else if (typeof val === "object") {
-            ItemVM._prepareDataForSave(item[prop], val);
-          } else if (val) {
-            res[prop].id = val;
-            res[prop].__action = "delete";
-          }
-        }
-        return res;
-      };
-
-      ItemVM.prototype.onUpdate = function(item, state, onDone) {
+      ItemVM.prototype.onUpdate = function(state, onDone) {
         var dataForSave,
           _this = this;
-        if (Array.isArray(item)) throw "upade of multiple items is not supported!";
-        dataForSave = this._mapToData(item);
+        dataForSave = this._mapToData();
         dataForSave.__state = state;
         return async.waterfall([
           function(ck) {
             return _this.onSave(_this.typeName, dataForSave, ck);
           }, function(data, ck) {
-            return _this._getModelModule(function(err, modelModule) {
-              return ck(err, data, modelModule);
-            });
+            return _this.map(data, false, ck);
           }
-        ], function(err, data, modelModule) {
-          if (!err) _this._updateItem(data, item, modelModule);
-          return onDone(err, item);
-        });
+        ], onDone);
       };
 
-      ItemVM.prototype.onRemove = function(item, onDone) {
-        if (Array.isArray(item)) {
-          throw "delete of multiple items is not supported!";
-        }
-        return dataProvider.get()["delete"](this.typeName, item.id(), onDone);
+      ItemVM.prototype.onRemove = function(onDone) {
+        return dataProvider.get()["delete"](this.typeName, this.item.id(), onDone);
       };
 
       ItemVM.prototype.onSave = function(typeName, dataForSave, onDone) {

@@ -43,48 +43,37 @@ define ["Ural/Modules/DataProvider"
     onShowDetails: (id, typeName) ->
       window.location.hash = "#{typeName.toLowerCase()}/item/#{id}"
 
-    _getModelModule: (typeName, callback) ->
-      require ["Models/#{typeName.toLowerCase()}"], (module) ->
-        callback null, module
-
-    #convert raw data (json array) to app model array
-    _mapToItems: (data, modelModule)->
-      data.map (d) ->
-        ko.mapping.fromJS d, modelModule.mappingRules, new modelModule.ModelConstructor()
-
     index: (filter, onDone)->
       filter ?= {}
       filter.$expand ?= "$index"
+      viewModel = @onCreateIndexViewModel()
       async.waterfall [
         (ck) =>
           dataProvider.get().load @modelName, filter, ck
-        ,(data, ck) =>
-          @_getModelModule @modelName, (err, modelModule) -> ck err, data, modelModule
-        ,(data, modelModule, ck) =>
-          model = @_mapToItems data, modelModule
-          viewModel = @onCreateIndexViewModel model, modelModule
-          @view viewModel, "index", @defaultIndexLayout, (err) -> ck err, viewModel
-      ], onDone
+        ,(data, ck) ->
+          viewModel.map data, ck
+        ,(list, ck) =>
+            @view viewModel, "index", @defaultIndexLayout, ck
+          ], (err) -> if onDone then onDone err, viewModel
 
-    onCreateIndexViewModel: (model, modelModule) ->
-      new indexVM.IndexVM @modelName, model, modelModule.mappingRules
+    onCreateIndexViewModel: ->
+      new indexVM.IndexVM @modelName
 
     item: (id, onDone)->
+      viewModel = @onCreateItemViewModel()
       async.waterfall [
         (ck) =>
           dataProvider.get().load @modelName, {id : { $eq : id}, $expand : "$item"}, ck
-        ,(data, ck) =>
-          @_getModelModule @modelName, (err, modelModule) -> ck err, data, modelModule
-        ,(data, modelModule, ck) =>
-          model = @_mapToItems data, modelModule
-          viewModel = @onCreateItemViewModel model[0], modelModule.mappingRules
-          @view viewModel, "item", @defaultItemLayout, (err) ->
-            viewModel.edit()
-            ck err, viewModel
-      ], onDone
+        ,(data, ck) ->
+          viewModel.map data[0], true, ck
+        ,(item, ck) =>
+          @view viewModel, "item", @defaultItemLayout, ck
+      ], (err) ->
+        viewModel.edit()
+        if onDone then onDone err, viewModel
 
-    onCreateItemViewModel: (model, modelModule) ->
-      new itemVM.ItemVM @modelName, model, modelModule.mappingRules
+    onCreateItemViewModel: ->
+      new itemVM.ItemVM @modelName
 
     view: (viewModel, viewPath, layoutViewPath, onDone) ->
       crName = @_getControllerName()

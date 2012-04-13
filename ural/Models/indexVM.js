@@ -5,25 +5,22 @@
     var IndexVM;
     IndexVM = (function() {
 
-      function IndexVM(typeName, model, mappingRules) {
+      function IndexVM(typeName) {
         var _this = this;
         this.typeName = typeName;
-        this.mappingRules = mappingRules;
         this.remove = __bind(this.remove, this);
         this.detail = __bind(this.detail, this);
         this.edit = __bind(this.edit, this);
-        this.list = ko.observableArray(model.map(function(m) {
-          return _this.onCreateItemVM(m);
-        }));
         this.active = ko.observable();
+        this.list = ko.observableArray();
         pubSub.subOnce("model", "list_changed", this.typeName, function(data) {
           var fromList;
           if (data.changeType === "added") {
-            if (_u.getClassName(data.item) === _this.typeName) {
+            if (_u.getClassName(data.itemVM.item) === _this.typeName) {
               fromList = _this.list().filter(function(i) {
-                return i.item === data.item;
+                return i.item === data.itemVM.item;
               })[0];
-              if (!fromList) return _this.onAdded(_this.onCreateItemVM(data.item));
+              if (!fromList) return _this.onAdded(data.itemVM);
             }
           } else if (data.changeType === "removed") {
             if (_u.getClassName(data.itemVM.item) === _this.typeName) {
@@ -33,8 +30,27 @@
         });
       }
 
-      IndexVM.prototype.onCreateItemVM = function(item) {
-        return new itemVM.ItemVM(this.typeName, item, this.mappingRules);
+      IndexVM.prototype.map = function(data, onDone) {
+        var _this = this;
+        return async.mapSeries(data, function(d, ck) {
+          var item;
+          item = _this.onCreateItemVM();
+          return item.map(d, true, ck);
+        }, function(err, ivms) {
+          var ivm, _i, _len;
+          if (!err) {
+            _this.list.removeAll();
+            for (_i = 0, _len = ivms.length; _i < _len; _i++) {
+              ivm = ivms[_i];
+              _this.list.push(ivm);
+            }
+          }
+          return onDone(err, _this);
+        });
+      };
+
+      IndexVM.prototype.onCreateItemVM = function() {
+        return new itemVM.ItemVM(this.typeName);
       };
 
       IndexVM.prototype._checkEventHandler = function(event, name) {
@@ -61,7 +77,10 @@
         if (!this._checkEventHandler(event, "detail")) return;
         event.preventDefault();
         if (this.active()) this.active().cancel();
-        this.active(viewModel);
+        /*
+              @active viewModel
+              viewModel.edit()
+        */
         return pubSub.pub("model", "detail", viewModel.item);
       };
 

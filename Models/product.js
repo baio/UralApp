@@ -1,7 +1,7 @@
 (function() {
 
   define(["Models/tag"], function(tag) {
-    var Product, def, mappingRules;
+    var Product, __metadata;
     Product = (function() {
 
       function Product() {
@@ -12,14 +12,22 @@
         this.comp = ko.computed((function() {
           return this.id() + " " + this.name() + "foo";
         }), this);
-        ko.mapping.fromJS(def(), mappingRules(), this);
       }
 
       return Product;
 
     })();
-    mappingRules = function() {
-      return {
+    __metadata = {
+      def: {
+        id: -1,
+        name: null,
+        Tags: [],
+        Producer: {
+          id: __g.nullRefVal(),
+          name: null
+        }
+      },
+      mapping: {
         name: {
           update: function(opts) {
             return opts.data;
@@ -35,22 +43,11 @@
             return ko.mapping.fromJS(opts.data, tag.mappingRules, new tag.ModelConstructor());
           }
         }
-      };
-    };
-    def = function() {
-      return {
-        id: -1,
-        name: null,
-        Tags: [],
-        Producer: {
-          id: __g.nullRefVal(),
-          name: null
-        }
-      };
+      }
     };
     return {
       ModelConstructor: Product,
-      mappingRules: mappingRules()
+      metadata: __metadata
     };
   });
 

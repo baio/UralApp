@@ -1,17 +1,28 @@
-define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubSub) ->
+define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub", "Ural/Models/indexVM"], (dataProvider, pubSub, indexVM) ->
 
   class ItemVM
 
-    constructor: (@typeName, @item, @mappingRules) ->
+    constructor: (@typeName) ->
       @originItem = null
-      #if @item.__metadata then @_parseMetadata @item.__metadata
+      @modelModule = null
 
-    ###
-    _parseMetadata:(metadata) ->
-      if metadata.viewModels
-        for viewModel in metadata.viewModels
-          @[viewModel.name] = new indexRefVM.IndexRefVM @, viewModel.typeName, viewModel.field, viewModel.mapping
-    ###
+    map: (data, ini, onDone) ->
+      require ["Models/#{@typeName.toLowerCase()}"], (module) =>
+        meta = module.metadata
+        #TO DO: make mapping and defs automatically when not defined in meta
+        if !meta then throw "not impl: meta must be defined"
+        if !meta.mapping then throw "not impl: mapping must be defined"
+        if !meta.def then throw "not impl: def must be defined"
+        if !data and !ini then throw "data arg must be provided"
+        if ini
+          @item = new module.ModelConstructor()
+          ko.mapping.fromJS (if data then data else meta.def), meta.mapping, @item
+          if meta.viewModels
+            for viewModel in meta.viewModels
+              @[viewModel.name] = new indexRefVM.IndexRefVM @, viewModel.typeName, viewModel.field
+        else
+          ko.mapping.fromJS data, meta.mapping, @item
+        onDone null, @
 
     _createOrigin: ->
       @originItem = ko.mapping.toJS @item
@@ -70,74 +81,43 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
         if @onDone then @onDone null, true
       else
         isAdded = @item.id() == -1
-        @update (err, item) =>
+        @update (err) =>
           if !err
             @_createOrigin()
             if isAdded
-              pubSub.pub "model", "list_changed", item : item, changeType : "added", isExternal : false
+              pubSub.pub "model", "list_changed", itemVM : @, changeType : "added", isExternal : false
           if @onDone then @onDone err, false
 
     update: (onDone) ->
-      @onUpdate @item, @getState(), onDone
+      @onUpdate @getState(), onDone
 
     remove: (onDone) ->
-      @onRemove @item, (err) =>
+      @onRemove (err) =>
         if !err then pubSub.pub "model", "list_changed", itemVM : @, changeType : "removed", isExternal : false
         if onDone then onDone err, @item
 
-  #--- update region
-
-    _getModelModule: (callback) ->
-      require ["Models/#{@typeName.toLowerCase()}"], (module) ->
-        callback null, module
-
-    #update item from raw (json data)
-    _updateItem: (data, item, modelModule)->
-      item.id data.id
-      ko.mapping.fromJS data, modelModule.mappingRules, item
+    #--- update region
 
     #convert app model to raw data (json)
-    _mapToData: (item, modelModule) ->
-      ko.mapping.toJS item
+    _mapToData: ->
+      ko.mapping.toJS @item
 
-    ###
-    converge item, remove pair to a single object complyed to dataProvider.save
-    i.e. removed item should be included in the updated object with {id : id, __action = "delete"}
-    ###
-    @_prepareDataForSave: (item, remove) ->
-      res = item
-      for own prop of item
-        val = remove[prop]
-        if Array.isArray val
-          res[prop].push id : id, __action : "delete" for id in val
-        else if typeof val == "object"
-          ItemVM._prepareDataForSave item[prop], val
-        else if val
-          res[prop].id = val
-          res[prop].__action = "delete"
-      res
-
-    onUpdate: (item, state, onDone) ->
-      if Array.isArray item then throw "upade of multiple items is not supported!"
-      #dataForSave = ItemVM._prepareDataForSave @_mapToData(item), remove
-      dataForSave = @_mapToData(item)
+    onUpdate: (state, onDone) ->
+      dataForSave = @_mapToData()
       dataForSave.__state = state
       async.waterfall [
         (ck) =>
           @onSave @typeName, dataForSave, ck
-        ,(data, ck) =>
-          @_getModelModule (err, modelModule) -> ck err, data, modelModule
-      ],(err, data, modelModule) =>
-        if !err then @_updateItem data, item, modelModule
-        onDone err, item
+        , (data, ck) =>
+            @map data, false, ck
+        ], onDone
 
-    onRemove: (item, onDone) ->
-      if Array.isArray item then throw "delete of multiple items is not supported!"
-      dataProvider.get().delete @typeName, item.id(), onDone
+    onRemove: (onDone) ->
+      dataProvider.get().delete @typeName, @item.id(), onDone
 
     onSave: (typeName, dataForSave, onDone) ->
       dataProvider.get().save typeName, dataForSave, onDone
 
-  #--- update region ^
+    #--- update region ^
 
   ItemVM : ItemVM
