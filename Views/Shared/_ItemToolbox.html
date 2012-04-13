@@ -2,7 +2,7 @@
     <li class="nav-header">Add ref</li>
     <li>
         <div class="btn-group">
-            <button class="btn" data-bind="click: addProduct">Add product</button>
+            <button class="btn" data-bind="click: function(d,e){addProduct(d, e, $root.item.ProductsVM)}">Add product</button>
         </div>
     </li>
 </ul>

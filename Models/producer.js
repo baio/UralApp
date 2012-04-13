@@ -8,8 +8,27 @@
         this.id = ko.observable();
         this.name = ko.observable();
         this.Products = ko.observableArray();
-        this.ProductsVM = new indexRefVM.IndexRefVM("Product", this.Products, product.mappingRules);
+        this.ProductsVM = new indexRefVM.IndexRefVM({
+          item: this,
+          typeName: "Producer"
+        }, "Product", this.Products, product.mappingRules);
         ko.mapping.fromJS(def(), mappingRules(), this);
+        /*
+              @__metadata =
+                mapping : product.mappingRules
+                def :
+                  id : -1
+                  name : null
+                  Products : []
+                viewModels : [
+                      {
+                        name : "ProductsVM"
+                        typeName : "Product"
+                        field : @Products
+                        mapping : product.mappingRules
+                      }
+                    ]
+        */
       }
 
       return Producer;

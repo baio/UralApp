@@ -138,7 +138,7 @@
         if (!isDelete) {
           for (prop in item) {
             if (!__hasProp.call(item, prop)) continue;
-            if (prop === "__state") continue;
+            if (prop === "__state" || prop === "__parent") continue;
             val = item[prop];
             if (Array.isArray(val)) {
               states = item.__state[prop];
@@ -203,8 +203,12 @@
       };
 
       ODataProvider._getSaveRequestData = function(srcName, item) {
-        var req;
-        req = ODataProvider._formatRequest(srcName, item);
+        var parentId, parentTypeName, req;
+        if (item.__parent) {
+          parentId = item.__parent.id;
+          parentTypeName = item.__parent.typeName;
+        }
+        req = ODataProvider._formatRequest(srcName, item, null, parentTypeName, parentId);
         req.sort(function(a, b) {
           return a.headers["Content-ID"] - b.headers["Content-ID"];
         });

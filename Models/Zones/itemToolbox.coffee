@@ -6,10 +6,10 @@ define ["Models/product", "Ural/Models/itemRefVM", "Ural/Modules/PubSub"],
     constructor: ->
       @newProduct = ko.observable()
 
-    addProduct: (data, event) ->
+    addProduct: (data, event, indexRefVM) ->
       event.preventDefault()
       vm = new product.ModelConstructor()
-      ivm = new itemRefVM.ItemRefVM "Product", vm, product.mappingRules
+      ivm = new itemRefVM.ItemRefVM indexRefVM, "Product", vm, product.mappingRules
       ivm.edit =>
         pubSub.pub "model", "end_create", ivm.item
         @newProduct ivm

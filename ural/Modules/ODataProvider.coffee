@@ -79,7 +79,7 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
 
       if !isDelete
         for own prop of item
-          if prop == "__state" then continue
+          if prop == "__state" || prop == "__parent" then continue
           val = item[prop]
           if Array.isArray val
             states = item.__state[prop]
@@ -129,7 +129,10 @@ define ["Ural/Modules/ODataFilter", "Ural/Modules/DataFilterOpts", "Ural/Libs/da
 
     @_getSaveRequestData: (srcName, item) ->
       #metadata = ODataProvider._getMetadata srcName, item
-      req = ODataProvider._formatRequest srcName, item #, metadata
+      if item.__parent
+        parentId = item.__parent.id
+        parentTypeName = item.__parent.typeName
+      req = ODataProvider._formatRequest srcName, item, null, parentTypeName, parentId
       req.sort (a, b) -> a.headers["Content-ID"] - b.headers["Content-ID"]
       __batchRequests: [
         __changeRequests: req

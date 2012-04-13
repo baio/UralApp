@@ -12,6 +12,13 @@
         this.originItem = null;
       }
 
+      /*
+          _parseMetadata:(metadata) ->
+            if metadata.viewModels
+              for viewModel in metadata.viewModels
+                @[viewModel.name] = new indexRefVM.IndexRefVM @, viewModel.typeName, viewModel.field, viewModel.mapping
+      */
+
       ItemVM.prototype._createOrigin = function() {
         return this.originItem = ko.mapping.toJS(this.item);
       };
@@ -19,39 +26,6 @@
       ItemVM.prototype._copyFromOrigin = function() {
         return ko.mapping.fromJS(this.originItem, this.mappingRules, this.item);
       };
-
-      /*
-          Append removed referrences (via comparison with original item)
-      */
-
-      /*
-          getRemovedRefs: -> ItemVM._getRemovedRefs @originItem, @item
-      
-          @_getRemovedRefs: (origItem, curObservableItem) ->
-            _setProp = (obj, prop, val) ->
-              obj ?= {}
-              obj[prop] = val
-              obj
-      
-            res = null
-            for own prop of origItem
-              val = origItem[prop]
-              if val == null or val == undefined then continue
-              if Array.isArray val
-                removed = val.filter((v) -> ko.utils.arrayFirst(curObservableItem[prop](), (i) -> i.id() == v.id) == null)
-                  .map (v) -> v.id
-                if removed.length
-                  res = _setProp res, prop, removed
-              else if typeof val == "object"
-                obj = curObservableItem[prop]()
-                curId = obj.id()
-                if curId != val.id and curId == __g.nullRefVal()
-                  res = _setProp res, prop, val.id
-                else
-                  subRes = ItemVM._getRemovedRefs val, obj
-                  if subRes then res = _setProp res, prop, subRes
-            res
-      */
 
       ItemVM.prototype.getState = function() {
         return ItemVM._getState(this.originItem, this.item);
@@ -219,7 +193,7 @@
         dataForSave.__state = state;
         return async.waterfall([
           function(ck) {
-            return dataProvider.get().save(_this.typeName, dataForSave, ck);
+            return _this.onSave(_this.typeName, dataForSave, ck);
           }, function(data, ck) {
             return _this._getModelModule(function(err, modelModule) {
               return ck(err, data, modelModule);
@@ -236,6 +210,10 @@
           throw "delete of multiple items is not supported!";
         }
         return dataProvider.get()["delete"](this.typeName, item.id(), onDone);
+      };
+
+      ItemVM.prototype.onSave = function(typeName, dataForSave, onDone) {
+        return dataProvider.get().save(typeName, dataForSave, onDone);
       };
 
       return ItemVM;

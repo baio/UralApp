@@ -4,44 +4,20 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
 
     constructor: (@typeName, @item, @mappingRules) ->
       @originItem = null
+      #if @item.__metadata then @_parseMetadata @item.__metadata
+
+    ###
+    _parseMetadata:(metadata) ->
+      if metadata.viewModels
+        for viewModel in metadata.viewModels
+          @[viewModel.name] = new indexRefVM.IndexRefVM @, viewModel.typeName, viewModel.field, viewModel.mapping
+    ###
 
     _createOrigin: ->
       @originItem = ko.mapping.toJS @item
 
     _copyFromOrigin: ->
       ko.mapping.fromJS @originItem, @mappingRules, @item
-
-    ###
-    Append removed referrences (via comparison with original item)
-    ###
-    ###
-    getRemovedRefs: -> ItemVM._getRemovedRefs @originItem, @item
-
-    @_getRemovedRefs: (origItem, curObservableItem) ->
-      _setProp = (obj, prop, val) ->
-        obj ?= {}
-        obj[prop] = val
-        obj
-
-      res = null
-      for own prop of origItem
-        val = origItem[prop]
-        if val == null or val == undefined then continue
-        if Array.isArray val
-          removed = val.filter((v) -> ko.utils.arrayFirst(curObservableItem[prop](), (i) -> i.id() == v.id) == null)
-            .map (v) -> v.id
-          if removed.length
-            res = _setProp res, prop, removed
-        else if typeof val == "object"
-          obj = curObservableItem[prop]()
-          curId = obj.id()
-          if curId != val.id and curId == __g.nullRefVal()
-            res = _setProp res, prop, val.id
-          else
-            subRes = ItemVM._getRemovedRefs val, obj
-            if subRes then res = _setProp res, prop, subRes
-      res
-    ###
 
     getState: ->
       ItemVM._getState @originItem, @item
@@ -102,9 +78,6 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
           if @onDone then @onDone err, false
 
     update: (onDone) ->
-      #remove = @getRemovedRefs()
-      #remove ?= {}
-      #fieldStates = @getFieldsStates()
       @onUpdate @item, @getState(), onDone
 
     remove: (onDone) ->
@@ -151,7 +124,7 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
       dataForSave.__state = state
       async.waterfall [
         (ck) =>
-          dataProvider.get().save @typeName, dataForSave, ck
+          @onSave @typeName, dataForSave, ck
         ,(data, ck) =>
           @_getModelModule (err, modelModule) -> ck err, data, modelModule
       ],(err, data, modelModule) =>
@@ -161,6 +134,9 @@ define ["Ural/Modules/DataProvider", "Ural/Modules/PubSub"], (dataProvider, pubS
     onRemove: (item, onDone) ->
       if Array.isArray item then throw "delete of multiple items is not supported!"
       dataProvider.get().delete @typeName, item.id(), onDone
+
+    onSave: (typeName, dataForSave, onDone) ->
+      dataProvider.get().save typeName, dataForSave, onDone
 
   #--- update region ^
 

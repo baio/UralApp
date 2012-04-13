@@ -8,12 +8,12 @@
         this.newProduct = ko.observable();
       }
 
-      ItemToolbox.prototype.addProduct = function(data, event) {
+      ItemToolbox.prototype.addProduct = function(data, event, indexRefVM) {
         var ivm, vm,
           _this = this;
         event.preventDefault();
         vm = new product.ModelConstructor();
-        ivm = new itemRefVM.ItemRefVM("Product", vm, product.mappingRules);
+        ivm = new itemRefVM.ItemRefVM(indexRefVM, "Product", vm, product.mappingRules);
         ivm.edit(function() {
           pubSub.pub("model", "end_create", ivm.item);
           return _this.newProduct(ivm);
