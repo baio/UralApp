@@ -13,13 +13,29 @@
         ItemRefVM.__super__.constructor.call(this, typeName);
       }
 
-      /*
-          save: (data, event, saveMode) ->
-            if saveMode == "whole"
-              @indexRefVM.parentItemVM.save()
-            else
-              super data, event
-      */
+      ItemRefVM.prototype._getMode = function() {
+        return "updateParent";
+      };
+
+      ItemRefVM.prototype.update = function(onDone) {
+        var _this = this;
+        return ItemRefVM.__super__.update.call(this, function(err) {
+          onDone(err);
+          if (_this._getMode() === "updateParent") {
+            if (!err) return _this.indexRefVM.parentItemVM.update(function() {});
+          }
+        });
+      };
+
+      ItemRefVM.prototype.remove = function(onDone) {
+        var _this = this;
+        return ItemRefVM.__super__.remove.call(this, function(err) {
+          if (onDone) onDone(err);
+          if (_this._getMode() === "updateParent") {
+            if (!err) return _this.indexRefVM.parentItemVM.update(function() {});
+          }
+        });
+      };
 
       ItemRefVM.prototype.onUpdate = function(state, onDone) {
         return onDone(null, this.item);
