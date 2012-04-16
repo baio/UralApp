@@ -5,13 +5,21 @@ define ["Ural/Models/itemVM"], (itemVM) ->
     constructor: (@indexRefVM, typeName) ->
       super typeName
 
-    ###
-    save: (data, event, saveMode) ->
-      if saveMode == "whole"
-        @indexRefVM.parentItemVM.save()
-      else
-        super data, event
-    ###
+    _getMode: -> "updateParent"
+
+    update: (onDone) ->
+      super (err) =>
+        onDone err
+        if @_getMode() == "updateParent"
+          if !err
+            @indexRefVM.parentItemVM.update ->
+
+    remove: (onDone) ->
+      super (err) =>
+        if onDone then onDone err
+        if @_getMode() == "updateParent"
+          if !err
+            @indexRefVM.parentItemVM.update ->
 
     onUpdate: (state, onDone) ->
       onDone null, @item
